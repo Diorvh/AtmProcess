@@ -17,8 +17,9 @@ class MyDatabase:
         self.update('DirData','')
         self.update('FDirData','')
         self.update('FDirRes','')
-        self.update('ExpNo','')
+        self.update('ExpNo',1)
+        self.update('NumPipe',1)
 db=MyDatabase()
 if __name__=='__main__':
-    #db.update('ExpNo','')
-    db.default()
+    db.update('NumPipe',1)
+    #db.default()

@@ -84,7 +84,8 @@ class ClassDataPic(ttk.Frame):
         self.ax.axis([self.xmin.get(),self.xmax.get(),self.ymin.get(),self.ymax.get()])
         self.canvas.draw_idle()
     def var_fresh(self,*args):
-        self.fresh()
+        self.ax.axis([self.xmin.get(),self.xmax.get(),self.ymin.get(),self.ymax.get()])
+        self.canvas.draw_idle()
 if __name__=='__main__':
     root=tk.Tk()
     xdata=range(1,101)

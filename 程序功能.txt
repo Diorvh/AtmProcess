@@ -1,0 +1,15 @@
+Panel：
+1. 实验编号+1/-1：
+    实验编号+1/-1；
+    从数据文件夹中找到对应实验编号的.csv文件，然后更新数据文件；
+    刷新三幅图像的self.data，刷新三幅图像的时间区间（self.IntL/R）--如果选择从结果中读取，那么实验区间就会从结果文件中读取
+处理方法：
+1. 改变上方需要删除的非数据行数：ClassProcess-informrows
+2. 改变计算仪表测量误差的定位行：ClassProcess-errrow
+3. 改变显示小数位数：QProcess-digit
+4. 单射流cd不除以2：QProcess-fresh_data（后面改成GUI选择控件）
+
+2023.4.9TODO：
+添加单射流选择
+
+前后端分离
