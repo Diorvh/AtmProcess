@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import openpyxl
+#依赖库：pip install numpy TinyDB matplotlib openpyxl
 class QProcess(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
@@ -38,6 +39,7 @@ class QProcess(ttk.Frame):
         LabelEntry(self.FrameR1,'实验编号',self.ExpNo).pack(side='left')
         ttk.Button(self.FrameR1,text='+1',width=2,command=self.CommandButtonExpNoInc).pack(side='left')
         ttk.Button(self.FrameR1,text='-1',width=2,command=self.CommandButtonExpNoDec).pack(side='left')
+        ttk.Button(self.FrameR1,text='刷新',width=4,command=self.CommandButtonReadFDir).pack(side='left')
         self.new_var('FDirData')
         self.new_var('FDirRes')
         ChooseFile(self.FramePanel,'数据文件：',self.FDirData,width=100).pack()
@@ -76,7 +78,10 @@ class QProcess(ttk.Frame):
         FrameDataTotal(self.FrameR6,'Pc',self.DataPc,self.DataDPc).pack(side='left')
         ttk.Label(self.FrameR6,text=')').pack(side='left')
     def fresh_data(self):
-        self.data=np.genfromtxt(self.FDirData.get(), delimiter=',')
+        try:
+            self.data=np.genfromtxt(self.FDirData.get(), delimiter=',')
+        except:
+            self.data=np.genfromtxt('23_03_12_20_21_38_实验编号85.csv', delimiter=',')
         for i in self.Process:
             i.get_data(self.data)
             i.fresh_data()
@@ -144,4 +149,3 @@ if __name__=='__main__':
     App.pack()
     root.protocol("WM_DELETE_WINDOW",close_window)
     root.mainloop()
-    os.system("pause")

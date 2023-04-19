@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk,filedialog
-import openpyxl
 from lib_tkwidget import *
 from ClassDataPic import *
 from copy import deepcopy

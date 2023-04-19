@@ -21,5 +21,5 @@ class MyDatabase:
         self.update('NumPipe',1)
 db=MyDatabase()
 if __name__=='__main__':
-    db.update('NumPipe',1)
-    #db.default()
+    #db.update('NumPipe',1)
+    db.default()
