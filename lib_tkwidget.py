@@ -1,16 +1,20 @@
 from tkinter import ttk,filedialog
 class LabelEntry(ttk.Frame):
-    def __init__(self,master,text,var,width=5):
-        self.root=master
-        super().__init__(master)
-        ttk.Label(self,text=text+':').pack(side='left')
-        ttk.Entry(self,textvariable=var,width=width).pack(side='left')
-class LabelLabel(ttk.Frame):
-    def __init__(self,master,text,var):
+    def __init__(self,master,text,var,width=5,extratext=''):
         self.root=master
         super().__init__(master)
         ttk.Label(self,text=text).pack(side='left')
-        ttk.Label(self,textvariable=var,width=5).pack(side='left')
+        ttk.Entry(self,textvariable=var,width=width).pack(side='left')
+        if extratext!='':
+            ttk.Label(self,text=extratext).pack(side='left')
+class LabelLabel(ttk.Frame):
+    def __init__(self,master,text,var,width=5,extratext=''):
+        self.root=master
+        super().__init__(master)
+        ttk.Label(self,text=text).pack(side='left')
+        ttk.Label(self,textvariable=var,width=width).pack(side='left')
+        if extratext!='':
+            ttk.Label(self,text=extratext).pack(side='left')
 class ChooseFile(ttk.Frame):
     def __init__(self,master,text,var,width=50,type='file'):
         super().__init__(master)
