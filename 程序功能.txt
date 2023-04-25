@@ -1,15 +1,57 @@
-Panel：
-1. 实验编号+1/-1：
-    实验编号+1/-1；
-    从数据文件夹中找到对应实验编号的.csv文件，然后更新数据文件；
-    刷新三幅图像的self.data，刷新三幅图像的时间区间（self.IntL/R）--如果选择从结果中读取，那么实验区间就会从结果文件中读取
-处理方法：
-1. 改变上方需要删除的非数据行数：ClassProcess-informrows
-2. 改变计算仪表测量误差的定位行：ClassProcess-errrow
-3. 改变显示小数位数：QProcess-digit
-4. 单射流cd不除以2：QProcess-fresh_data（后面改成GUI选择控件）
+Main: 
+R1: 输入，按钮触发
+    输入：
+        DirData:String,图片所在总文件夹；被刷新：（已封装）
+            trace_back:（刷新后端）
+            保存设置
+    按钮触发：
+        (已封装):选择文件夹并修改对应变量（带显示）
+R2: 输入，按钮触发
+    输入：
+        ExpNo:Int,实验编号。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
+            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：ChoosePic对象；刷新后端
+            保存设置
+    按钮触发：
+    按钮触发：
+        CommandButtonExpNoInc:点击后ExpNo+1（if判断），并触发Fresh；刷新后端
+        CommandButtonExpNoDec:点击后ExpNo-1（if判断），并触发Fresh；刷新后端
+R3: 输入，按钮触发
+    输入：
+        FDirRes:String,汇总结果文件夹。被刷新：（已封装）
+            trace_back:（刷新后端）
+            保存设置
+    按钮触发：
+        (已封装):选择文件并修改对应变量（带显示）
 
-2023.4.9TODO：
-添加单射流选择
+ChoosePic:
+R1: 输入，按钮触发
+    输入：
+        ChoosePic-Decimate:Int,pcc导出中的decimate数值
+            回车触发-Fresh：刷新后端
+            保存设置
+    按钮触发：
+        CommandButtonSave:将目前采集到的数据保存到所在文件夹（含ExpNo）目录下，命名为“实验编号ExpNo-雾化锥角”
+R2: 输出
+    输出：
+        FigNameStart,FigNameEnd:当前文件夹内图片名称范围。被刷新：CommandButtonFresh时根据新文件夹内文件名计算并刷新
+R2: 输入，按钮触发
+    输入：
+        FigName:当前图片名称。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
+            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：Notebook中所有对象；刷新后端
+    按钮触发：
+        CommandButtonExpNoInc:点击后ExpNo+1（if判断），并触发Fresh；刷新后端
+        CommandButtonExpNoDec:点击后ExpNo-1（if判断），并触发Fresh；刷新后端
+R3: 输入
+    输入：
+        ImpactX,ImpactY:Int,撞击点坐标
+            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：Notebook中所有对象；刷新后端
+            保存设置
+        PixSize:Double,像素尺寸
+            回车触发-Fresh：刷新后端
+            保存设置
 
-前后端分离
+
+Notebook:
+R1: 输出
+    输出： 
+        

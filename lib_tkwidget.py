@@ -1,10 +1,10 @@
 from tkinter import ttk,filedialog
 class LabelEntry(ttk.Frame):
-    def __init__(self,master,text,var):
+    def __init__(self,master,text,var,width=5):
         self.root=master
         super().__init__(master)
         ttk.Label(self,text=text+':').pack(side='left')
-        ttk.Entry(self,textvariable=var,width=5).pack(side='left')
+        ttk.Entry(self,textvariable=var,width=width).pack(side='left')
 class LabelLabel(ttk.Frame):
     def __init__(self,master,text,var):
         self.root=master
