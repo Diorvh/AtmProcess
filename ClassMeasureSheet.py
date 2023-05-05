@@ -9,8 +9,9 @@ class ClassFigureMeasureSheet(ClassFigure):
         pass
 class ClassMeasureSheet(ttk.Frame):
     def __init__(self,master):
-        self.root=master
-        super().__init__(self.root,padding=5,relief='sunken')
+        self.father=master
+        self.db=master.db
+        super().__init__(self.father,padding=5,relief='sunken')
         # self.click_mode='left'
         # self.LineLefty,self.LineLeftx,self.LineRighty,self.LineRightx=0,0,0,0
         self.create_panel()

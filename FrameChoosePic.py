@@ -3,27 +3,31 @@ sys.path.append(r'D:\Files\Codes\Python\lib\lib_openpyxl')
 import tkinter as tk
 from tkinter import ttk
 from lib_tkwidget import *
-from FrameProcess import *
+from ClassMeasureSheet import *
 import openpyxl
 class FrameChoosePic(ttk.Frame):
     def __init__(self,master):
-        self.root=master
-        super().__init__(self.root,padding=5,relief='sunken')
+        self.father=master
+        self.db=master.db
+        super().__init__(self.father,padding=5,relief='sunken')
         # self.FPS=40000
         # self.FigureNameList=[]
         # self.res={}
+        self.FramePanel=ttk.Frame(self)
+        self.FramePanel.pack()
         self.create_panel()
         self.NotebookProcess=ttk.Notebook(self)
         self.NotebookProcess.pack()
         #Notebook界面
-        # self.MeasureSheet=ClassMeasureSheet(self)
-        # self.NotebookProcess.add(self.MeasureSheet,text='液膜测量')
+        self.MeasureSheet=ClassMeasureSheet(self)
+        self.NotebookProcess.add(self.MeasureSheet,text='液膜测量')
     def create_panel(self):
-        self.FramePanel=ttk.Frame(self)
-        self.FramePanel.pack()
         #R1
         self.Decimate=tk.IntVar(self)
-        LabelEntry(self.FramePanel,text='Decimate=',var=self.Decimate).grid(row=0,column=0,sticky='W')
+        self.db.Main.FrameChoosePic.Decimate_front=self.Decimate
+        self.LER1=LabelEntry(self.FramePanel,text='Decimate=',var=self.Decimate)
+        self.LER1.grid(row=0,column=0,sticky='W')
+        self.LER1.entry.bind('<Return>',self.DecimateFresh)
         ttk.Button(self.FramePanel,text='保存',command=self.CommandButtonSave).grid(row=0,column=1,sticky='W')
         #R2
         self.FrameR2C1=ttk.Frame(self.FramePanel)
@@ -52,6 +56,8 @@ class FrameChoosePic(ttk.Frame):
         ttk.Entry(self.FrameR3C1,textvariable=self.ImpactY,width=4).pack(side='left')
         self.PixSize=tk.DoubleVar(self)
         LabelEntry(self.FramePanel,'像素尺寸=',self.PixSize,width=6,extratext='um').grid(row=2,column=1,sticky='W')
+    def DecimateFresh(self,*args):
+        self.db.Main.FrameChoosePic.update('Decimate',self.Decimate.get(),False)
     def CommandButtonNameInc(self):
         pass# self.res.append([self.CurrentName.get()]+self.MeasureSheet.get_res())
         # if self.CurrentName.get()<self.FigNameEnd.get():
@@ -79,6 +85,8 @@ class FrameChoosePic(ttk.Frame):
                 ws_target.cell(self.ExpNo.get()+3,i+1,self.Process[2].IntR.get())
         wb_target.save(self.master.DirData.get()+r'/')
         '''
+    def Fresh(self):
+        pass
 if __name__=='__main__':
     root=tk.Tk()
     App=FrameChoosePic(root)

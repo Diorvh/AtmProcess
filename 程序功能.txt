@@ -1,39 +1,36 @@
 Main: 
 R1: 输入，按钮触发
     输入：
-        DirData:String,图片所在总文件夹；被刷新：（已封装）
-            trace_back:（刷新后端）
+        DirData:String,图片所在总文件夹；被刷新：按钮触发
             保存设置
     按钮触发：
-        (已封装):选择文件夹并修改对应变量（带显示）
+        CommandButtonChooseFile:选择文件夹并修改对应变量（带显示）
 R2: 输入，按钮触发
     输入：
         ExpNo:Int,实验编号。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
-            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：ChoosePic对象；刷新后端
+            回车触发-刷后端+Fresh：刷新所有窗口（调用fresh方法），包括：ChoosePic对象；刷新后端
             保存设置
-    按钮触发：
     按钮触发：
         CommandButtonExpNoInc:点击后ExpNo+1（if判断），并触发Fresh；刷新后端
         CommandButtonExpNoDec:点击后ExpNo-1（if判断），并触发Fresh；刷新后端
 R3: 输入，按钮触发
     输入：
-        FDirRes:String,汇总结果文件夹。被刷新：（已封装）
-            trace_back:（刷新后端）
+        FDirRes:String,汇总结果文件夹。被刷新：按钮触发
             保存设置
     按钮触发：
-        (已封装):选择文件并修改对应变量（带显示）
+        CommandButtonChooseFile2:选择文件并修改对应变量（带显示）
 
 ChoosePic:
 R1: 输入，按钮触发
     输入：
         ChoosePic-Decimate:Int,pcc导出中的decimate数值
-            回车触发-Fresh：刷新后端
+            回车触发：刷新后端
             保存设置
     按钮触发：
         CommandButtonSave:将目前采集到的数据保存到所在文件夹（含ExpNo）目录下，命名为“实验编号ExpNo-雾化锥角”
 R2: 输出
     输出：
-        FigNameStart,FigNameEnd:当前文件夹内图片名称范围。被刷新：CommandButtonFresh时根据新文件夹内文件名计算并刷新
+        FigNameStart,FigNameEnd:当前文件夹内图片名称范围。被刷新：Fresh时根据新文件夹内文件名计算并刷新
 R2: 输入，按钮触发
     输入：
         FigName:当前图片名称。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
@@ -49,9 +46,22 @@ R3: 输入
         PixSize:Double,像素尺寸
             回车触发-Fresh：刷新后端
             保存设置
+Fresh:
+    重新读取文件夹内文件，生成FigNameStart-End；当前序号=初始序号；刷新Notebook中所有对象。
 
 
-Notebook:
-R1: 输出
-    输出： 
-        
+    (Notebook)MeasureSheet
+    R1R2: 输出
+        输出： 
+            LineLeftPosition,LineRightPosition,LineUpPosition,LineDownPosition:图中线坐标。被刷新：CommandBindButton1
+            SheetWidthPix,SheetWidth,SheetLengthPix,SheetLength:根据线坐标计算的数据。被刷新：CommandBindButton1
+    R3: 按钮触发
+        按钮触发：
+            CommandButtonLeftLine等4个：点击后切换BindButton1中的模式，改变4个Button的文字
+    R4：点击触发，键盘触发
+        点击触发：
+            CommandBindButton1:点击图中位置，根据点击模式，刷新Line4个坐标，进而刷新Sheet4个参数
+        键盘触发：
+            CommandBindKey:按2468，代替手动点击R3中4个Button
+    Fresh:
+        刷新图片

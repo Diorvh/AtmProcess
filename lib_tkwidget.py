@@ -3,10 +3,13 @@ class LabelEntry(ttk.Frame):
     def __init__(self,master,text,var,width=5,extratext=''):
         self.root=master
         super().__init__(master)
-        ttk.Label(self,text=text).pack(side='left')
-        ttk.Entry(self,textvariable=var,width=width).pack(side='left')
+        self.label=ttk.Label(self,text=text)
+        self.label.pack(side='left')
+        self.entry=ttk.Entry(self,textvariable=var,width=width)
+        self.entry.pack(side='left')
         if extratext!='':
-            ttk.Label(self,text=extratext).pack(side='left')
+            self.label2=ttk.Label(self,text=extratext)
+            self.label2.pack(side='left')
 class LabelLabel(ttk.Frame):
     def __init__(self,master,text,var,width=5,extratext=''):
         self.root=master

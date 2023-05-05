@@ -1,25 +1,61 @@
-import os
-import numpy as np
-from tinydb import TinyDB,Query
-class MyDatabase:
+from lib_json import *
+class DB:
     def __init__(self):
-        self.db=TinyDB(os.path.dirname(__file__)+r'\settings.json')
-        self.query=Query()
+        self.SubClassName=['Main']
+        self.Main=DB_main(self)
+    def load(self):
+        try:
+            dict=read_json('settings.json')
+            for i in self.SubClassName:
+                getattr(self,i).load(dict)
+        except:
+            print('settings.json文件不存在或为空，未读取')
+    def save(self):
+        dict={}
+        for i in self.SubClassName:
+            dict={**dict,**getattr(self,i).save()}
+        write_json('settings.json',dict)
+class BaseSubDB:
+    def __init__(self):
+        self.SubClassName=[]
+        self.SaveVarName=[]
+    def update(self,name,value,FlagFresh=True):
+        setattr(self,name,value)
+        if FlagFresh:#刷新前端
+            getattr(self,name+'_front').set(value)
+        if hasattr(self,'update_'+name):#调用其他触发命令
+            getattr(self,'update_'+name)()
     def get(self,name):
-        return self.db.search(self.query.name==name)[0]['key']
-    def update(self,name,key):
-        if self.db.search(self.query.name==name) == []:
-            self.db.insert({'name':name,'key':key})
-        else:
-            self.db.update({'key':key},self.query.name==name)
-    def default(self):
-        self.db.truncate()
-        self.update('DirData','')
-        self.update('FDirData','')
-        self.update('FDirRes','')
-        self.update('ExpNo',1)
-        self.update('NumPipe',1)
-db=MyDatabase()
+        return getattr(self,name)
+    def load(self,dict):
+        for i in self.SaveVarName:
+            setattr(self,i,dict[i])
+            getattr(self,i+'_front').set(dict[i])
+        for i in self.SubClassName:
+            getattr(self,i).load(dict)
+    def save(self):
+        dict={}
+        for i in self.SaveVarName:
+            dict[i]=getattr(self,i)
+        for i in self.SubClassName:
+            dict={**dict,**getattr(self,i).save()}
+        return dict
+class DB_main(BaseSubDB):
+    def __init__(self,root):
+        self.root=root
+        self.SubClassName=['FrameChoosePic']
+        self.SaveVarName=['DirData','ExpNo','FDirRes']
+        self.FrameChoosePic=DB_FrameChoosePic(self.root)
+        self.DirData=''
+        self.ExpNo=0
+        self.FDirRes=''
+class DB_FrameChoosePic(BaseSubDB):
+    def __init__(self,root):
+        self.root=root
+        self.SubClassName=[]
+        self.SaveVarName=['Decimate']
+        self.Decimate=0
+
 if __name__=='__main__':
     #db.update('NumPipe',1)
-    db.default()
+    db=DB()
