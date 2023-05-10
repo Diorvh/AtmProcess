@@ -1,67 +1,89 @@
 Main: 
-R1: 输入，按钮触发
+R1: 输入，按钮
     输入：
-        DirData:String,图片所在总文件夹；被刷新：按钮触发
-            保存设置
-    按钮触发：
-        CommandButtonChooseFile:选择文件夹并修改对应变量（带显示）
+        DirData:图片所在总文件夹
+            String,保存
+            按钮更新：CommandButtonChooseFile
+    按钮：
+        CommandButtonChooseFile:选择文件夹并修改对应变量
 R2: 输入，按钮触发
     输入：
-        ExpNo:Int,实验编号。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
-            回车触发-刷后端+Fresh：刷新所有窗口（调用fresh方法），包括：ChoosePic对象；刷新后端
-            保存设置
+        ExpNo:实验编号
+            Int,保存
+            按钮更新：CommandButtonExpNoInc,CommandButtonExpNoDec
+            回车更新：CommandBindExpNo:刷新后端，如有文件夹则刷新子窗口(Fresh)
     按钮触发：
-        CommandButtonExpNoInc:点击后ExpNo+1（if判断），并触发Fresh；刷新后端
-        CommandButtonExpNoDec:点击后ExpNo-1（if判断），并触发Fresh；刷新后端
+        CommandButtonExpNoInc:刷新后端，如有文件夹则刷新子窗口(Fresh)
+        CommandButtonExpNoDec:刷新后端，如有文件夹则刷新子窗口(Fresh)
 R3: 输入，按钮触发
     输入：
-        FDirRes:String,汇总结果文件夹。被刷新：按钮触发
-            保存设置
+        FDirRes:汇总结果文件夹
+            String,保存
+            按钮更新：CommandButtonChooseFile2
     按钮触发：
-        CommandButtonChooseFile2:选择文件并修改对应变量（带显示）
+        CommandButtonChooseFile:选择文件夹并修改对应变量
 
 ChoosePic:
 R1: 输入，按钮触发
     输入：
-        ChoosePic-Decimate:Int,pcc导出中的decimate数值
-            回车触发：刷新后端
-            保存设置
+        Decimate:pcc导出中的decimate数值
+            Int,保存
+            回车更新：CommandBindDecimate:刷新后端
     按钮触发：
-        CommandButtonSave:将目前采集到的数据保存到所在文件夹（含ExpNo）目录下，命名为“实验编号ExpNo-雾化锥角”
+        ******CommandButtonSave: 将目前采集到的数据保存到所在文件夹（含ExpNo）目录下，命名为“实验编号ExpNo-雾化锥角”；第一行要有X,Y,像素大小（um/pix），长avg，宽avg；然后刷新总结数据
 R2: 输出
     输出：
-        FigNameStart,FigNameEnd:当前文件夹内图片名称范围。被刷新：Fresh时根据新文件夹内文件名计算并刷新
+        FigNameStart,FigNameEnd:当前文件夹内图片名称范围。
+            Int,保存
+            被更新：Fresh时根据新文件夹内文件名计算并刷新
 R2: 输入，按钮触发
     输入：
-        FigName:当前图片名称。被刷新：CommandButtonExpNoInc和CommandButtonExpNoDec
-            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：Notebook中所有对象；刷新后端
+        FigName:当前图片名称。
+            Int,保存
+            按钮更新：CommandButtonFigNameInc,CommandButtonFigNameDec
+            回车更新：CommandBindFigName:刷新后端，如有该图片则刷新子窗口(Fresh)
+            被动更新：Fresh
     按钮触发：
-        CommandButtonExpNoInc:点击后ExpNo+1（if判断），并触发Fresh；刷新后端
-        CommandButtonExpNoDec:点击后ExpNo-1（if判断），并触发Fresh；刷新后端
+        CommandButtonFigNameInc:刷新后端，如有该图片则刷新子窗口(Fresh)
+        CommandButtonFigNameDec:刷新后端，如有该图片则刷新子窗口(Fresh)
 R3: 输入
     输入：
-        ImpactX,ImpactY:Int,撞击点坐标
-            回车触发-Fresh：刷新所有窗口（调用fresh方法），包括：Notebook中所有对象；刷新后端
-            保存设置
-        PixSize:Double,像素尺寸
-            回车触发-Fresh：刷新后端
-            保存设置
+        ImpactX,ImpactY:撞击点坐标
+            Int,保存
+            回车更新：CommandBindImpactXY:刷新后端，刷新子窗口(Fresh)
+        PixSize:像素尺寸
+            Double,保存
+            回车更新：CommandBindPixSize:刷新后端，刷新子窗口(Fresh)
+Data:
+    被动更新：
+        1. FigNameFresh之前： 先检查是否有，有就覆盖，没有就新建一行并保存当前数据组。调用后端generate_data直接生成
+        2. 切换实验编号时： 写入excel（如果有就继续往后写）；清空当前
+    刷新触发：
+        更新Table
 Fresh:
-    重新读取文件夹内文件，生成FigNameStart-End；当前序号=初始序号；刷新Notebook中所有对象。
+    重新读取文件夹内文件，生成FigNameList, FigNameStart-End；当前序号=初始序号；刷新Notebook中所有对象。    
 
 
     (Notebook)MeasureSheet
+    后端变量：
     R1R2: 输出
         输出： 
-            LineLeftPosition,LineRightPosition,LineUpPosition,LineDownPosition:图中线坐标。被刷新：CommandBindButton1
-            SheetWidthPix,SheetWidth,SheetLengthPix,SheetLength:根据线坐标计算的数据。被刷新：CommandBindButton1
-    R3: 按钮触发
+            LineLeftPosition,LineRightPosition,LineUpPosition,LineDownPosition:图中线坐标
+                Int,保存
+                被更新： CommandBindFigureButton1
+            SheetWidthPix,SheetWidth,SheetLengthPix,SheetLength:根据线坐标计算的数据
+                Double,保存
+                被刷新： CommandBindFigureButton1
+        点击触发： 
+            CommandBindFigureButton1: 点击图中位置，根据点击模式，刷新Line4个坐标，进而刷新Sheet4个参数，刷新图像线位置
+    R3R4: 按钮触发
         按钮触发：
-            CommandButtonLeftLine等4个：点击后切换BindButton1中的模式，改变4个Button的文字
-    R4：点击触发，键盘触发
-        点击触发：
-            CommandBindButton1:点击图中位置，根据点击模式，刷新Line4个坐标，进而刷新Sheet4个参数
+            CommandButtonLine： 点击后更新ClickMode
+        输出：
+            ClickMode: 鼠标点击修改的线
+                String,保存
+                被更新： CommandButtonLine,CommandBindFigureKey
         键盘触发：
-            CommandBindKey:按2468，代替手动点击R3中4个Button
+            CommandBindFigureKey: 按2468，代替手动点击R3中4个Button;按39代替-1 +1图片名称
     Fresh:
         刷新图片
