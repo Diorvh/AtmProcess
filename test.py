@@ -25,10 +25,6 @@
 # cv.waitKey(0)
 # cv.destroyAllWindows()
 
-import tkinter as tk
-import numpy as np
-from Table import TableFrame
-
-
-
-
+cache=[]
+for j,i in enumerate(cache):
+    print(j,i)

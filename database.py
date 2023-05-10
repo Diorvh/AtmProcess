@@ -1,6 +1,7 @@
 from lib_json import *
 import os
 from BaseClass import *
+import numpy as np
 class DB:
     def __init__(self):
         self.SubClassName=['Main']
@@ -33,15 +34,27 @@ class DB_FrameChoosePic(BaseSubDB):
         # self.SaveVarName.append('FigureNameList')#保存
     def Fresh(self):#update_FigureNameList
         filename=os.listdir(self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo))
-        filename=[x for x in filename if not x.endswith('.chd')]#删除以.chd结尾的名称
+        filename=[x for x in filename if x.endswith('.tif')]#只保留tif结尾的
         filename=[int(x[:-4]) for x in filename]#转换为数字
         filename.sort()
         self.FigureNameList=filename
         self.update('FigNameStart',filename[0])
         self.update('FigNameEnd',filename[-1])
         self.update('FigName',self.FigNameStart)
-    def get_dir(self):
+    def get_dir_tif(self):
         return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/'+str(self.FigName)+'.tif'
+    def get_dir_res(self,classname):
+        return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/实验编号'+str(self.root.Main.ExpNo)+'_'+classname+'.xlsx'
+    def save_data(self,data):
+        cursor=-1
+        for j,i in enumerate(self.data):
+            if i[0]==self.FigName:
+                cursor=j
+                break
+        if cursor!=-1:
+            self.data[cursor]=[self.FigName,self.FigName*self.Decimate]+data
+        else:
+            self.data.append([self.FigName,self.FigName*self.Decimate]+data)
 class DB_MeasureSheet(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
@@ -61,5 +74,8 @@ class DB_MeasureSheet(BaseSubDB):
     def generate_data(self):
         return [self.LineLeftPosition,self.LineRightPosition,self.LineUpPosition,self.LineDownPosition,
                 self.SheetWidthPix,self.SheetWidth,self.SheetLengthPix,self.SheetLength]
+    def generate_title(self):
+        cache=np.array(self.root.Main.FrameChoosePic.data)
+        return ['平均液膜宽度/mm',np.mean(cache[:,7]),'平均液膜长度/mm',np.mean(cache[:,9])]
 if __name__=='__main__':
     db=DB()

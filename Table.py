@@ -16,7 +16,7 @@ class TableFrame(ttk.Frame):
         # Add the headings
         for col_name in self.headings:
             self.table.heading(col_name, text=col_name)
-            self.table.column(col_name, width=100)
+            self.table.column(col_name, width=60)
         # Add a vertical scrollbar
         yscrollbar = ttk.Scrollbar(self, orient="vertical", command=self.table.yview)
         yscrollbar.grid(column=1, row=0, sticky="ns")

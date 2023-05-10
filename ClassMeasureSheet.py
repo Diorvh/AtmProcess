@@ -73,16 +73,14 @@ class ClassMeasureSheet(BaseFrame):
         dict={'2':'Down','4':'Left','6':'Right','8':'Up'}
         if event.char in dict:
             self.back.update('ClickMode',dict[event.char])
-        elif event.char=='3':
-            self.father.CommandButtonFigNameDec()
-        elif event.char=='9':
+        elif event.char=='5':
             self.father.CommandButtonFigNameInc()
     def CommandBindFigureButton1(self,event):
         self.back.update_Sheet(event)
         self.FreshSelf()
     def FreshSelf(self):
         self.back.update_SheetData()
-        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir(),dtype=np.uint16),-1)
+        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint16),-1)
         self.Figure.Figure.change_figure(img)
     # def update_figure(self):
     #     self.Figure.update_figure(self.master.master.DirData.get()+r'/原位/'+self.master.CurrentName.get()+'.tif',

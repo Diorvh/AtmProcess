@@ -12,6 +12,7 @@ from ScrollableFrame import *
 class Base:
     def __init__(self,father:tk.Tk):
         self.father=father
+        self.father.state('zoomed')
         self.MainFrame=ScrollableFrame(self.father)
         self.MainFrame.pack(fill='both',expand=True)
         self.Main=Main(self.MainFrame.scrollable_frame)
@@ -55,19 +56,25 @@ class Main(BaseFrame):
         ttk.Button(self.FrameR3,text='选择文件',command=self.CommandButtonChooseFile2).pack(side='left')
     def CommandButtonChooseFile(self):
         self.back.update('DirData',filedialog.askdirectory(title='选择文件'))
+    def ChangeExpNo(self):
+        self.Fresh()
+        self.FrameChoosePic.back.data=[]
+        self.FrameChoosePic.Table.update_table(self.FrameChoosePic.back.data[:])
     def CommandButtonExpNoInc(self):
-        self.back.update('ExpNo',self.ExpNo.get()+1)
-        self.ExpNoFresh()
+        filename=os.listdir(self.DirData.get())
+        if '实验编号'+str(self.ExpNo.get()+1) in filename:
+            self.back.update('ExpNo',self.ExpNo.get()+1)
+            self.ChangeExpNo()
     def CommandButtonExpNoDec(self):
-        self.back.update('ExpNo',self.ExpNo.get()-1)
-        self.ExpNoFresh()
-    def CommandBindExpNo(self,event):
-        self.back.update('ExpNo',self.ExpNo.get())
-        self.ExpNoFresh()
-    def ExpNoFresh(self):
+        filename=os.listdir(self.DirData.get())
+        if '实验编号'+str(self.ExpNo.get()-1) in filename:
+            self.back.update('ExpNo',self.ExpNo.get()-1)
+            self.ChangeExpNo()
+    def CommandBindExpNo(self,*args):
         filename=os.listdir(self.DirData.get())
         if '实验编号'+str(self.ExpNo.get()) in filename:
-            self.Fresh()
+            self.back.update('ExpNo',self.ExpNo.get())
+            self.ChangeExpNo()
     def CommandButtonChooseFile2(self):
         self.back.update('FDirRes',filedialog.askopenfilename(title='选择文件'))
     def Fresh(self):
