@@ -13,7 +13,7 @@ class ClassFigure(ttk.Label):
         self.change_figure(np.random.randint(0,256,size=(640,704),dtype='uint8'))
     def change_figure(self,img,**kwargs):
         self.img=img
-        if self.img.dtype==16:
+        if self.img.dtype=='uint16':
             self.img_show=np.array(np.round(self.img/(2**8)),dtype='uint8')
         else:
             self.img_show=np.array(self.img,dtype='uint8')

@@ -73,14 +73,17 @@ class ClassMeasureSheet(BaseFrame):
         dict={'2':'Down','4':'Left','6':'Right','8':'Up'}
         if event.char in dict:
             self.back.update('ClickMode',dict[event.char])
-        elif event.char=='5':
+        elif event.char=='3':
             self.father.CommandButtonFigNameInc()
+        elif event.char=='9':
+            self.father.CommandButtonFigNameDec()
     def CommandBindFigureButton1(self,event):
         self.back.update_Sheet(event)
         self.FreshSelf()
     def FreshSelf(self):
         self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        # img=cv.imread(self.back.root.Main.FrameChoosePic.get_dir_tif(),-1)
         print(img)
         print(img.shape)
         print(np.max(img))
