@@ -3,7 +3,7 @@ from tkinter import ttk
 import cv2 as cv
 from PIL import ImageTk,Image
 import numpy as np
-from BaseClass import *
+from lib.BaseClass import *
 class ClassFigure(ttk.Label):
     def __init__(self,father):
         self.father=father

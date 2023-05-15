@@ -1,12 +1,11 @@
-import sys
-sys.path.append(r'D:\Files\Codes\Python\lib\lib_openpyxl')
 import tkinter as tk
 from tkinter import ttk
-from lib_tkwidget import *
-from ClassMeasureSheet import *
-import openpyxl,os
-from BaseClass import *
-from write_excel_mat import *
+from MeasureSheet_Manual.ClassMeasureSheet import *
+import openpyxl
+from lib.lib_tkwidget import *
+from lib.BaseClass import *
+from lib.write_excel_mat import *
+from lib.Table import *
 class FrameChoosePic(BaseFrame):
     def __init__(self,master):
         self.father=master

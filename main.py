@@ -1,13 +1,12 @@
-# import sys
-# sys.path.append(r'D:\Files\Codes\Python\lib\lib_openpyxl')
+import sys,os
+sys.path.append(os.getcwd())
 import tkinter as tk
 from tkinter import ttk
-from lib_tkwidget import *
 from FrameChoosePic import *
 from database import *
-import os
-from BaseClass import *
-from ScrollableFrame import *
+from lib.lib_tkwidget import *
+from lib.BaseClass import *
+from lib.ScrollableFrame import *
 #依赖库：pip install numpy TinyDB matplotlib openpyxl
 class Base:
     def __init__(self,father:tk.Tk):
@@ -28,7 +27,6 @@ class Main(BaseFrame):
         self.FrameChoosePic=FrameChoosePic(self)
         self.FrameChoosePic.grid(row=1,column=0)
         self.db.load()
-        self.Fresh()
     def create_panel(self):
         #R1
         self.FrameR1=ttk.Frame(self.FramePanel)
