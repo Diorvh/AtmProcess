@@ -37,6 +37,7 @@ class ClassMeasureSheet(BaseFrame):
         # self.Figure.LabelFigure.bind('<Key>',self.CommandBindKey)
         # self.Figure.LabelFigure.bind('<Button-1>',self.CommandBindKey)
         self.Figure=ClassFigurePlus(self,ClassFigureMeasureSheet)
+        self.back.Figure=self.Figure
         self.Figure.grid(row=1,column=0)
         self.Figure.Figure.bind('<Key>',self.CommandBindFigureKey)
         self.Figure.Figure.bind('<Button-1>',self.CommandBindFigureButton1)
@@ -77,17 +78,18 @@ class ClassMeasureSheet(BaseFrame):
             self.father.CommandButtonFigNameInc()
         elif event.char=='9':
             self.father.CommandButtonFigNameDec()
+        elif event.keysym in ['Up','Left']:
+            self.back.update_Sheet_Key(event.keysym,-1)
+            self.FreshSelf()
+        elif event.keysym in ['Down','Right']:
+            self.back.update_Sheet_Key(event.keysym,1)
+            self.FreshSelf()
     def CommandBindFigureButton1(self,event):
-        self.back.update_Sheet(event)
+        self.back.update_Sheet_Mouse(event)
         self.FreshSelf()
     def FreshSelf(self):
         self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
-        # img=cv.imread(self.back.root.Main.FrameChoosePic.get_dir_tif(),-1)
-        print(img)
-        print(img.shape)
-        print(np.max(img))
-        print(img.dtype)
         self.Figure.Figure.change_figure(img)
     # def update_figure(self):
     #     self.Figure.update_figure(self.master.master.DirData.get()+r'/原位/'+self.master.CurrentName.get()+'.tif',

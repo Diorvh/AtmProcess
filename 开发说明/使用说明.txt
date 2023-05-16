@@ -1,0 +1,7 @@
+环境配置：
+1. 到Python官网下载最新版本Python 3.11，选择64位executable（recommended）
+2. 安装后打开命令行，输入pip install openpyxl opencv-python numpy pillow安装第三方库，如果速度太慢就上网搜换源教程，或者科学上网
+3. 打开开始菜单，搜索IDLE；打开本程序目录下main.py，点击run-run module，即运行程序。
+使用注意事项：
+1. 所有键盘输入内容完毕后（如修改Decimate），必须点击回车才能保存，否则输入无效。快捷键则无需点击回车
+2. 运行后，需要首先修改文件目录和实验编号，确保合法。随后点击实验编号处，按下回车刷新，即可开始正常使用。

@@ -44,7 +44,7 @@ class Main(BaseFrame):
         LE.entry.bind('<Return>',self.CommandBindExpNo)
         ttk.Button(self.FrameR2,text='+1',width=2,command=self.CommandButtonExpNoInc).pack(side='left')
         ttk.Button(self.FrameR2,text='-1',width=2,command=self.CommandButtonExpNoDec).pack(side='left')
-        # ttk.Button(self.FrameR2,text='刷新',width=4,command=self.Fresh).pack(side='left')
+        ttk.Button(self.FrameR2,text='刷新',width=4,command=self.Fresh).pack(side='left')
         #R3
         self.FrameR3=ttk.Frame(self.FramePanel)
         self.FrameR3.pack(fill='x')

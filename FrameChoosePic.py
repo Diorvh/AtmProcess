@@ -98,12 +98,26 @@ class FrameChoosePic(BaseFrame):
         wb_target=openpyxl.Workbook()
         ws_target=wb_target.active
         title=[['X',self.ImpactX.get(),'Y',self.ImpactY.get(),'像素大小',self.PixSize.get(),'um/pix']+self.current.back.generate_title(),
-               ['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm']]
+               ['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm']]#和current有关
         write_excel_mat(ws_target,title)
         write_excel_mat(ws_target,self.back.data,FlagContinue=True)
         wb_target.save(self.back.get_dir_res(self.current.__class__.__name__))
+
+        wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
+        ws_target=wb_target.active
+        for i in range(1,ws_target.max_row+1):
+            print(ws_target.cell(i,1))
+            if ws_target.cell(i,1).value==self.father.back.ExpNo:
+                cache=self.current.back.generate_title()
+                for k in range(len(cache)//2):
+                    for j in range(1,ws_target.max_column+1):
+                        if ws_target.cell(2,j).value==cache[k*2]:
+                            ws_target.cell(i,j,cache[k*2+1])
+                            break
+                break
+        wb_target.save(self.father.back.FDirRes)
     def Fresh(self):
-        self.current.FreshSelf()#改为刷新当前
+        self.current.FreshSelf()
 if __name__=='__main__':
     root=tk.Tk()
     App=FrameChoosePic(root)

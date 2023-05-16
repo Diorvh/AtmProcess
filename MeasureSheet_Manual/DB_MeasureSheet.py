@@ -5,11 +5,20 @@ class DB_MeasureSheet(BaseSubDB):
         super().__init__(root)
         self.SubClassName=[]
         #后端变量
-    def update_Sheet(self,event):
+    def update_Sheet_Mouse(self,event):
         if self.ClickMode in ['Up','Down']:
             self.update('Line'+self.ClickMode+'Position',event.y)
         else:
             self.update('Line'+self.ClickMode+'Position',event.x)
+        self.update_SheetData()
+    def update_Sheet_Key(self,name,delta):
+        current=getattr(self,'Line'+self.ClickMode+'Position')+delta
+        if name in ['Up','Down'] and self.ClickMode in ['Up','Down']:
+            if 0<=current and current<self.Figure.Figure.img.shape[0]:
+                self.update('Line'+self.ClickMode+'Position',current)
+        elif name in ['Left','Right'] and self.ClickMode in ['Left','Right']:
+            if 0<=current and current<self.Figure.Figure.img.shape[1]:
+                self.update('Line'+self.ClickMode+'Position',current)
         self.update_SheetData()
     def update_SheetData(self):
         self.update('SheetWidthPix',self.LineRightPosition-self.LineLeftPosition)
