@@ -34,7 +34,10 @@ class DB_FrameChoosePic(BaseSubDB):
         self.data=[]
         # self.SaveVarName.append('FigureNameList')#保存
     def Fresh(self):#update_FigureNameList
-        filename=os.listdir(self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo))
+        if False:#self.root.Main.FlagDirGenerate:
+            filename=os.listdir(self.root.Main.DirData)
+        else:
+            filename=os.listdir(self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo))
         filename=[x for x in filename if x.endswith('.tif')]#只保留tif结尾的
         filename=[int(x[:-4]) for x in filename]#转换为数字
         filename.sort()
@@ -43,9 +46,15 @@ class DB_FrameChoosePic(BaseSubDB):
         self.update('FigNameEnd',filename[-1])
         self.update('FigName',self.FigNameStart)
     def get_dir_tif(self):
-        return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/'+str(self.FigName)+'.tif'
+        if False:
+            return self.root.Main.DirData+'/'+str(self.FigName)+'.tif'
+        else:
+            return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/'+str(self.FigName)+'.tif'
     def get_dir_res(self,classname):
-        return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/实验编号'+str(self.root.Main.ExpNo)+'_'+classname+'.xlsx'
+        if False:
+            return self.root.Main.DirData+'/'+classname+'.xlsx'
+        else:
+            return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/实验编号'+str(self.root.Main.ExpNo)+'_'+classname+'.xlsx'
     def save_data(self,data):
         cursor=-1
         for j,i in enumerate(self.data):

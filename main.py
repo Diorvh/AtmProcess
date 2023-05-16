@@ -39,6 +39,9 @@ class Main(BaseFrame):
         self.FrameR2=ttk.Frame(self.FramePanel)
         self.FrameR2.pack(fill='x')
         self.create_var('ExpNo',self.back,type='Int',init_value=0,FlagSave=True)
+        # self.create_var('FlagDirGenerate',self.back,type='Boolean',init_value=False,FlagSave=True)
+        # ttk.Checkbutton(self.FrameR2,text='不使用实验编号生成目录',onvalue=True,offvalue=False,
+        #                 variable=self.FlagDirGenerate,command=lambda:self.back.update('FlagDirGenerate',self.FlagDirGenerate.get())).pack(side='left')
         LE=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
         LE.pack(side='left')
         LE.entry.bind('<Return>',self.CommandBindExpNo)

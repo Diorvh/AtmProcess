@@ -102,7 +102,6 @@ class FrameChoosePic(BaseFrame):
         write_excel_mat(ws_target,title)
         write_excel_mat(ws_target,self.back.data,FlagContinue=True)
         wb_target.save(self.back.get_dir_res(self.current.__class__.__name__))
-
         wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
         ws_target=wb_target.active
         for i in range(1,ws_target.max_row+1):
@@ -113,8 +112,6 @@ class FrameChoosePic(BaseFrame):
                     for j in range(1,ws_target.max_column+1):
                         if ws_target.cell(2,j).value==cache[k*2]:
                             ws_target.cell(i,j,cache[k*2+1])
-                            break
-                break
         wb_target.save(self.father.back.FDirRes)
     def Fresh(self):
         self.current.FreshSelf()
