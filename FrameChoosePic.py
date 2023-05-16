@@ -17,7 +17,7 @@ class FrameChoosePic(BaseFrame):
         self.create_panel()
         self.NotebookProcess=ttk.Notebook(self)
         self.NotebookProcess.grid(row=1,column=0)
-        self.Table=TableFrame(self,['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm'])#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
+        self.Table=TableFrame(self,['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm'],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
         self.Table.grid(row=0,column=1,rowspan=2,sticky='nw')
         #Notebook界面
         self.MeasureSheet=ClassMeasureSheet(self)

@@ -9,6 +9,7 @@ class ClassFigureMeasureSheet(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
     def draw_figure(self, **kwargs):
+        super().draw_figure(**kwargs)
         cv.line(self.img_show,
                 (self.back.get('LineLeftPosition'),0),
                 (self.back.get('LineLeftPosition'),self.img.shape[0]),

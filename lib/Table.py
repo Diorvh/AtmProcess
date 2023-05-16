@@ -3,16 +3,18 @@ from tkinter import ttk
 import numpy as np
 
 class TableFrame(ttk.Frame):
-    def __init__(self, parent, headings):
+    def __init__(self, parent, headings, visible_rows=30):
         super().__init__(parent)
         self.table = None
         self.headings = headings
+        self.visible_rows = visible_rows
         self._create_widgets()
 
     def _create_widgets(self):
         # Create the table
         self.table = ttk.Treeview(self, columns=self.headings, show="headings")
         self.table.grid(column=0, row=0, sticky="nsew")
+        self.table['height'] = self.visible_rows
         # Add the headings
         for col_name in self.headings:
             self.table.heading(col_name, text=col_name)
