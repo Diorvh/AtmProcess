@@ -3,7 +3,7 @@ from tkinter import ttk
 import numpy as np
 
 class TableFrame(ttk.Frame):
-    def __init__(self, parent, headings, visible_rows=30):
+    def __init__(self, parent, headings, visible_rows=40):
         super().__init__(parent)
         self.table = None
         self.headings = headings
@@ -14,6 +14,7 @@ class TableFrame(ttk.Frame):
         # Create the table
         self.table = ttk.Treeview(self, columns=self.headings, show="headings")
         self.table.grid(column=0, row=0, sticky="nsew")
+        # Set the height to control the number of visible rows
         self.table['height'] = self.visible_rows
         # Add the headings
         for col_name in self.headings:
@@ -33,6 +34,15 @@ class TableFrame(ttk.Frame):
         if data is not None:
             for row in data:
                 self.table.insert("", "end", values=list(row))
+
+    def update_headings(self, new_headings):
+        if self.table is None:
+            raise ValueError("Table not initialized!")
+        # Update the headings
+        self.headings = new_headings
+        self.table["columns"] = self.headings
+        for col_name in self.headings:
+            self.table.heading(col_name, text=col_name)
 
 class MyApp(tk.Tk):
     def __init__(self):

@@ -1,6 +1,7 @@
 from lib.lib_json import *
 from lib.BaseClass import *
-from MeasureSheet_Manual.DB_MeasureSheet import *
+from MeasureSheet.DB_MeasureSheet import *
+from MeasureFlameAngle.DB_MeasureFlameAngle import *
 import os
 import numpy as np
 class DB:
@@ -27,8 +28,9 @@ class DB_main(BaseSubDB):
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
-        self.SubClassName=['MeasureSheet']
+        self.SubClassName=['MeasureSheet','MeasureFlameAngle']
         self.MeasureSheet=DB_MeasureSheet(self.root)
+        self.MeasureFlameAngle=DB_MeasureFlameAngle(self.root)
         #后端变量
         self.FigureNameList=[]
         self.data=[]

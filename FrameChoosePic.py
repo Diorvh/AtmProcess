@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-from MeasureSheet_Manual.ClassMeasureSheet import *
+from MeasureSheet.ClassMeasureSheet import *
+from MeasureFlameAngle.ClassMeasureFlameAngle import *
 import openpyxl
 from lib.lib_tkwidget import *
 from lib.BaseClass import *
@@ -17,13 +18,22 @@ class FrameChoosePic(BaseFrame):
         self.create_panel()
         self.NotebookProcess=ttk.Notebook(self)
         self.NotebookProcess.grid(row=1,column=0)
-        self.Table=TableFrame(self,['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm'],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
+        self.Table=TableFrame(self,[0],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
         self.Table.grid(row=0,column=1,rowspan=2,sticky='nw')
-        #Notebook界面
+        #创建Notebook界面
         self.MeasureSheet=ClassMeasureSheet(self)
-        self.NotebookProcess.add(self.MeasureSheet,text='液膜测量')
-        
-        self.current=self.MeasureSheet
+        self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
+        self.MeasureFlameAngle=ClassMeasureFlameAngle(self)
+        self.NotebookProcess.add(self.MeasureFlameAngle,text='MeasureFlameAngle')
+        self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
+        #Notebook初始化（选择第一个）
+        self.NotebookProcess.select(0)
+        self.CurrentPage=getattr(self,self.NotebookProcess.tab(self.NotebookProcess.select(), "text"))
+        self.Table.update_headings(self.CurrentPage.back.TableHeadings)
+    def on_page_changed(self,event):#切换页面
+        self.CurrentPage = getattr(self,event.widget.tab(event.widget.select(), "text"))
+        self.Table.update_headings(self.CurrentPage.back.TableHeadings)
+        print("Current page changed to:", self.CurrentPage)
     def create_panel(self):
         #R1
         self.create_var('Decimate',self.back,type='Int',init_value=0,FlagSave=True)
@@ -69,7 +79,7 @@ class FrameChoosePic(BaseFrame):
     def CommandBindDecimate(self,*args):
         self.back.update('Decimate',self.Decimate.get(),False)
     def FigNameFresh1(self):
-        self.back.save_data(self.current.back.generate_data())
+        self.back.save_data(self.CurrentPage.back.generate_data())
         self.Table.update_table(self.back.data[:])
     def CommandButtonFigNameInc(self):
         self.FigNameFresh1()
@@ -97,24 +107,24 @@ class FrameChoosePic(BaseFrame):
     def CommandButtonSave(self):
         wb_target=openpyxl.Workbook()
         ws_target=wb_target.active
-        title=[['X',self.ImpactX.get(),'Y',self.ImpactY.get(),'像素大小',self.PixSize.get(),'um/pix']+self.current.back.generate_title(),
-               ['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm']]#和current有关
+        title=[['X',self.ImpactX.get(),'Y',self.ImpactY.get(),'像素大小',self.PixSize.get(),'um/pix']+self.CurrentPage.back.generate_title(),
+               self.CurrentPage.back.TableHeadings]#CurrentPage
         write_excel_mat(ws_target,title)
         write_excel_mat(ws_target,self.back.data,FlagContinue=True)
-        wb_target.save(self.back.get_dir_res(self.current.__class__.__name__))
+        wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
         wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
         ws_target=wb_target.active
         for i in range(1,ws_target.max_row+1):
             print(ws_target.cell(i,1))
             if ws_target.cell(i,1).value==self.father.back.ExpNo:
-                cache=self.current.back.generate_title()
+                cache=self.CurrentPage.back.generate_title()
                 for k in range(len(cache)//2):
                     for j in range(1,ws_target.max_column+1):
                         if ws_target.cell(2,j).value==cache[k*2]:
                             ws_target.cell(i,j,cache[k*2+1])
         wb_target.save(self.father.back.FDirRes)
     def Fresh(self):
-        self.current.FreshSelf()
+        self.CurrentPage.FreshSelf()
 if __name__=='__main__':
     root=tk.Tk()
     App=FrameChoosePic(root)

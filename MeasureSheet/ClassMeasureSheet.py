@@ -35,8 +35,6 @@ class ClassMeasureSheet(BaseFrame):
         self.FramePanel=ttk.Frame(self)
         self.FramePanel.grid(row=0,column=0)
         self.create_panel()
-        # self.Figure.LabelFigure.bind('<Key>',self.CommandBindKey)
-        # self.Figure.LabelFigure.bind('<Button-1>',self.CommandBindKey)
         self.Figure=ClassFigurePlus(self,ClassFigureMeasureSheet)
         self.back.Figure=self.Figure
         self.Figure.grid(row=1,column=0)

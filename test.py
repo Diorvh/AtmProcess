@@ -25,6 +25,35 @@
 # cv.waitKey(0)
 # cv.destroyAllWindows()
 
-cache=[]
-for j,i in enumerate(cache):
-    print(j,i)
+import tkinter as tk
+from tkinter import ttk
+
+def on_page_changed(event):
+    selected_tab = event.widget.select()
+    current_page_name = event.widget.tab(selected_tab, "text")
+    print("Current page changed to:", current_page_name)
+
+# Create a tkinter window
+window = tk.Tk()
+
+# Create a Notebook widget
+notebook = ttk.Notebook(window)
+
+# Create pages in the Notebook
+page1 = tk.Frame(notebook)
+page2 = tk.Frame(notebook)
+page3 = tk.Frame(notebook)
+
+# Add pages to the Notebook
+notebook.add(page1, text="Page 1")
+notebook.add(page2, text="Page 2")
+notebook.add(page3, text="Page 3")
+
+# Bind the page change event
+notebook.bind("<<NotebookTabChanged>>", on_page_changed)
+
+# Pack or grid the Notebook widget
+notebook.pack(expand=True, fill=tk.BOTH)  # Or use grid if preferred
+
+# Run the tkinter event loop
+window.mainloop()

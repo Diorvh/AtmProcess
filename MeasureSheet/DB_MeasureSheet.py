@@ -5,6 +5,7 @@ class DB_MeasureSheet(BaseSubDB):
         super().__init__(root)
         self.SubClassName=[]
         #后端变量
+        self.TableHeadings=['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm']
     def update_Sheet_Mouse(self,event):
         if self.ClickMode in ['Up','Down']:
             self.update('Line'+self.ClickMode+'Position',event.y)
