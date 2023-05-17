@@ -77,15 +77,6 @@ class ClassMeasureFlameAngle(BaseFrame):
         self.create_var('FlagLineY',self.back,'Boolean',False,True)
         self.ButtonR4=ttk.Button(self.FramePanel,text='显示火焰长度线',command=self.CommandButtonR4)
         self.ButtonR4.grid(row=3,column=4,sticky='we')
-        #R5
-        self.create_var('DirSave',self.back,init_value='',FlagSave=True)
-        LabelLabel(self.FramePanel,'保存路径：',self.DirSave,width=50).grid(row=4,column=0,columnspan=4,sticky='w')
-        ttk.Button(self.FramePanel,text='选择文件夹',command=self.CommandButtonR5).grid(row=4,column=4,sticky='we')
-        #R6
-        self.create_var('FilenameSave',self.back,init_value='',FlagSave=True)
-        LabelLabel(self.FramePanel,'文件名：',self.FilenameSave,width=50).grid(row=5,column=0,columnspan=3,sticky='w')
-        ttk.Button(self.FramePanel,text='生成文件名',command=self.CommandButtonR6_1).grid(row=5,column=3,sticky='we')
-        ttk.Button(self.FramePanel,text='保存',command=self.CommandButtonR6_2).grid(row=5,column=4,sticky='we')
 
     def CommandBindGain(self,event):
         self.back.update('Gain',self.Gain.get(),False)
@@ -120,16 +111,7 @@ class ClassMeasureFlameAngle(BaseFrame):
     def CommandButtonR4(self):
         self.back.update('FlagLineY',not self.FlagLineY.get())
         self.ButtonR4.config(text='关闭火焰长度线' if self.FlagLineY.get() else '显示火焰长度线')
-        self.FreshSelf()
-    
-    def CommandButtonR5(self):
-        self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
-
-    def CommandButtonR6_1(self):
-        self.back.update('FilenameSave',self.back.generate_FilenameSave())
-    def CommandButtonR6_2(self):
-        cv.imencode('.tif', self.Figure.Figure.img_show)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
-    
+        self.FreshSelf()    
 
     def FreshSelf(self):
         # self.back.update_SheetData()

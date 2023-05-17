@@ -91,17 +91,15 @@ class ClassFigurePlus(BaseFrame):
         LabelLabel(self.FrameR3,'保存路径：',self.DirSave,width=50).pack(side='left')
         ttk.Button(self.FrameR3,text='选择文件夹',command=self.CommandButtonR3).pack(side='left')
         #R4
+        self.FrameR4=ttk.Frame(self.FramePanel)
+        self.FrameR4.pack()
         self.create_var('FilenameSave',self.back,init_value='',FlagSave=True)
-        LabelLabel(self.FramePanel,'文件名：',self.FilenameSave,width=50).grid(row=5,column=0,columnspan=3,sticky='w')
-        ttk.Button(self.FramePanel,text='生成文件名',command=self.CommandButtonR4_1).grid(row=5,column=3,sticky='we')
-        ttk.Button(self.FramePanel,text='保存',command=self.CommandButtonR4_2).grid(row=5,column=4,sticky='we')
-    def CommandButtonR5(self):
-        self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
-
-    def CommandButtonR6_1(self):
-        self.back.update('FilenameSave',self.back.generate_FilenameSave())
-    def CommandButtonR6_2(self):
-        cv.imencode('.tif', self.Figure.Figure.img_show)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
+        self.LER4=LabelEntry(self.FrameR4,'文件名：',self.FilenameSave,width=50)
+        self.LER4.pack(side='left')
+        self.LER4.entry.bind('<Return>',self.CommandBindFilenameSave)
+        ttk.Button(self.FrameR4,text='生成文件名',command=self.CommandButtonR4_1).pack(side='left')
+        ttk.Button(self.FrameR4,text='保存',command=self.CommandButtonR4_2).pack(side='left')
+    
     def MouseMotion(self,event):
         if event.x<self.Figure.img.shape[1]:
             self.MouseX.set(event.x)
@@ -123,6 +121,17 @@ class ClassFigurePlus(BaseFrame):
     def CommandButtonCenterLine(self):
         self.back.update('FlagCenterLine',not self.FlagCenterLine.get())
         self.Figure.update_figure()
+    
+    def CommandButtonR3(self):
+        self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
+    def CommandButtonR4_1(self):
+        self.back.update('FilenameSave',self.generate_FilenameSave())
+    def CommandButtonR4_2(self):
+        cv.imencode('.tif', self.Figure.img_show)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
+    def CommandBindFilenameSave(self,event):
+        self.back.update('FilenameSave',self.FilenameSave.get(),False)
+    def generate_FilenameSave(self):
+        return str(self.father.father.back.FigName)+'.tif'#每个类要重写
 if __name__=='__main__':
     root=tk.Tk()
     ClassFigure(root).pack()
