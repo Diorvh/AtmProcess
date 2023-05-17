@@ -34,7 +34,6 @@ class DB_FrameChoosePic(BaseSubDB):
         #后端变量
         self.FigureNameList=[]
         self.data=[]
-        # self.SaveVarName.append('FigureNameList')#保存
     def Fresh(self):#update_FigureNameList
         if False:#self.root.Main.FlagDirGenerate:
             filename=os.listdir(self.root.Main.DirData)

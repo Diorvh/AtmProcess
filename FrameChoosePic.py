@@ -107,11 +107,12 @@ class FrameChoosePic(BaseFrame):
     def CommandButtonSave(self):
         wb_target=openpyxl.Workbook()
         ws_target=wb_target.active
-        title=[['X',self.ImpactX.get(),'Y',self.ImpactY.get(),'像素大小',self.PixSize.get(),'um/pix']+self.CurrentPage.back.generate_title(),
+        title=[self.CurrentPage.back.generate_title(),
                self.CurrentPage.back.TableHeadings]#CurrentPage
         write_excel_mat(ws_target,title)
         write_excel_mat(ws_target,self.back.data,FlagContinue=True)
         wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
+        #写入汇总表
         wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
         ws_target=wb_target.active
         for i in range(1,ws_target.max_row+1):

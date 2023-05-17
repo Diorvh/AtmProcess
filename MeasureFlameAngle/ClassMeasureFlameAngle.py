@@ -26,7 +26,111 @@ class ClassMeasureFlameAngle(BaseFrame):
         # self.Figure.Figure.bind('<Button-1>',self.CommandBindFigureButton1)
     def create_panel(self):
         #R1
-        ttk.Label(self.FramePanel,text='adsfjsalkfdjalkdfjlfdj')
+        self.create_var('Gain',self.back,'Double',1,True)
+        self.create_var('Threshold',self.back,'Double',0.1,True)
+        self.LER1_1=LabelEntry(self.FramePanel,'增益=',self.Gain)
+        self.LER1_1.grid(row=0,column=0,columnspan=2,sticky='w')
+        self.LER1_1.entry.bind('<Return>',self.CommandBindGain)
+        self.LER1_2=LabelEntry(self.FramePanel,'单侧阈值=',self.Threshold)
+        self.LER1_2.grid(row=0,column=2,columnspan=2,sticky='w')
+        self.LER1_2.entry.bind('<Return>',self.CommandBindThreshold)
+        self.create_var('FlagPColor',self.back,'Boolean',False,True)
+        self.ButtonR1=ttk.Button(self.FramePanel,text='显示伪彩图',command=self.CommandButtonR1)
+        self.ButtonR1.grid(row=0,column=4,sticky='we')
+        #R2
+        self.create_var('AngleO',self.back,'Double',0,True)
+        self.create_var('AngleF',self.back,'Double',0,True)
+        self.create_var('AngleCalc',self.back,'Double',0,True)
+        self.LER2_1=LabelEntry(self.FramePanel,'氧化剂夹角=',self.AngleO)
+        self.LER2_1.grid(row=1,column=0,sticky='w')
+        self.LER2_1.entry.bind('<Return>',self.CommandBindAngleO)
+        self.LER2_2=LabelEntry(self.FramePanel,'燃料夹角=',self.AngleF)
+        self.LER2_2.grid(row=1,column=1,sticky='w')
+        self.LER2_2.entry.bind('<Return>',self.CommandBindAngleF)
+        self.LER2_3=LabelEntry(self.FramePanel,'合成动量夹角(O+)=',self.AngleCalc)
+        self.LER2_3.grid(row=1,column=2,columnspan=2,sticky='w')
+        self.LER2_3.entry.bind('<Return>',self.CommandBindAngleCalc)
+        self.create_var('FlagLineTheo',self.back,'Boolean',False,True)
+        self.ButtonR2=ttk.Button(self.FramePanel,text='显示理论线',command=self.CommandButtonR2)
+        self.ButtonR2.grid(row=1,column=4,sticky='we')
+        #R3
+        self.create_var('AngleL',self.back,'Double',0,True)
+        self.create_var('AngleR',self.back,'Double',0,True)
+        self.create_var('AngleM',self.back,'Double',0,True)
+        self.create_var('Angle',self.back,'Double',0,True)
+        LabelLabel(self.FramePanel,'左边界角=',self.AngleL,extratext='°').grid(row=2,column=0,sticky='w')
+        LabelLabel(self.FramePanel,'右边界角=',self.AngleR,extratext='°').grid(row=2,column=1,sticky='w')
+        LabelLabel(self.FramePanel,'中心线角=',self.AngleM,extratext='°').grid(row=2,column=2,sticky='w')
+        LabelLabel(self.FramePanel,'火焰锥角=',self.Angle,extratext='°').grid(row=2,column=3,sticky='w')
+        self.create_var('FlagLineAngle',self.back,'Boolean',False,True)
+        self.ButtonR3=ttk.Button(self.FramePanel,text='显示锥角线',command=self.CommandButtonR3)
+        self.ButtonR3.grid(row=2,column=4,sticky='we')
+        #R4
+        self.create_var('YStart',self.back,'Double',0,True)
+        self.create_var('YEnd',self.back,'Double',0,True)
+        self.create_var('YCenter',self.back,'Double',0,True)
+        self.create_var('YLength',self.back,'Double',0,True)
+        LabelLabel(self.FramePanel,'火焰起始=',self.YStart,extratext='pix').grid(row=3,column=0,sticky='w')
+        LabelLabel(self.FramePanel,'火焰结束=',self.YEnd,extratext='pix').grid(row=3,column=1,sticky='w')
+        LabelLabel(self.FramePanel,'火焰中心=',self.YCenter,extratext='pix').grid(row=3,column=2,sticky='w')
+        LabelLabel(self.FramePanel,'火焰长度=',self.YLength,extratext='pix').grid(row=3,column=3,sticky='w')
+        self.create_var('FlagLineY',self.back,'Boolean',False,True)
+        self.ButtonR4=ttk.Button(self.FramePanel,text='显示火焰长度线',command=self.CommandButtonR4)
+        self.ButtonR4.grid(row=3,column=4,sticky='we')
+        #R5
+        self.create_var('DirSave',self.back,init_value='',FlagSave=True)
+        LabelLabel(self.FramePanel,'保存路径：',self.DirSave,width=50).grid(row=4,column=0,columnspan=4,sticky='w')
+        ttk.Button(self.FramePanel,text='选择文件夹',command=self.CommandButtonR5).grid(row=4,column=4,sticky='we')
+        #R6
+        self.create_var('FilenameSave',self.back,init_value='',FlagSave=True)
+        LabelLabel(self.FramePanel,'文件名：',self.FilenameSave,width=50).grid(row=5,column=0,columnspan=3,sticky='w')
+        ttk.Button(self.FramePanel,text='生成文件名',command=self.CommandButtonR6_1).grid(row=5,column=3,sticky='we')
+        ttk.Button(self.FramePanel,text='保存',command=self.CommandButtonR6_2).grid(row=5,column=4,sticky='we')
+
+    def CommandBindGain(self,event):
+        self.back.update('Gain',self.Gain.get(),False)
+        self.FreshSelf()
+    def CommandBindThreshold(self,event):
+        self.back.update('Threshold',self.Threshold.get(),False)
+        self.FreshSelf()
+    def CommandButtonR1(self):
+        self.back.update('FlagPColor',not self.FlagPColor.get())
+        self.ButtonR1.config(text='关闭伪彩图' if self.FlagPColor.get() else '显示伪彩图')
+        self.FreshSelf()
+
+    def CommandBindAngleO(self,event):
+        self.back.update('AngleO',self.AngleO.get(),False)
+        self.FreshSelf()
+    def CommandBindAngleF(self,event):
+        self.back.update('AngleF',self.AngleF.get(),False)
+        self.FreshSelf()
+    def CommandBindAngleCalc(self,event):
+        self.back.update('AngleCalc',self.AngleCalc.get(),False)
+        self.FreshSelf()
+    def CommandButtonR2(self):
+        self.back.update('FlagLineTheo',not self.FlagLineTheo.get())
+        self.ButtonR2.config(text='关闭理论线' if self.FlagLineTheo.get() else '显示理论线')
+        self.FreshSelf()
+
+    def CommandButtonR3(self):
+        self.back.update('FlagLineAngle',not self.FlagLineAngle.get())
+        self.ButtonR3.config(text='关闭锥角线' if self.FlagLineAngle.get() else '显示锥角线')
+        self.FreshSelf()
+
+    def CommandButtonR4(self):
+        self.back.update('FlagLineY',not self.FlagLineY.get())
+        self.ButtonR4.config(text='关闭火焰长度线' if self.FlagLineY.get() else '显示火焰长度线')
+        self.FreshSelf()
+    
+    def CommandButtonR5(self):
+        self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
+
+    def CommandButtonR6_1(self):
+        self.back.update('FilenameSave',self.back.generate_FilenameSave())
+    def CommandButtonR6_2(self):
+        cv.imencode('.tif', self.Figure.Figure.img_show)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
+    
+
     def FreshSelf(self):
         # self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)

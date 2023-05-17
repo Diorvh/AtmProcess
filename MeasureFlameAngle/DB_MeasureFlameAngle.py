@@ -10,3 +10,5 @@ class DB_MeasureFlameAngle(BaseSubDB):
         return [1]
     def generate_title(self):
         return ['上裁剪','下裁剪','左裁剪','右裁剪']
+    def generate_FilenameSave(self):#根据所选画图选项
+        return 'a'

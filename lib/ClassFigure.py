@@ -84,6 +84,24 @@ class ClassFigurePlus(BaseFrame):
         self.create_var('FlagCenterLine',self.back,type='Boolean',init_value=False,FlagSave=True)
         ttk.Button(self.FrameR2,text='显示/关闭中心线',
                    command=self.CommandButtonCenterLine).pack(side='left')
+        #R3
+        self.FrameR3=ttk.Frame(self.FramePanel)
+        self.FrameR3.pack()
+        self.create_var('DirSave',self.back,init_value='',FlagSave=True)
+        LabelLabel(self.FrameR3,'保存路径：',self.DirSave,width=50).pack(side='left')
+        ttk.Button(self.FrameR3,text='选择文件夹',command=self.CommandButtonR3).pack(side='left')
+        #R4
+        self.create_var('FilenameSave',self.back,init_value='',FlagSave=True)
+        LabelLabel(self.FramePanel,'文件名：',self.FilenameSave,width=50).grid(row=5,column=0,columnspan=3,sticky='w')
+        ttk.Button(self.FramePanel,text='生成文件名',command=self.CommandButtonR4_1).grid(row=5,column=3,sticky='we')
+        ttk.Button(self.FramePanel,text='保存',command=self.CommandButtonR4_2).grid(row=5,column=4,sticky='we')
+    def CommandButtonR5(self):
+        self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
+
+    def CommandButtonR6_1(self):
+        self.back.update('FilenameSave',self.back.generate_FilenameSave())
+    def CommandButtonR6_2(self):
+        cv.imencode('.tif', self.Figure.Figure.img_show)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
     def MouseMotion(self,event):
         if event.x<self.Figure.img.shape[1]:
             self.MouseX.set(event.x)
