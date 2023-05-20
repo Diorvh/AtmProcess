@@ -31,5 +31,5 @@ class DB_MeasureSheet(BaseSubDB):
                 self.SheetWidthPix,self.SheetWidth,self.SheetLengthPix,self.SheetLength]
     def generate_title(self):
         cache=np.array(self.root.Main.FrameChoosePic.data)
-        c=self.root.Main.FrameChoosePic
-        return ['X',c.ImpactX,'Y',c.ImpactY,'像素大小',c.PixSize,'um/pix','平均液膜宽度/mm',np.mean(cache[:,7]),'平均液膜长度/mm',np.mean(cache[:,9])]
+        c=self.root.Main.FrameChoosePic#
+        return ['X',c.ImpactX,'Y',c.ImpactY,'像素大小/um/pix',c.PixSize,'平均液膜宽度/mm',np.mean(cache[:,7]),'平均液膜长度/mm',np.mean(cache[:,9])]

@@ -4,7 +4,7 @@ class BaseFrame(ttk.Frame):
     def __init__(self,father,**kwargs):
         super().__init__(father,**kwargs)
     def create_var(self,name,back,type='String',init_value=None,FlagSave=False):
-        setattr(self,name,getattr(tk,type+'Var')(self))
+        setattr(self,name,getattr(tk,type+'Var')(self,init_value))
         setattr(back,name,init_value)
         setattr(back,name+'_front',getattr(self,name))
         if FlagSave:

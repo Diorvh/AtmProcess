@@ -19,7 +19,7 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess=ttk.Notebook(self)
         self.NotebookProcess.grid(row=1,column=0)
         self.Table=TableFrame(self,[0],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
-        self.Table.grid(row=0,column=1,rowspan=2,sticky='nw')
+        self.Table.grid(row=0,column=1,rowspan=2)
         #创建Notebook界面
         self.MeasureSheet=ClassMeasureSheet(self)
         self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
@@ -28,11 +28,12 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化（选择第一个）
         self.NotebookProcess.select(0)
-        self.CurrentPage=getattr(self,self.NotebookProcess.tab(self.NotebookProcess.select(), "text"))
-        self.Table.update_headings(self.CurrentPage.back.TableHeadings)
-    def on_page_changed(self,event):#切换页面
-        self.CurrentPage = getattr(self,event.widget.tab(event.widget.select(), "text"))
-        self.Table.update_headings(self.CurrentPage.back.TableHeadings)
+        self.on_page_changed()
+    def on_page_changed(self,even=None):#切换页面
+        self.Table.destroy()
+        self.CurrentPage = getattr(self,self.NotebookProcess.tab(self.NotebookProcess.select(), "text"))
+        self.Table=TableFrame(self,self.CurrentPage.back.TableHeadings,visible_rows=40)
+        self.Table.grid(row=0,column=1,rowspan=2)
         print("Current page changed to:", self.CurrentPage)
     def create_panel(self):
         #R1
@@ -78,6 +79,7 @@ class FrameChoosePic(BaseFrame):
         LE.entry.bind('<Return>',self.CommandBindPixSize)
     def CommandBindDecimate(self,*args):
         self.back.update('Decimate',self.Decimate.get(),False)
+    
     def FigNameFresh1(self):
         self.back.save_data(self.CurrentPage.back.generate_data())
         self.Table.update_table(self.back.data[:])
@@ -105,19 +107,20 @@ class FrameChoosePic(BaseFrame):
         self.back.update('PixSize',self.PixSize.get(),False)
         self.Fresh()
     def CommandButtonSave(self):
-        wb_target=openpyxl.Workbook()
-        ws_target=wb_target.active
-        title=[self.CurrentPage.back.generate_title(),
-               self.CurrentPage.back.TableHeadings]#CurrentPage
-        write_excel_mat(ws_target,title)
-        write_excel_mat(ws_target,self.back.data,FlagContinue=True)
-        wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
+        #写入自己的表
+        if not self.father.back.FlagDirect:
+            wb_target=openpyxl.Workbook()
+            ws_target=wb_target.active
+            title=[self.CurrentPage.back.generate_title(),
+                self.CurrentPage.back.TableHeadings]
+            write_excel_mat(ws_target,title)
+            write_excel_mat(ws_target,self.back.data,FlagContinue=True)
+            wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
         #写入汇总表
         wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
         ws_target=wb_target.active
         for i in range(1,ws_target.max_row+1):
-            print(ws_target.cell(i,1))
-            if ws_target.cell(i,1).value==self.father.back.ExpNo:
+            if ws_target.cell(i,1).value==self.father.back.generate_ImageLabel():
                 cache=self.CurrentPage.back.generate_title()
                 for k in range(len(cache)//2):
                     for j in range(1,ws_target.max_column+1):

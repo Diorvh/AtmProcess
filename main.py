@@ -39,48 +39,78 @@ class Main(BaseFrame):
         self.FrameR2=ttk.Frame(self.FramePanel)
         self.FrameR2.pack(fill='x')
         self.create_var('ExpNo',self.back,type='Int',init_value=0,FlagSave=True)
-        # self.create_var('FlagDirGenerate',self.back,type='Boolean',init_value=False,FlagSave=True)
-        # ttk.Checkbutton(self.FrameR2,text='不使用实验编号生成目录',onvalue=True,offvalue=False,
-        #                 variable=self.FlagDirGenerate,command=lambda:self.back.update('FlagDirGenerate',self.FlagDirGenerate.get())).pack(side='left')
-        LE=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
-        LE.pack(side='left')
-        LE.entry.bind('<Return>',self.CommandBindExpNo)
+        LE1=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
+        LE1.pack(side='left')
+        LE1.entry.bind('<Return>',self.CommandBindExpNo)
         ttk.Button(self.FrameR2,text='+1',width=2,command=self.CommandButtonExpNoInc).pack(side='left')
         ttk.Button(self.FrameR2,text='-1',width=2,command=self.CommandButtonExpNoDec).pack(side='left')
+        self.create_var('FlagOther',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FrameR2,onvalue=True,offvalue=False,
+                        variable=self.FlagOther,command=self.CommandCheckButtonOther).pack(side='left')
+        self.create_var('Other',self.back,type='String',init_value='',FlagSave=True)
+        LE2=LabelEntry(self.FrameR2,'其他文件夹名称',self.Other)
+        LE2.pack(side='left')
+        LE2.entry.bind('<Return>',self.CommandBindOther)
         ttk.Button(self.FrameR2,text='刷新',width=4,command=self.Fresh).pack(side='left')
         #R3
         self.FrameR3=ttk.Frame(self.FramePanel)
         self.FrameR3.pack(fill='x')
+        self.create_var('FlagDirect',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FrameR3,text='直接选择图片',onvalue=True,offvalue=False,
+                        variable=self.FlagDirect,command=self.CommandCheckButtonDirect).pack(side='left')
+        self.create_var('DirDirect',self.back,init_value='',FlagSave=True)
+        ttk.Entry(self.FrameR3,textvariable=self.DirDirect,width=50).pack(side='left')
+        ttk.Button(self.FrameR3,text='选择图片',command=self.CommandButtonChooseFile2).pack(side='left')
+        self.create_var('ImageLabel',self.back,init_value='',FlagSave=True)
+        self.LER3=LabelEntry(self.FrameR3,text='图片标识',var=self.ImageLabel)
+        self.LER3.pack(side='left')
+        self.LER3.entry.bind('<Return>',self.CommandBindImageLabel)
+        #R4
+        self.FrameR4=ttk.Frame(self.FramePanel)
+        self.FrameR4.pack(fill='x')
         self.create_var('FDirRes',self.back,init_value='',FlagSave=True)
-        ttk.Label(self.FrameR3,text='结果文件：').pack(side='left')
-        ttk.Label(self.FrameR3,textvariable=self.FDirRes,width=50).pack(side='left')
-        ttk.Button(self.FrameR3,text='选择文件',command=self.CommandButtonChooseFile2).pack(side='left')
+        ttk.Label(self.FrameR4,text='结果文件：').pack(side='left')
+        ttk.Label(self.FrameR4,textvariable=self.FDirRes,width=50).pack(side='left')
+        ttk.Button(self.FrameR4,text='选择文件',command=self.CommandButtonChooseFile3).pack(side='left')
     def CommandButtonChooseFile(self):
         self.back.update('DirData',filedialog.askdirectory(title='选择文件'))
-    def ChangeExpNo(self):
-        self.Fresh()
-        self.FrameChoosePic.back.data=[]
-        self.FrameChoosePic.Table.update_table(self.FrameChoosePic.back.data[:])
+
     def CommandButtonExpNoInc(self):
         filename=os.listdir(self.DirData.get())
         if '实验编号'+str(self.ExpNo.get()+1) in filename:
             self.back.update('ExpNo',self.ExpNo.get()+1)
-            self.ChangeExpNo()
+            self.Fresh()
     def CommandButtonExpNoDec(self):
         filename=os.listdir(self.DirData.get())
         if '实验编号'+str(self.ExpNo.get()-1) in filename:
             self.back.update('ExpNo',self.ExpNo.get()-1)
-            self.ChangeExpNo()
+            self.Fresh()
     def CommandBindExpNo(self,*args):
         filename=os.listdir(self.DirData.get())
         if '实验编号'+str(self.ExpNo.get()) in filename:
             self.back.update('ExpNo',self.ExpNo.get())
-            self.ChangeExpNo()
+            self.Fresh()
+    def CommandCheckButtonOther(self):
+        self.back.update('FlagOther',self.FlagOther.get(),False)
+    def CommandBindOther(self,event):
+        self.back.update('Other',self.Other.get())
+        self.Fresh()
+    
+    def CommandCheckButtonDirect(self):
+        self.back.update('FlagDirect',self.FlagDirect.get(),False)
     def CommandButtonChooseFile2(self):
+        self.back.update('DirDirect',filedialog.askopenfilename(title='选择图像'))
+        self.Fresh()
+    def CommandBindImageLabel(self,event):
+        self.back.update('ImageLabel',self.ImageLabel.get(),False)
+
+    def CommandButtonChooseFile3(self):
         self.back.update('FDirRes',filedialog.askopenfilename(title='选择文件'))
     def Fresh(self):
         self.back.FrameChoosePic.Fresh()
         self.FrameChoosePic.Fresh()
+        self.FrameChoosePic.back.data=[]
+        self.FrameChoosePic.Table.update_table(self.FrameChoosePic.back.data[:])
 def close_window():
     App.Main.db.save()
     root.quit()

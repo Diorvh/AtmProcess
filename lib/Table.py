@@ -19,7 +19,7 @@ class TableFrame(ttk.Frame):
         # Add the headings
         for col_name in self.headings:
             self.table.heading(col_name, text=col_name)
-            self.table.column(col_name, width=60)
+            self.table.column(col_name, width=100)
         # Add a vertical scrollbar
         yscrollbar = ttk.Scrollbar(self, orient="vertical", command=self.table.yview)
         yscrollbar.grid(column=1, row=0, sticky="ns")
@@ -38,11 +38,19 @@ class TableFrame(ttk.Frame):
     def update_headings(self, new_headings):
         if self.table is None:
             raise ValueError("Table not initialized!")
+        column_widths={}
+        for col_name in self.headings:
+            column_widths[col_name]=self.table.column(col_name,'width')
         # Update the headings
         self.headings = new_headings
         self.table["columns"] = self.headings
         for col_name in self.headings:
             self.table.heading(col_name, text=col_name)
+        def restore_column_widths():
+            for col_name,width in column_widths.items():
+                self.table.column(col_name, width=width)
+                print('update column')
+        self.after(10000,restore_column_widths)
 
 class MyApp(tk.Tk):
     def __init__(self):
@@ -50,11 +58,12 @@ class MyApp(tk.Tk):
         self.title("Table Example")
         self.geometry("400x300")
         self.headings = ["Name", "Age", "Gender"]
-        self.table_frame = TableFrame(self, self.headings)
+        self.table_frame = TableFrame(self, self.headings,10)
         self.table_frame.grid(column=0, row=0, sticky="nsew")
-        self.button = tk.Button(self, text="Update Table", command=self.update_table)
+        self.button = tk.Button(self, text="Update Table", command=self.func)
         self.button.grid(column=0, row=1)
-
+    def func(self):
+        self.table_frame=TableFrame(self, self.headings,10)
     def update_table(self):
         data = np.random.rand(20, 3)
         self.table_frame.update_table(data)

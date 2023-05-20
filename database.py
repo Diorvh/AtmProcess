@@ -25,6 +25,18 @@ class DB_main(BaseSubDB):
         super().__init__(root)
         self.SubClassName=['FrameChoosePic']
         self.FrameChoosePic=DB_FrameChoosePic(self.root)
+    def generate_fdir(self):
+        if self.FlagOther:
+            return self.DirData+'/'+self.Other
+        else:
+            return self.DirData+'/实验编号'+str(self.ExpNo)
+    def generate_ImageLabel(self):
+        if self.FlagDirect:
+            return self.ImageLabel
+        elif self.FlagOther:
+            return self.Other
+        else:
+            return self.ExpNo
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
@@ -35,27 +47,27 @@ class DB_FrameChoosePic(BaseSubDB):
         self.FigureNameList=[]
         self.data=[]
     def Fresh(self):#update_FigureNameList
-        if False:#self.root.Main.FlagDirGenerate:
-            filename=os.listdir(self.root.Main.DirData)
-        else:
-            filename=os.listdir(self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo))
-        filename=[x for x in filename if x.endswith('.tif')]#只保留tif结尾的
-        filename=[int(x[:-4]) for x in filename]#转换为数字
-        filename.sort()
-        self.FigureNameList=filename
-        self.update('FigNameStart',filename[0])
-        self.update('FigNameEnd',filename[-1])
-        self.update('FigName',self.FigNameStart)
+        if not self.root.Main.FlagDirect:
+            filename=os.listdir(self.root.Main.generate_fdir())
+            filename=[x for x in filename if x.endswith('.tif')]#只保留tif结尾的
+            filename=[int(x[:-4]) for x in filename]#转换为数字
+            filename.sort()
+            self.FigureNameList=filename
+            self.update('FigNameStart',filename[0])
+            self.update('FigNameEnd',filename[-1])
+            self.update('FigName',self.FigNameStart)
     def get_dir_tif(self):
-        if False:
-            return self.root.Main.DirData+'/'+str(self.FigName)+'.tif'
+        if self.root.Main.FlagDirect:
+            return self.root.Main.DirDirect
         else:
-            return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/'+str(self.FigName)+'.tif'
+            return self.root.Main.generate_fdir()+'/'+str(self.FigName)+'.tif'
     def get_dir_res(self,classname):
-        if False:
-            return self.root.Main.DirData+'/'+classname+'.xlsx'
+        name=''
+        if self.root.Main.FlagOther:
+            name=self.Other+'_'
         else:
-            return self.root.Main.DirData+'/实验编号'+str(self.root.Main.ExpNo)+'/实验编号'+str(self.root.Main.ExpNo)+'_'+classname+'.xlsx'
+            name='实验编号'+str(self.root.Main.ExpNo)+'_'
+        return self.root.Main.generate_fdir()+'/'+name+classname+'.xlsx'
     def save_data(self,data):
         cursor=-1
         for j,i in enumerate(self.data):

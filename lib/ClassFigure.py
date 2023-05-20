@@ -127,6 +127,7 @@ class ClassFigurePlus(BaseFrame):
     def CommandButtonR4_1(self):
         self.back.update('FilenameSave',self.generate_FilenameSave())
     def CommandButtonR4_2(self):
+        self.Figure.img_show=cv.cvtColor(self.Figure.img_show,cv.COLOR_BGR2RGB)
         cv.imencode('.tif', self.Figure.img_show)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
     def CommandBindFilenameSave(self,event):
         self.back.update('FilenameSave',self.FilenameSave.get(),False)

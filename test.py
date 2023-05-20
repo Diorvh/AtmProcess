@@ -1,3 +1,5 @@
+import tkinter as tk
+from tkinter import ttk
 # import json
 # from lib_json import *
 # dict={}
@@ -25,8 +27,7 @@
 # cv.waitKey(0)
 # cv.destroyAllWindows()
 
-# import tkinter as tk
-# from tkinter import ttk
+
 
 # def printentry(value):
 #     print(a.get(),' ',value)
@@ -37,7 +38,21 @@
 # e.bind('<Return>',printentry)
 # root.mainloop()
 
-import cv2 as cv
-import numpy as np
-img=cv.imdecode(np.fromfile(file=r'D:\20220224_jet\test-1\26000.tif',dtype=np.uint8),-1)
-cv.imencode('.tif', img)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
+# import cv2 as cv
+# import numpy as np
+# img=cv.imdecode(np.fromfile(file=r'D:\20220224_jet\test-1\26000.tif',dtype=np.uint8),-1)
+# cv.imencode('.tif', img)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
+
+def CommandCheckButton():
+    print(FlagExpNo.get())
+def CommandButton():
+    FlagExpNo.set(not FlagExpNo.get())
+root=tk.Tk()
+FlagExpNo=tk.BooleanVar(root)
+cb=ttk.Checkbutton(root,onvalue=True,offvalue=False,variable=FlagExpNo,command=CommandCheckButton)
+cb.pack()
+et=ttk.Entry(root)
+et.pack()
+bt=ttk.Button(root,command=CommandButton)
+bt.pack()
+root.mainloop()
