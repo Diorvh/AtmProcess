@@ -2,11 +2,11 @@ import numpy as np
 import cv2 as cv
 from multiprocessing import Pool
 from functools import partial
-def calculate_sum(dir,chunk):
-    img_list=[]
+def calculate_sum(dir,chunk):#省内存
+    sum=np.zeros(cv.imdecode(np.fromfile(file=dir+'/'+str(chunk[0])+'.tif',dtype=np.uint8),-1).shape,dtype='uint64')
     for i in chunk:
-        img_list.append(cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1))
-    return np.sum(img_list,axis=0,dtype='uint64')
+        sum+=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+    return sum
 def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.tif-end.tif，全数字，返回uint16的nparray平均值
     chunk_size = (end-start+1) // num_processes
     chunks=[]
