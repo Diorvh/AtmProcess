@@ -43,16 +43,65 @@ from tkinter import ttk
 # img=cv.imdecode(np.fromfile(file=r'D:\20220224_jet\test-1\26000.tif',dtype=np.uint8),-1)
 # cv.imencode('.tif', img)[1].tofile(r'D:\20220224_jet\test-1\26001.tif')
 
-def CommandCheckButton():
-    print(FlagExpNo.get())
-def CommandButton():
-    FlagExpNo.set(not FlagExpNo.get())
-root=tk.Tk()
-FlagExpNo=tk.BooleanVar(root)
-cb=ttk.Checkbutton(root,onvalue=True,offvalue=False,variable=FlagExpNo,command=CommandCheckButton)
-cb.pack()
-et=ttk.Entry(root)
-et.pack()
-bt=ttk.Button(root,command=CommandButton)
-bt.pack()
-root.mainloop()
+# def CommandCheckButton():
+#     print(FlagExpNo.get())
+# def CommandButton():
+#     FlagExpNo.set(not FlagExpNo.get())
+# root=tk.Tk()
+# FlagExpNo=tk.BooleanVar(root)
+# cb=ttk.Checkbutton(root,onvalue=True,offvalue=False,variable=FlagExpNo,command=CommandCheckButton)
+# cb.pack()
+# et=ttk.Entry(root)
+# et.pack()
+# bt=ttk.Button(root,command=CommandButton)
+# bt.pack()
+# root.mainloop()
+
+import cv2
+import numpy as np
+from multiprocessing import Pool
+
+# List of images (2D numpy arrays)
+image_list = [np.array([[0, 0, 0], [255, 255, 255]], dtype=np.uint8),
+              np.array([[255, 0, 0], [0, 255, 0]], dtype=np.uint8),
+              np.array([[0, 0, 255], [255, 0, 255]], dtype=np.uint8),
+              np.array([[0, 0, 255], [255, 0, 255]], dtype=np.uint8)]
+
+
+def calculate_average_image(images, num_processes):
+    # Convert the list of images to a numpy array
+    image_array = np.array(images)
+
+    # Calculate the chunk size for parallel processing
+    chunk_size = len(image_array) // num_processes
+
+    # Create a pool of processes
+    pool = Pool(processes=num_processes)
+
+    # Map the image chunks to worker processes
+    chunks = [image_array[i:i+chunk_size] for i in range(0, len(image_array), chunk_size)]
+    results = pool.map(calculate_chunk_average, chunks)
+
+    # Close the pool of processes
+    pool.close()
+    pool.join()
+
+    # Combine the results to calculate the overall average image
+    average_image = np.mean(results, axis=0)#.astype(np.uint8)
+
+    return average_image
+
+
+def calculate_chunk_average(chunk):
+    # Calculate the average image for a chunk of images
+    return np.mean(chunk, axis=0)
+
+
+if __name__ == '__main__':
+    num_processes = 2  # Number of processes for parallel execution
+
+    # Calculate the average image using parallel processing
+    average_image = calculate_average_image(image_list, num_processes)
+
+    # Display the average image
+    print(average_image)

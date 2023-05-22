@@ -26,7 +26,7 @@ class ClassFigure(ttk.Label):
             self.img_show=np.array(self.img,dtype='uint8')
         if len(self.img.shape)==2:
             self.img_show=cv.cvtColor(self.img_show,cv.COLOR_GRAY2BGR)
-        #默认处理
+        #默认处理：裁剪和中心线显示
         self.img_show=self.Scissor(self.img_show,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
         HEIGHT,WIDTH=self.img_show.shape[0],self.img_show.shape[1]
         if self.back.FlagCenterLine:

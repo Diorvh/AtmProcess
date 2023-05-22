@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from MeasureSheet.ClassMeasureSheet import *
 from MeasureFlameAngle.ClassMeasureFlameAngle import *
+from CalcAverageFigure.ClassCalcAverageFigure import *
 import openpyxl
 from lib.lib_tkwidget import *
 from lib.BaseClass import *
@@ -25,6 +26,9 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
         self.MeasureFlameAngle=ClassMeasureFlameAngle(self)
         self.NotebookProcess.add(self.MeasureFlameAngle,text='MeasureFlameAngle')
+        self.CalcAverageFigure=ClassCalcAverageFigure(self)#在此新增
+        self.NotebookProcess.add(self.CalcAverageFigure,text='CalcAverageFigure')
+
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化（选择第一个）
         self.NotebookProcess.select(0)

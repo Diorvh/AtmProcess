@@ -31,17 +31,21 @@ class Main(BaseFrame):
         #R1
         self.FrameR1=ttk.Frame(self.FramePanel)
         self.FrameR1.pack(fill='x')
-        self.create_var('DirData',self.back,init_value='',FlagSave=True)
-        ttk.Label(self.FrameR1,text='数据文件夹：').pack(side='left')
-        ttk.Label(self.FrameR1,textvariable=self.DirData,width=50).pack(side='left')
-        ttk.Button(self.FrameR1,text='选择文件',command=self.CommandButtonChooseFile).pack(side='left')
+        self.create_var('CoreNum',self.back,'Int',4,True)
+        LE1=LabelEntry(self.FrameR1,'并行进程数',self.CoreNum)
+        LE1.pack(side='left')
+        LE1.entry.bind('<Return>',self.CommandBindCoreNum)
         #R2
         self.FrameR2=ttk.Frame(self.FramePanel)
         self.FrameR2.pack(fill='x')
+        self.create_var('DirData',self.back,init_value='',FlagSave=True)
+        ttk.Label(self.FrameR2,text='数据文件夹：').pack(side='left')
+        ttk.Label(self.FrameR2,textvariable=self.DirData,width=50).pack(side='left')
+        ttk.Button(self.FrameR2,text='选择文件',command=self.CommandButtonChooseFile).pack(side='left')
         self.create_var('ExpNo',self.back,type='Int',init_value=0,FlagSave=True)
-        LE1=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
-        LE1.pack(side='left')
-        LE1.entry.bind('<Return>',self.CommandBindExpNo)
+        LE2=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
+        LE2.pack(side='left')
+        LE2.entry.bind('<Return>',self.CommandBindExpNo)
         ttk.Button(self.FrameR2,text='+1',width=2,command=self.CommandButtonExpNoInc).pack(side='left')
         ttk.Button(self.FrameR2,text='-1',width=2,command=self.CommandButtonExpNoDec).pack(side='left')
         self.create_var('FlagOther',self.back,type='Boolean',init_value=False)
@@ -72,9 +76,11 @@ class Main(BaseFrame):
         ttk.Label(self.FrameR4,text='结果文件：').pack(side='left')
         ttk.Label(self.FrameR4,textvariable=self.FDirRes,width=50).pack(side='left')
         ttk.Button(self.FrameR4,text='选择文件',command=self.CommandButtonChooseFile3).pack(side='left')
+    def CommandBindCoreNum(self,event):
+        self.back.update('CoreNum',self.CoreNum.get(),False)
+
     def CommandButtonChooseFile(self):
         self.back.update('DirData',filedialog.askdirectory(title='选择文件'))
-
     def CommandButtonExpNoInc(self):
         filename=os.listdir(self.DirData.get())
         if '实验编号'+str(self.ExpNo.get()+1) in filename:

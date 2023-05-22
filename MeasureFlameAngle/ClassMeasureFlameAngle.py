@@ -10,6 +10,8 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
         super().__init__(father)
     def draw_figure(self, **kwargs):
         super().draw_figure(**kwargs)
+    def generate_FilenameSave(self):#每个类要重写
+        return str(self.father.father.back.FigName)+'.tif'
 class ClassMeasureFlameAngle(BaseFrame):
     def __init__(self,father):
         self.father=father

@@ -26,6 +26,8 @@ class ClassFigureMeasureSheet(ClassFigure):
                 (0,self.back.get('LineDownPosition')),
                 (self.img.shape[1],self.back.get('LineDownPosition')),
                 (255,0,0),1)
+    def generate_FilenameSave(self):#每个类要重写
+        return str(self.father.father.back.FigName)+'.tif'
 class ClassMeasureSheet(BaseFrame):
     def __init__(self,father):
         self.father=father
