@@ -30,8 +30,8 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.add(self.CalcAverageFigure,text='CalcAverageFigure')
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
-        #Notebook初始化（选择第一个）
-        self.NotebookProcess.select(0)
+        #Notebook初始化
+        self.NotebookProcess.select(1)
         self.on_page_changed()
     def on_page_changed(self,even=None):#切换页面
         self.Table.destroy()

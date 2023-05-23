@@ -5,11 +5,46 @@ from lib.lib_tkwidget import *
 from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
+from MeasureFlameAngle.CalcFlameAngle import *
+
 class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
+    def draw_line(self,originx,originy,angle,color=(255,255,255),length=1000):
+        x2 = int(originx + length * np.cos(angle/180*np.pi))
+        y2 = int(originy + length * np.sin(angle/180*np.pi))
+        cv.line(self.img_show,(originx,originy),(x2,y2),color,1)
     def draw_figure(self, **kwargs):
-        super().draw_figure(**kwargs)
+        #重新复制
+        if self.img.dtype=='uint16':
+            self.img_show=np.array(np.round(self.img/(2**8)),dtype='uint8')
+        else:
+            self.img_show=np.array(self.img,dtype='uint8')
+        self.img_show=(self.img_show*self.back.Gain).astype('uint8')#增益
+        if self.back.FlagPColor:#伪彩图
+            self.img_show=cv.applyColorMap(self.img_show,cv.COLORMAP_JET)
+        elif len(self.img.shape)==2:
+            self.img_show=cv.cvtColor(self.img_show,cv.COLOR_GRAY2RGB)
+        #默认处理：裁剪和中心线显示
+        self.img_show=self.Scissor(self.img_show,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
+        HEIGHT,WIDTH=self.img_show.shape[0],self.img_show.shape[1]
+        if self.back.FlagCenterLine:
+            cv.line(self.img_show,(0,HEIGHT//2),(WIDTH-1,HEIGHT//2),(255,255,255),1)
+            cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),1)
+        if self.back.FlagLineTheo:
+            x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
+            self.draw_line(x1,y1,self.back.AngleO-90,(0,0,255))
+            self.draw_line(x1,y1,-self.back.AngleF-90,(0,0,255))
+            self.draw_line(x1,y1,self.back.AngleCalc+90,(0,0,255))
+        if self.back.FlagLineAngle:
+            x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
+            self.draw_line(x1,y1,self.back.AngleL,(255,0,0))
+            self.draw_line(x1,y1,self.back.AngleR,(255,0,0))
+            self.draw_line(x1,y1,self.back.AngleM,(0,255,0))
+        if self.back.FlagLineY:
+            cv.line(self.img_show,(0,self.back.YStart),(WIDTH-1,self.back.YStart),(255,0,0),1)
+            cv.line(self.img_show,(0,self.back.YEnd),(WIDTH-1,self.back.YEnd),(255,0,0),1)
+            cv.line(self.img_show,(0,self.back.YCenter),(WIDTH-1,self.back.YCenter),(0,255,0),1)
     def generate_FilenameSave(self):#每个类要重写
         return str(self.father.father.back.FigName)+'.tif'
 class ClassMeasureFlameAngle(BaseFrame):
@@ -24,8 +59,6 @@ class ClassMeasureFlameAngle(BaseFrame):
         self.Figure=ClassFigurePlus(self,ClassFigureMeasureFlameAngle)
         self.back.Figure=self.Figure
         self.Figure.grid(row=1,column=0)
-        # self.Figure.Figure.bind('<Key>',self.CommandBindFigureKey)
-        # self.Figure.Figure.bind('<Button-1>',self.CommandBindFigureButton1)
     def create_panel(self):
         #R1
         self.create_var('Gain',self.back,'Double',1,True)
@@ -118,6 +151,7 @@ class ClassMeasureFlameAngle(BaseFrame):
     def FreshSelf(self):
         # self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        self.back.Fresh()
         self.Figure.Figure.change_figure(img)
     # def update_figure(self):
     #     self.Figure.update_figure(self.master.master.DirData.get()+r'/原位/'+self.master.CurrentName.get()+'.tif',

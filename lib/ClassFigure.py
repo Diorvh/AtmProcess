@@ -44,7 +44,7 @@ class ClassFigurePlus(BaseFrame):
     def __init__(self,father,Figure):#Figure为类名
         self.father=father
         self.back=self.father.back
-        super().__init__(self.father)
+        super().__init__(self.father,padding=5,relief='sunken')
         self.FramePanel=ttk.Frame(self)
         self.FramePanel.pack()
         self.create_FramePanel()
@@ -144,6 +144,10 @@ class ClassFigurePlus(BaseFrame):
     def CommandCheckButtonSaveimg(self):
         self.back.update('FlagSaveimg',self.FlagSaveimg.get(),False)
 
+    def get_img(self):
+        return self.Figure.Scissor(self.Figure.img,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
+    def get_img_show(self):
+        return self.Figure.img_show
 if __name__=='__main__':
     root=tk.Tk()
     ClassFigure(root).pack()
