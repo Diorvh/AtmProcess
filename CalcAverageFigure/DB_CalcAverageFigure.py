@@ -10,3 +10,6 @@ class DB_CalcAverageFigure(BaseSubDB):#改名
         return [1]
     def generate_title(self):
         return ['上裁剪','下裁剪','左裁剪','右裁剪']
+    def Fresh(self):
+        self.update('FigStart',self.root.Main.FrameChoosePic.FigNameStart)
+        self.update('FigEnd',self.root.Main.FrameChoosePic.FigNameEnd)

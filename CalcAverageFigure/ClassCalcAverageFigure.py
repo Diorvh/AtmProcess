@@ -52,6 +52,8 @@ class ClassCalcAverageFigure(BaseFrame):#改名
 
     def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8')):
         self.Figure.Figure.change_figure(img)
+        self.back.Fresh()
+        self.Figure.CommandButtonR4_1()
     # def update_figure(self):
     #     self.Figure.update_figure(self.master.master.DirData.get()+r'/原位/'+self.master.CurrentName.get()+'.tif',
     #                                   Point=(self.master.ImpactX.get(),self.master.ImpactY.get()),
