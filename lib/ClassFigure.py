@@ -38,6 +38,8 @@ class ClassFigure(ttk.Label):
         self.configure(image=self.ImgShow)
     def Scissor(self,img,cut):#上下左右
         return img[cut[0]:img.shape[0]-cut[1],cut[2]:img.shape[1]-cut[3]]
+    def generate_FilenameSave(self):
+        return str(self.father.father.back.FigName)+'.tif'#每个类要重写
 class ClassFigurePlus(BaseFrame):
     def __init__(self,father,Figure):#Figure为类名
         self.father=father
@@ -99,6 +101,10 @@ class ClassFigurePlus(BaseFrame):
         self.LER4.entry.bind('<Return>',self.CommandBindFilenameSave)
         ttk.Button(self.FrameR4,text='生成文件名',command=self.CommandButtonR4_1).pack(side='left')
         ttk.Button(self.FrameR4,text='保存',command=self.CommandButtonR4_2).pack(side='left')
+        self.create_var('FlagSaveimg',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FrameR4,text='保存原图而不是处理后图片',onvalue=True,offvalue=False,
+                        variable=self.FlagSaveimg,command=self.CommandCheckButtonSaveimg).pack(side='left')
+
     
     def MouseMotion(self,event):
         if event.x<self.Figure.img.shape[1]:
@@ -124,15 +130,20 @@ class ClassFigurePlus(BaseFrame):
     
     def CommandButtonR3(self):
         self.back.update('DirSave',filedialog.askdirectory(title='选择文件夹'))
+
     def CommandButtonR4_1(self):
-        self.back.update('FilenameSave',self.generate_FilenameSave())
+        self.back.update('FilenameSave',self.Figure.generate_FilenameSave())
     def CommandButtonR4_2(self):
-        self.Figure.img_show=cv.cvtColor(self.Figure.img_show,cv.COLOR_BGR2RGB)
-        cv.imencode('.tif', self.Figure.img_show)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
+        if self.FlagSaveimg.get():
+            savefile=self.Figure.img
+        else:
+            savefile=cv.cvtColor(self.Figure.img_show,cv.COLOR_BGR2RGB)
+        cv.imencode('.tif', savefile)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
     def CommandBindFilenameSave(self,event):
         self.back.update('FilenameSave',self.FilenameSave.get(),False)
-    def generate_FilenameSave(self):
-        return str(self.father.father.back.FigName)+'.tif'#每个类要重写
+    def CommandCheckButtonSaveimg(self):
+        self.back.update('FlagSaveimg',self.FlagSaveimg.get(),False)
+
 if __name__=='__main__':
     root=tk.Tk()
     ClassFigure(root).pack()

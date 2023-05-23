@@ -13,7 +13,7 @@ class ClassFigureCalcAverageFigure(ClassFigure):#改名
     def draw_figure(self, **kwargs):
         super().draw_figure(**kwargs)
     def generate_FilenameSave(self):#每个类要重写
-        return str(self.father.father.back.root.Main.generate_ImageLabel)+'_'+str(self.father.father.back.FigStart)+'-'+str(self.father.father.back.FigEnd)+'AverageFigure.tif'
+        return str(self.father.father.back.root.Main.generate_ImageLabel())+'_'+str(self.father.father.back.FigStart)+'-'+str(self.father.father.back.FigEnd)+'-AverageFigure.tif'
 class ClassCalcAverageFigure(BaseFrame):#改名
     def __init__(self,father):
         self.father=father
@@ -46,9 +46,7 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         self.back.update('FigEnd',self.FigEnd.get(),False)
     def CommandButtonCalcAverage(self):
         start_time=time.time()
-        # img_list=[]
-        # for i in range(self.FigStart.get(),self.FigEnd.get()+1):
-            # img_list.append(cv.imdecode(np.fromfile(file=self.back.root.Main.generate_fdir()+'/'+str(i)+'.tif',dtype=np.uint8),-1))
+        print('计算平均图中')
         self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),4))
         print('计算完成，耗时',time.time()-start_time,'秒')
 
