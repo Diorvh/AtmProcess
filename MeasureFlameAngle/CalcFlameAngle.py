@@ -38,6 +38,7 @@ def divide_list(l,r_value=0.5):#输入序列l，寻找前x个和>=r_value*总和
         return [binary_search(prefix,i) for i in r_value]#支持批量处理
     return binary_search(prefix,r_value)
 def calc_y(img,thres):#输入图片，阈值，计算火焰纵向中心、起始、结束位置（我觉得没问题，就计算全场的火焰，originy不影响）
+    img=np.array(img,dtype='uint64')
     row_sum=np.sum(img,axis=1)
     return divide_list(row_sum,[0.5,thres,1-thres])
 def calc_yavgdis(img,originx,originy,AngleL,AngleR):#返回0-originy之间每行的灰度值平均值（L-R）,火焰锥角内的全场

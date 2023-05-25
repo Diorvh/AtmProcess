@@ -11,7 +11,7 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
     def draw_line(self,originx,originy,angle,color=(255,255,255),length=1000):
-        x2 = int(originx + length * np.cos(angle/180*np.pi))
+        x2 = int(originx - length * np.cos(angle/180*np.pi))
         y2 = int(originy + length * np.sin(angle/180*np.pi))
         cv.line(self.img_show,(originx,originy),(x2,y2),color,1)
     def draw_figure(self, **kwargs):
@@ -23,6 +23,7 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
         self.img_show=(self.img_show*self.back.Gain).astype('uint8')#增益
         if self.back.FlagPColor:#伪彩图
             self.img_show=cv.applyColorMap(self.img_show,cv.COLORMAP_JET)
+            self.img_show=cv.cvtColor(self.img_show,cv.COLOR_BGR2RGB)
         elif len(self.img.shape)==2:
             self.img_show=cv.cvtColor(self.img_show,cv.COLOR_GRAY2RGB)
         #默认处理：裁剪和中心线显示
@@ -33,9 +34,9 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
             cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),1)
         if self.back.FlagLineTheo:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
-            self.draw_line(x1,y1,self.back.AngleO-90,(0,0,255))
-            self.draw_line(x1,y1,-self.back.AngleF-90,(0,0,255))
-            self.draw_line(x1,y1,self.back.AngleCalc+90,(0,0,255))
+            self.draw_line(x1,y1,-self.back.AngleO-90,(0,0,255))
+            self.draw_line(x1,y1,self.back.AngleF-90,(0,0,255))
+            self.draw_line(x1,y1,-self.back.AngleCalc+90,(0,0,255))
         if self.back.FlagLineAngle:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
             self.draw_line(x1,y1,self.back.AngleL,(255,0,0))
@@ -46,6 +47,17 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
             cv.line(self.img_show,(0,self.back.YEnd),(WIDTH-1,self.back.YEnd),(255,0,0),1)
             cv.line(self.img_show,(0,self.back.YCenter),(WIDTH-1,self.back.YCenter),(0,255,0),1)
     def generate_FilenameSave(self):#每个类要重写
+        if self.back.root.Main.FlagDirect:
+            name=self.back.root.Main.DirDirect.split('/')[-1][:-4]
+            if self.back.FlagPColor:
+                name+='-伪彩图'
+            if self.back.FlagLineTheo:
+                name+='-理论线'
+            if self.back.FlagLineAngle:
+                name+='-锥角线'
+            if self.back.FlagLineY:
+                name+='-长度线'
+            return name+'.tif'
         return str(self.father.father.back.FigName)+'.tif'
 class ClassMeasureFlameAngle(BaseFrame):
     def __init__(self,father):
@@ -151,6 +163,7 @@ class ClassMeasureFlameAngle(BaseFrame):
     def FreshSelf(self):
         # self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        self.Figure.Figure.change_figure(img)
         self.back.Fresh()
         self.Figure.Figure.change_figure(img)
     # def update_figure(self):

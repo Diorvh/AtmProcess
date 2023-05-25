@@ -6,11 +6,14 @@ class DB_MeasureFlameAngle(BaseSubDB):
         super().__init__(root)
         self.SubClassName=[]
         #后端变量
-        self.TableHeadings=['图名称','帧数','宽度/pix','宽度/mm','长度/pix','长度/mm']
+        self.TableHeadings=[]
     def generate_data(self):
         return [1]
     def generate_title(self):
-        return ['上裁剪','下裁剪','左裁剪','右裁剪']
+        back=self.root.Main.FrameChoosePic
+        return ['左裁剪/pix',self.ScissorLeft,'右裁剪/pix',self.ScissorLeft,'撞击点X',back.ImpactX,'撞击点Y',back.ImpactY,
+                'thres',self.Threshold,'AngleL',self.AngleL,'AngleR',self.AngleR,'AngleM',self.AngleM,'Angle',self.Angle,
+                'YStart',self.YStart,'YEnd',self.YEnd,'YCenter',self.YCenter,'YLength',self.YLength]
     def Fresh(self):
         img=self.Figure.get_img()
         father=self.root.Main.FrameChoosePic

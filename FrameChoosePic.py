@@ -128,7 +128,7 @@ class FrameChoosePic(BaseFrame):
                 cache=self.CurrentPage.back.generate_title()
                 for k in range(len(cache)//2):
                     for j in range(1,ws_target.max_column+1):
-                        if ws_target.cell(2,j).value==cache[k*2]:
+                        if ws_target.cell(1,j).value==cache[k*2]:
                             ws_target.cell(i,j,cache[k*2+1])
         wb_target.save(self.father.back.FDirRes)
     def Fresh(self):

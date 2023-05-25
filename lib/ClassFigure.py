@@ -25,7 +25,7 @@ class ClassFigure(ttk.Label):
         else:
             self.img_show=np.array(self.img,dtype='uint8')
         if len(self.img.shape)==2:
-            self.img_show=cv.cvtColor(self.img_show,cv.COLOR_GRAY2BGR)
+            self.img_show=cv.cvtColor(self.img_show,cv.COLOR_GRAY2RGB)
         #默认处理：裁剪和中心线显示
         self.img_show=self.Scissor(self.img_show,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
         HEIGHT,WIDTH=self.img_show.shape[0],self.img_show.shape[1]
@@ -137,7 +137,7 @@ class ClassFigurePlus(BaseFrame):
         if self.FlagSaveimg.get():
             savefile=self.Figure.img
         else:
-            savefile=cv.cvtColor(self.Figure.img_show,cv.COLOR_BGR2RGB)
+            savefile=cv.cvtColor(self.Figure.img_show,cv.COLOR_RGB2BGR)
         cv.imencode('.tif', savefile)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
     def CommandBindFilenameSave(self,event):
         self.back.update('FilenameSave',self.FilenameSave.get(),False)

@@ -32,7 +32,9 @@ class BaseSubDB:
     def save(self):
         dict={}
         for i in self.SaveVarName:
+            print('Saving '+i)
             dict[i]=getattr(self,i)
         for i in self.SubClassName:
+            print('SavingClass '+i)
             dict={**dict,**getattr(self,i).save()}
         return dict
