@@ -3,6 +3,7 @@ from lib.BaseClass import *
 from MeasureSheet.DB_MeasureSheet import *
 from MeasureFlameAngle.DB_MeasureFlameAngle import *
 from CalcAverageFigure.DB_CalcAverageFigure import *
+from CalcFlameAngle.DB_CalcFlameAngle import *
 import os
 import numpy as np
 class DB:
@@ -41,10 +42,11 @@ class DB_main(BaseSubDB):
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
-        self.SubClassName=['MeasureSheet','MeasureFlameAngle','CalcAverageFigure']#增加实例
+        self.SubClassName=['MeasureSheet','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle']#增加实例
         self.MeasureSheet=DB_MeasureSheet(self.root)
         self.MeasureFlameAngle=DB_MeasureFlameAngle(self.root)
-        self.CalcAverageFigure=DB_CalcAverageFigure(self.root)#增加实例
+        self.CalcAverageFigure=DB_CalcAverageFigure(self.root)
+        self.CalcFlameAngle=DB_CalcFlameAngle(self.root)#增加实例
         #后端变量
         self.FigureNameList=[]
         self.data=[]

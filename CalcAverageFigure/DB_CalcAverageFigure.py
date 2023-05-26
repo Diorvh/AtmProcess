@@ -5,11 +5,11 @@ class DB_CalcAverageFigure(BaseSubDB):#改名
         super().__init__(root)
         self.SubClassName=[]
         #后端变量
-        self.TableHeadings=['图名称','帧数','宽度/pix','宽度/mm','长度/pix','长度/mm']
+        self.TableHeadings=[]
     def generate_data(self):
-        return [1]
+        return []
     def generate_title(self):
-        return ['上裁剪','下裁剪','左裁剪','右裁剪']
+        return []
     def Fresh(self):
         self.update('FigStart',self.root.Main.FrameChoosePic.FigNameStart)
         self.update('FigEnd',self.root.Main.FrameChoosePic.FigNameEnd)

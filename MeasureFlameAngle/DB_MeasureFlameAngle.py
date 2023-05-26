@@ -1,6 +1,6 @@
 from lib.BaseClass import *
 import numpy as np
-from MeasureFlameAngle.CalcFlameAngle import *
+from MeasureFlameAngle.lib_CalcFlameAngle import *
 class DB_MeasureFlameAngle(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)

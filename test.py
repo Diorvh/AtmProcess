@@ -1,2 +1,3 @@
 import numpy as np
-print((np.ones((2,2),dtype='uint8')*256).astype('uint8'))
+a=np.array([[1,2,3],[4,5,6]])
+print(np.mean(a,axis=0))

@@ -15,3 +15,7 @@
 
 前端输出变量：
 只需要create_var即可
+
+新增Notebook页：
+1. 新建文件夹，包含前端和后端类
+2. FrameChoosePic前端链接到Notebook中，后端新建实例，并添加到子类名称中

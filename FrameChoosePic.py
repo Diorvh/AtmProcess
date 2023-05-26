@@ -3,6 +3,7 @@ from tkinter import ttk
 from MeasureSheet.ClassMeasureSheet import *
 from MeasureFlameAngle.ClassMeasureFlameAngle import *
 from CalcAverageFigure.ClassCalcAverageFigure import *
+from CalcFlameAngle.ClassCalcFlameAngle import *
 import openpyxl
 from lib.lib_tkwidget import *
 from lib.BaseClass import *
@@ -26,14 +27,16 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
         self.MeasureFlameAngle=ClassMeasureFlameAngle(self)
         self.NotebookProcess.add(self.MeasureFlameAngle,text='MeasureFlameAngle')
-        self.CalcAverageFigure=ClassCalcAverageFigure(self)#在此新增
+        self.CalcAverageFigure=ClassCalcAverageFigure(self)
         self.NotebookProcess.add(self.CalcAverageFigure,text='CalcAverageFigure')
+        self.CalcFlameAngle=ClassCalcFlameAngle(self)#在此新增
+        self.NotebookProcess.add(self.CalcFlameAngle,text='CalcFlameAngle')
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化
-        self.NotebookProcess.select(1)
+        self.NotebookProcess.select(3)
         self.on_page_changed()
-    def on_page_changed(self,even=None):#切换页面
+    def on_page_changed(self,event=None):#切换页面
         self.Table.destroy()
         self.CurrentPage = getattr(self,self.NotebookProcess.tab(self.NotebookProcess.select(), "text"))
         self.Table=TableFrame(self,self.CurrentPage.back.TableHeadings,visible_rows=40)
