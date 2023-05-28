@@ -34,7 +34,7 @@ class FrameChoosePic(BaseFrame):
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化
-        self.NotebookProcess.select(3)
+        self.NotebookProcess.select(0)
         self.on_page_changed()
     def on_page_changed(self,event=None):#切换页面
         self.Table.destroy()

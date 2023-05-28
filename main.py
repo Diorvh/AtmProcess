@@ -31,7 +31,7 @@ class Main(BaseFrame):
         #R1
         self.FrameR1=ttk.Frame(self.FramePanel)
         self.FrameR1.pack(fill='x')
-        self.create_var('CoreNum',self.back,'Int',4,True)
+        self.create_var('CoreNum',self.back,'Int',0,True)
         LE1=LabelEntry(self.FrameR1,'并行进程数',self.CoreNum)
         LE1.pack(side='left')
         LE1.entry.bind('<Return>',self.CommandBindCoreNum)

@@ -58,7 +58,7 @@ def calc_flame_angle(dir,start,end,num_processes,settings):
     savedir=dir+'/伪彩图'
     if not os.path.exists(savedir):
         os.makedirs(savedir)
-
+    print(chunks)
     pool = Pool(processes=num_processes)
     results = pool.map(partial(process,dir,settings), chunks)
     pool.close()

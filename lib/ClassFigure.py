@@ -21,7 +21,7 @@ class ClassFigure(ttk.Label):
     def draw_figure(self,**kwargs):
         #重新复制
         if self.img.dtype=='uint16':
-            self.img_show=np.array(np.round(self.img/(2**8)),dtype='uint8')
+            self.img_show=np.array(np.floor(self.img/(2**8)),dtype='uint8')
         else:
             self.img_show=np.array(self.img,dtype='uint8')
         if len(self.img.shape)==2:

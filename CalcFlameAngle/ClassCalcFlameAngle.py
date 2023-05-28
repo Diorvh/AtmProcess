@@ -104,7 +104,7 @@ class ClassCalcFlameAngle(BaseFrame):
             settings[i]=getattr(self,i).get()
         for i in ['ImpactX','ImpactY']:
             settings[i]=getattr(self.father.back,i)
-        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),4,settings)
+        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings)
         #写入文档
         wb=openpyxl.Workbook()
         ws=wb.active
