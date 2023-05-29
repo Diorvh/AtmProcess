@@ -107,7 +107,6 @@ class FrameChoosePic(BaseFrame):
             self.back.update('FigName',self.FigName.get()+delta)
             self.Fresh()
     def CommandBindFigName(self,*args):
-        self.FigNameFresh1()
         if self.FigName.get() in self.back.get('FigureNameList'):
             self.back.update('FigName',self.FigName.get())
             self.Fresh()
