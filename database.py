@@ -2,6 +2,7 @@ from lib.lib_json import *
 from lib.BaseClass import *
 from MeasureSheet.DB_MeasureSheet import *
 from MeasureFlameAngle.DB_MeasureFlameAngle import *
+from MeasureBreakupLength.DB_MeasureBreakupLength import *
 from CalcAverageFigure.DB_CalcAverageFigure import *
 from CalcFlameAngle.DB_CalcFlameAngle import *
 import os
@@ -42,8 +43,9 @@ class DB_main(BaseSubDB):
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
-        self.SubClassName=['MeasureSheet','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle']#增加实例
+        self.SubClassName=['MeasureSheet','MeasureBreakupLength','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle']#增加实例
         self.MeasureSheet=DB_MeasureSheet(self.root)
+        self.MeasureBreakupLength=DB_MeasureBreakupLength(self.root)
         self.MeasureFlameAngle=DB_MeasureFlameAngle(self.root)
         self.CalcAverageFigure=DB_CalcAverageFigure(self.root)
         self.CalcFlameAngle=DB_CalcFlameAngle(self.root)#增加实例
@@ -82,5 +84,15 @@ class DB_FrameChoosePic(BaseSubDB):
             self.data[cursor]=[self.FigName,self.FigName*self.Decimate]+data
         else:
             self.data.append([self.FigName,self.FigName*self.Decimate]+data)
+            self.data = sorted(self.data, key=lambda x: x[0])
+    def delete_data(self,name):
+        cursor=-1
+        for j,i in enumerate(self.data):
+            if i[0]==name:
+                cursor=j
+                break
+        if cursor!=-1:
+            self.data.pop(cursor)
+        
 if __name__=='__main__':
     db=DB()

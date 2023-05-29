@@ -34,6 +34,8 @@ class TableFrame(ttk.Frame):
         if data is not None:
             for row in data:
                 self.table.insert("", "end", values=list(row))
+        # Set the scrollbar to the bottom
+        self.table.yview_moveto(1.0)
 
     def update_headings(self, new_headings):
         if self.table is None:

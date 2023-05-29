@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from MeasureSheet.ClassMeasureSheet import *
+from MeasureBreakupLength.ClassMeasureBreakupLength import *
 from MeasureFlameAngle.ClassMeasureFlameAngle import *
 from CalcAverageFigure.ClassCalcAverageFigure import *
 from CalcFlameAngle.ClassCalcFlameAngle import *
@@ -25,6 +26,8 @@ class FrameChoosePic(BaseFrame):
         #创建Notebook界面
         self.MeasureSheet=ClassMeasureSheet(self)
         self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
+        self.MeasureBreakupLength=ClassMeasureBreakupLength(self)
+        self.NotebookProcess.add(self.MeasureBreakupLength,text='MeasureBreakupLength')
         self.MeasureFlameAngle=ClassMeasureFlameAngle(self)
         self.NotebookProcess.add(self.MeasureFlameAngle,text='MeasureFlameAngle')
         self.CalcAverageFigure=ClassCalcAverageFigure(self)
@@ -34,7 +37,7 @@ class FrameChoosePic(BaseFrame):
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化
-        self.NotebookProcess.select(0)
+        self.NotebookProcess.select(1)
         self.on_page_changed()
     def on_page_changed(self,event=None):#切换页面
         self.Table.destroy()
@@ -87,18 +90,21 @@ class FrameChoosePic(BaseFrame):
     def CommandBindDecimate(self,*args):
         self.back.update('Decimate',self.Decimate.get(),False)
     
-    def FigNameFresh1(self):
+    def CommandButtonFigNameInc(self):
         self.back.save_data(self.CurrentPage.back.generate_data())
         self.Table.update_table(self.back.data[:])
-    def CommandButtonFigNameInc(self):
-        self.FigNameFresh1()
         if self.FigName.get()+1 in self.back.get('FigureNameList'):
             self.back.update('FigName',self.FigName.get()+1)
             self.Fresh()
     def CommandButtonFigNameDec(self):
-        self.FigNameFresh1()
+        self.back.delete_data(self.FigName.get())
+        self.Table.update_table(self.back.data[:])
         if self.FigName.get()-1 in self.back.get('FigureNameList'):
             self.back.update('FigName',self.FigName.get()-1)
+            self.Fresh()
+    def FigNameChangeOnly(self,delta):#不保存空过
+        if self.FigName.get()+delta in self.back.get('FigureNameList'):
+            self.back.update('FigName',self.FigName.get()+delta)
             self.Fresh()
     def CommandBindFigName(self,*args):
         self.FigNameFresh1()
