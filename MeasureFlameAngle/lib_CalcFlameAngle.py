@@ -41,6 +41,16 @@ def calc_y(img,thres):#输入图片，阈值，计算火焰纵向中心、起始
     img=np.array(img,dtype='uint64')
     row_sum=np.sum(img,axis=1)
     return divide_list(row_sum,[0.5,thres,1-thres])
+def calc_intensty(img,originx,originy,AngleL,AngleR,YStart,YEnd):
+    img=np.array(img,dtype='uint64')
+    asum,anum,amax=0,0,0
+    for i in range(YStart,YEnd+1):
+        lowerbound=int(max(0,np.round(originx-(i-originy)/np.tan(AngleL/180*np.pi))))
+        upperbound=int(min(np.round(originx-(i-originy)/np.tan(AngleR/180*np.pi)),img.shape[1]-1))
+        asum+=np.sum(img[i,lowerbound:upperbound+1])
+        anum+=upperbound-lowerbound+1
+        amax=max(amax,np.max(img[i,lowerbound:upperbound+1]))
+    return asum/anum,amax
 def calc_yavgdis(img,originx,originy,AngleL,AngleR):#返回0-originy之间每行的灰度值平均值（L-R）,火焰锥角内的全场
     img=np.array(img[originy:,:],dtype='uint64')
     y_avg=[]
@@ -49,6 +59,7 @@ def calc_yavgdis(img,originx,originy,AngleL,AngleR):#返回0-originy之间每行
         upperbound=min(int(np.round(originx-i/np.tan(AngleR/180*np.pi))),img.shape[1]-1)
         y_avg.append(np.average(img[i,lowerbound:upperbound+1]))
     return np.array(y_avg)
+    
 def calc_thetaavgdis(img,originx,originy,AngleL,AngleR,YEnd):#返回L-R之间每隔0.1°的灰度值平均值（火焰核心区，yend限制以内）
     img=np.array(img[originy:,:],dtype='uint64')
     theta_avg=[]

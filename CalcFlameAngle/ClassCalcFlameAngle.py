@@ -8,7 +8,7 @@ from lib.Table import *
 from MeasureFlameAngle.lib_CalcFlameAngle import *
 from time import time
 from CalcFlameAngle.CalcFlameAngle import *
-from lib.write_excel_mat import *
+from lib.excel_io import *
 import openpyxl
 
 class ClassCalcFlameAngle(BaseFrame):
@@ -65,7 +65,10 @@ class ClassCalcFlameAngle(BaseFrame):
         self.LER4_2=LabelEntry(self.FramePanel,'结束帧：',self.FigEnd)
         self.LER4_2.grid(row=3,column=1,sticky='w')
         self.LER4_2.entry.bind('<Return>',self.CommandBindFigEnd)
-        ttk.Button(self.FramePanel,text='开始计算',command=self.CommandButtonR4).grid(row=3,column=2,sticky='we')
+        self.create_var('FlagSave',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FramePanel,onvalue=True,offvalue=False,
+                        variable=self.FlagSave,command=self.CommandCheckButtonSave).grid(row=3,column=2,sticky='we')
+        ttk.Button(self.FramePanel,text='开始计算',command=self.CommandButtonR4).grid(row=3,column=3,sticky='we')
     #R1
     def CommandBindGain(self,event):
         self.back.update('Gain',self.Gain.get(),False)
@@ -96,6 +99,8 @@ class ClassCalcFlameAngle(BaseFrame):
         self.back.update('FigStart',self.FigStart.get(),False)
     def CommandBindFigEnd(self,event):
         self.back.update('FigEnd',self.FigEnd.get(),False)
+    def CommandCheckButtonSave(self):
+        self.back.update('FlagSave',self.FlagSave.get(),False)
     def CommandButtonR4(self):
         start_time=time()
         print('计算平均图中')
@@ -104,12 +109,12 @@ class ClassCalcFlameAngle(BaseFrame):
             settings[i]=getattr(self,i).get()
         for i in ['ImpactX','ImpactY']:
             settings[i]=getattr(self.father.back,i)
-        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings)
+        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings,self.FlagSave.get())
         #写入文档
         wb=openpyxl.Workbook()
         ws=wb.active
         write_excel_mat(ws,list(zip(*settings.items())))#settings第一行是key，第二行是values，两行都是tuple格式
-        write_excel_mat(ws,[['帧数','中心线角','左边界角','右边界角','火焰锥角','火焰中心','火焰起始','火焰结束','火焰长度']],True)
+        write_excel_mat(ws,[['帧数','中心线角','左边界角','右边界角','火焰锥角','火焰中心','火焰起始','火焰结束','火焰长度','火焰区平均强度','火焰区最大强度']],True)
         write_excel_mat(ws,[['平均值']+list(np.mean(res,axis=0))[1:]],True)
         write_excel_mat(ws,res,True)
         wb.save(self.back.root.Main.generate_fdir()+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'批处理结果.xlsx')
