@@ -127,6 +127,8 @@ class FrameChoosePic(BaseFrame):
                 self.CurrentPage.back.TableHeadings]
             write_excel_mat(ws_target,title)
             write_excel_mat(ws_target,self.back.data,FlagContinue=True)
+            if hasattr(self.CurrentPage.back,'get_dir_res'):
+                wb_target.save(self.CurrentPage.back.get_dir_res(self.CurrentPage.__class__.__name__))
             wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
         #写入汇总表
         wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
@@ -139,6 +141,7 @@ class FrameChoosePic(BaseFrame):
                         if ws_target.cell(1,j).value==cache[k*2]:
                             ws_target.cell(i,j,cache[k*2+1])
         wb_target.save(self.father.back.FDirRes)
+        os.system(r'start excel "'+self.father.back.FDirRes+r'"')
     def Fresh(self):
         self.CurrentPage.FreshSelf()
 if __name__=='__main__':

@@ -28,4 +28,13 @@ class DB_MeasureBreakupLength(BaseSubDB):
             sum+=(t[j+1]-t[j]+1)*(lb[j+1]+lb[j])/2
         sum=sum-np.sum(lb)+lb[0]+lb[-1]
         ans=sum/(t[-1]-t[0]+1)
-        return ['X',c.ImpactX,'Y',c.ImpactY,'像素大小/um/pix',c.PixSize,'平均破碎长度/mm',ans]
+        return ['X',c.ImpactX,'Y',c.ImpactY,'像素大小/um/pix',c.PixSize,'平均破碎长度/mm',ans,'半数采样破碎长度/mm',np.average(lb[::2]),
+                'Decimate',c.Decimate,'总张数',len(t),'起始帧',t[0],'结束帧',t[-1]]
+    def get_dir_res(self,classname):
+        name=''
+        if self.root.Main.FlagOther:
+            name=self.Other+'_'
+        else:
+            name='实验编号'+str(self.root.Main.ExpNo)+'_'
+        DirData=self.root.Main.DirData
+        return DirData[:DirData.rfind("/")+1]+'破碎长度/'+name+classname+'.xlsx'
