@@ -51,7 +51,6 @@ class TableFrame(ttk.Frame):
         def restore_column_widths():
             for col_name,width in column_widths.items():
                 self.table.column(col_name, width=width)
-                print('update column')
         self.after(10000,restore_column_widths)
 
 class MyApp(tk.Tk):

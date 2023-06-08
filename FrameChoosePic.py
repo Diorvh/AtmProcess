@@ -5,6 +5,7 @@ from MeasureBreakupLength.ClassMeasureBreakupLength import *
 from MeasureFlameAngle.ClassMeasureFlameAngle import *
 from CalcAverageFigure.ClassCalcAverageFigure import *
 from CalcFlameAngle.ClassCalcFlameAngle import *
+from PlayAtmAngle.ClassPlayAtmAngle import *
 import openpyxl
 from lib.lib_tkwidget import *
 from lib.BaseClass import *
@@ -32,12 +33,15 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.add(self.MeasureFlameAngle,text='MeasureFlameAngle')
         self.CalcAverageFigure=ClassCalcAverageFigure(self)
         self.NotebookProcess.add(self.CalcAverageFigure,text='CalcAverageFigure')
-        self.CalcFlameAngle=ClassCalcFlameAngle(self)#在此新增
+        self.CalcFlameAngle=ClassCalcFlameAngle(self)
         self.NotebookProcess.add(self.CalcFlameAngle,text='CalcFlameAngle')
+        self.PlayAtmAngle=ClassPlayAtmAngle(self)#在此新增
+        self.NotebookProcess.add(self.PlayAtmAngle,text='PlayAtmAngle')
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化
-        self.NotebookProcess.select(1)
+        self.NotebookProcess.select(5)
+        self.on_page_changed()
         self.on_page_changed()
     def on_page_changed(self,event=None):#切换页面
         self.Table.destroy()

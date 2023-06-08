@@ -47,7 +47,7 @@ class ClassCalcAverageFigure(BaseFrame):#改名
     def CommandButtonCalcAverage(self):
         start_time=time.time()
         print('计算平均图中')
-        self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),4))
+        self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum))
         print('计算完成，耗时',time.time()-start_time,'秒')
 
     def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8')):
