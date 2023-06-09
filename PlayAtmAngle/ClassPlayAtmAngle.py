@@ -32,9 +32,38 @@ class ClassPlayAtmAngle(BaseFrame):#改名
     def create_panel(self):
         #R1
         self.FrameR1=ttk.Frame(self.FramePanel)
-        self.FrameR1.pack(side='left')
+        self.FrameR1.pack()
         self.create_var('FlagReverseColor',self.back,'Boolean',False,True)
-        ttk.Button(self.FrameR1,text='颜色翻转',command=self.CommandButtonReverseColor).pack(side='left')
+        self.ButtonR1_1=ttk.Button(self.FrameR1,text='颜色翻转',command=self.CommandButtonReverseColor)
+        self.ButtonR1_1.pack(side='left')
+        self.create_var('FlagBinary',self.back,'Boolean',False,True)
+        self.ButtonR1_2=ttk.Button(self.FrameR1,text='二值化处理',command=self.CommandButtonBinary)
+        self.ButtonR1_2.pack(side='left')
+        self.create_var('ThresBinary',self.back,'Int',0,True)
+        self.LER1_1=LabelEntry(self.FrameR1,'二值化阈值=',self.ThresBinary)
+        self.LER1_1.pack(side='left')
+        self.LER1_1.entry.bind('<Return>',self.CommandBindThresBinary)
+        #R2
+        self.FrameR2=ttk.Frame(self.FramePanel)
+        self.FrameR2.pack()
+        self.create_var('FlagMinusBG',self.back,'Boolean',False,True)
+        ttk.Checkbutton(self.FrameR2,onvalue=True,offvalue=False,
+                        variable=self.FlagMinusBG,command=self.CommandCheckButtonFlagMinusBG).pack(side='left')
+        ttk.Label(self.FrameR2,text='减背景').pack(side='left')
+        self.create_var('DirBG',self.back,'String','',True)
+        ChooseFile(self.FrameR2,'背景图片目录：',self.DirBG).pack(side='left')
+        self.create_var('BGYStart',self.back,'Int',0,True)
+        self.LER2_1=LabelEntry(self.FrameR2,'背景起始y坐标=',self.BGYStart)
+        self.LER2_1.pack(side='left')
+        self.LER2_1.entry.bind('<Return>',self.CommandBindBGYStart)
+        #R3
+        self.FrameR3=ttk.Frame(self.FramePanel)
+        self.FrameR3.pack()
+        self.create_var('FlagMinusLast',self.back,'Boolean',False,True)
+        ttk.Checkbutton(self.FrameR3,onvalue=True,offvalue=False,
+                        variable=self.FlagMinusLast,command=self.CommandCheckButtonFlagMinusLast).pack(side='left')
+        ttk.Label(self.FrameR3,text='减上一张').pack(side='left')
+
         # self.create_var('FigStart',self.back,'Int',0,True)
         # self.create_var('FigEnd',self.back,'Int',0,True)
         # self.LER1_1=LabelEntry(self.FrameR1,'起始帧：',self.FigStart)
@@ -50,7 +79,23 @@ class ClassPlayAtmAngle(BaseFrame):#改名
     #     self.back.update('FigEnd',self.FigEnd.get(),False)
     def CommandButtonReverseColor(self):
         self.back.update('FlagReverseColor',not self.FlagReverseColor.get())
+        self.ButtonR1_1.config(text='颜色还原' if self.FlagReverseColor.get() else '颜色翻转')
         self.FreshSelf()
+    def CommandButtonBinary(self):
+        self.back.update('FlagBinary',not self.FlagBinary.get())
+        self.ButtonR1_1.config(text='二值化还原' if self.FlagBinary.get() else '二值化处理')
+        self.FreshSelf()
+    def CommandBindThresBinary(self):
+        self.back.update('ThresBinary',self.ThresBinary.get(),False)
+    def CommandCheckButtonFlagMinusBG(self):
+        self.back.update('FlagMinusBG',self.FlagMinusBG.get(),False)
+    def CommandBindBGYStart(self):
+        self.back.update('BGYStart',self.BGYStart.get(),False)
+    def CommandCheckButtonFlagMinusLast(self):
+        self.back.update('FlagMinusLast',self.FlagMinusLast.get(),False)
+
+
+
     # def CommandButtonCalcAverage(self):
     #     start_time=time.time()
     #     print('计算平均图中')
