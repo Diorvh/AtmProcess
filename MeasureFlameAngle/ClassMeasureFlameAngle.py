@@ -5,7 +5,7 @@ from lib.lib_tkwidget import *
 from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
-from MeasureFlameAngle.lib_CalcFlameAngle import *
+from lib.lib_Angle import *
 
 class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):

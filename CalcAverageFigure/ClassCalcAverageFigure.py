@@ -31,6 +31,7 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         #R1
         self.FrameR1=ttk.Frame(self.FramePanel)
         self.FrameR1.pack(side='left')
+        ttk.Button(self.FrameR1,text='彩色转黑白',command=self.CommandButtonProcess).pack(side='left')
         self.create_var('FigStart',self.back,'Int',0,True)
         self.create_var('FigEnd',self.back,'Int',0,True)
         self.LER1_1=LabelEntry(self.FrameR1,'起始帧：',self.FigStart)
@@ -47,10 +48,16 @@ class ClassCalcAverageFigure(BaseFrame):#改名
     def CommandButtonCalcAverage(self):
         start_time=time.time()
         print('计算平均图中')
-        self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum))
+        self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum),False)
         print('计算完成，耗时',time.time()-start_time,'秒')
+    def CommandButtonProcess(self):
+        start_time=time.time()
+        print('彩色转黑白处理中，实验编号：'+str(self.db.Main.ExpNo))
+        process_color_to_gray(self.db.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.db.Main.CoreNum)
+        print('彩色转黑白处理完成，耗时',time.time()-start_time,'秒')
 
-    def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8')):
+    def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8'),FlagFreshRange=True):
         self.Figure.Figure.change_figure(img)
-        self.back.Fresh()
+        if FlagFreshRange:
+            self.back.Fresh()
         self.Figure.CommandButtonR4_1()

@@ -22,6 +22,22 @@ def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.ti
     average_image = (np.sum(results, axis=0,dtype='uint64')/(end-start+1)).astype(np.uint16)
     return average_image
 
+def process(dir,chunk):#省内存
+    for i in chunk:
+        img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        cv.imencode('.tif', cv.cvtColor(img,cv.COLOR_BGR2GRAY))[1].tofile(dir+'/'+str(i)+'.tif')
+def process_color_to_gray(dir,start,end, num_processes):
+    chunk_size = (end-start+1) // num_processes
+    chunks=[]
+    for i in range(num_processes-1):
+        chunks.append(list(range(start+i*chunk_size,start+(i+1)*chunk_size)))
+    chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
+
+    pool = Pool(processes=num_processes)
+    results = pool.map(partial(process,dir), chunks)
+    pool.close()
+    pool.join()
+
 if __name__ == '__main__':
     num_processes = 4
     image_list=[]

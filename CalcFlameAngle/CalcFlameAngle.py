@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 from multiprocessing import Pool
 from functools import partial
-from MeasureFlameAngle.lib_CalcFlameAngle import *
+from lib.lib_Angle import *
 def Scissor(img,cut):#上下左右
     return img[cut[0]:img.shape[0]-cut[1],cut[2]:img.shape[1]-cut[3]]
 def draw_line(img_show,originx,originy,angle,color=(255,255,255),length=1000):

@@ -2,12 +2,22 @@ import numpy as np
 import cv2 as cv
 from multiprocessing import Pool
 from functools import partial
-def calculate_sum(dir,chunk):#省内存
-    sum=np.zeros(cv.imdecode(np.fromfile(file=dir+'/'+str(chunk[0])+'.tif',dtype=np.uint8),-1).shape,dtype='uint64')
+from lib.lib_Angle import *
+def process_calculate_atmangle(dir,settings,chunk):#省内存
+    res=[]
     for i in chunk:
-        sum+=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
-    return sum
-def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.tif-end.tif，全数字，返回uint16的nparray平均值
+        if i%100==0:
+            print('正在处理：'+str(i))
+        img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        img_calc=65535-img
+        #计算
+        res0=[i]
+        res1=calculate_atmangle(img_calc,settings['XLeft'],settings['XRight'],settings['XMid'],settings['Y'],settings['Thres'])
+        res1.append(res1[2]-res1[1])
+        res0.extend(res1)
+        res.append(res0)
+    return res
+def mul_calculate_atmangle(dir,start,end,num_processes,settings):
     chunk_size = (end-start+1) // num_processes
     chunks=[]
     for i in range(num_processes-1):
@@ -15,12 +25,15 @@ def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.ti
     chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
 
     pool = Pool(processes=num_processes)
-    results = pool.map(partial(calculate_sum,dir), chunks)
+    results = pool.map(partial(process_calculate_atmangle,dir,settings), chunks)
+
     pool.close()
     pool.join()
     
-    average_image = (np.sum(results, axis=0,dtype='uint64')/(end-start+1)).astype(np.uint16)
-    return average_image
+    res=[]
+    for i in results:
+        res.extend(i)
+    return res
 
 if __name__ == '__main__':
     num_processes = 4

@@ -5,7 +5,7 @@ from lib.lib_tkwidget import *
 from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
-from MeasureFlameAngle.lib_CalcFlameAngle import *
+from lib.lib_Angle import *
 from time import time
 from CalcFlameAngle.CalcFlameAngle import *
 from lib.excel_io import *
