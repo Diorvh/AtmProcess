@@ -38,6 +38,9 @@ class ClassMeasureBreakupLength(BaseFrame):
         LabelLabel(self.FramePanel,'破碎线:',self.BreakupPosition,width=5).grid(row=0,column=0,sticky='W')
         LabelLabel(self.FramePanel,'破碎长度:',self.BreakupLengthPix,width=5,extratext='pix').grid(row=0,column=1,sticky='W')
         LabelLabel(self.FramePanel,'破碎长度:',self.BreakupLength,width=5,extratext='mm').grid(row=0,column=2,sticky='W')
+        self.create_var('FileResultsIn',self.back,init_value='',FlagSave=True)
+        ChooseFile(self.FramePanel,'结果读入目录:',self.FileResultsIn).grid(row=1,column=0,columnspan=3)
+        # ttk.Button(self.FramePanel,text='读入结果',command=CommandButtonRead).grid(row=1,column=3)
     def CommandBindFigureKey(self,event):
         if event.char=='3':#保存过
             self.father.CommandButtonFigNameInc()
