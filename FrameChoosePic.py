@@ -6,6 +6,7 @@ from MeasureFlameAngle.ClassMeasureFlameAngle import *
 from CalcAverageFigure.ClassCalcAverageFigure import *
 from CalcFlameAngle.ClassCalcFlameAngle import *
 from PlayAtmAngle.ClassPlayAtmAngle import *
+from CalcInductionLength.ClassCalcInductionLength import *
 import openpyxl
 from lib.lib_tkwidget import *
 from lib.BaseClass import *
@@ -35,6 +36,8 @@ class FrameChoosePic(BaseFrame):
         self.NotebookProcess.add(self.CalcAverageFigure,text='CalcAverageFigure')
         self.CalcFlameAngle=ClassCalcFlameAngle(self)
         self.NotebookProcess.add(self.CalcFlameAngle,text='CalcFlameAngle')
+        self.CalcInductionLength=ClassCalcInductionLength(self)
+        self.NotebookProcess.add(self.CalcInductionLength,text='CalcInductionLength')
         self.PlayAtmAngle=ClassPlayAtmAngle(self)#在此新增
         self.NotebookProcess.add(self.PlayAtmAngle,text='PlayAtmAngle')
 
@@ -122,30 +125,29 @@ class FrameChoosePic(BaseFrame):
     def CommandBindPixSize(self,*args):
         self.back.update('PixSize',self.PixSize.get(),False)
         self.Fresh()
-    def CommandButtonSave(self):
-        #写入自己的表
-        if not self.father.back.FlagDirect:
-            wb_target=openpyxl.Workbook()
-            ws_target=wb_target.active
-            title=[self.CurrentPage.back.generate_title(),
-                self.CurrentPage.back.TableHeadings]
-            write_excel_mat(ws_target,title)
-            write_excel_mat(ws_target,self.back.data,FlagContinue=True)
-            if hasattr(self.CurrentPage.back,'get_dir_res'):
-                wb_target.save(self.CurrentPage.back.get_dir_res(self.CurrentPage.__class__.__name__))
-            wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
-        #写入汇总表
-        wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
+    def CommandButtonSave(self):#TODO:规范保存，保存信息都在DB里面
+        #写入自己的表#TODO:需要优化成所有的保存都是保存自己和汇总各1份
+        wb_target=openpyxl.Workbook()
         ws_target=wb_target.active
-        for i in range(1,ws_target.max_row+1):
-            if ws_target.cell(i,1).value==self.father.back.generate_ImageLabel():
-                cache=self.CurrentPage.back.generate_title()
-                for k in range(len(cache)//2):
-                    for j in range(1,ws_target.max_column+1):
-                        if ws_target.cell(1,j).value==cache[k*2]:
-                            ws_target.cell(i,j,cache[k*2+1])
-        wb_target.save(self.father.back.FDirRes)
-        os.system(r'start excel "'+self.father.back.FDirRes+r'"')
+        title=[self.CurrentPage.back.generate_title(),
+                self.CurrentPage.back.TableHeadings]#是两行！！！
+        write_excel_mat(ws_target,title)
+        write_excel_mat(ws_target,self.CurrentPage.back.generate_data(),FlagContinue=True)
+        if hasattr(self.CurrentPage.back,'get_dir_res'):
+            wb_target.save(self.CurrentPage.back.get_dir_res(self.CurrentPage.__class__.__name__))
+        wb_target.save(self.back.get_dir_res(self.CurrentPage.__class__.__name__))
+        #写入汇总表
+        # wb_target=openpyxl.load_workbook(self.father.back.FDirRes)
+        # ws_target=wb_target.active
+        # for i in range(1,ws_target.max_row+1):
+        #     if ws_target.cell(i,1).value==self.father.back.generate_ImageLabel():
+        #         cache=self.CurrentPage.back.generate_title()
+        #         for k in range(len(cache)//2):
+        #             for j in range(1,ws_target.max_column+1):
+        #                 if ws_target.cell(1,j).value==cache[k*2]:
+        #                     ws_target.cell(i,j,cache[k*2+1])
+        # wb_target.save(self.father.back.FDirRes)
+        # os.system(r'start excel "'+self.father.back.FDirRes+r'"')
     def Fresh(self):
         self.CurrentPage.FreshSelf()
 if __name__=='__main__':

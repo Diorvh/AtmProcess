@@ -19,5 +19,5 @@
 新增Notebook页：
 1. 新建文件夹，包含前端和后端类
 2. 前端类：修改Figure类名，修改Class类名，修改back，修改Figure实例名;后端类：修改类名
-3. FrameChoosePic前端创建实例，链接到Notebook中；后端新建实例，并添加到子类名称中
+3. FrameChoosePic：前端创建实例，链接到Notebook中；后端在database.py中DB_FrameChoosePic类的SubClassName中添加类名
 4. 修改前端类，修改ClassFigure类，修改后端类，修改generate_data和generate_title

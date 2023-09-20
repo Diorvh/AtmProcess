@@ -6,6 +6,7 @@ from MeasureBreakupLength.DB_MeasureBreakupLength import *
 from CalcAverageFigure.DB_CalcAverageFigure import *
 from CalcFlameAngle.DB_CalcFlameAngle import *
 from PlayAtmAngle.DB_PlayAtmAngle import *
+from CalcInductionLength.DB_CalcInductionLength import *
 import os
 import numpy as np
 class DB:
@@ -30,13 +31,15 @@ class DB_main(BaseSubDB):
         self.SubClassName=['FrameChoosePic']
         self.FrameChoosePic=DB_FrameChoosePic(self.root)
     def generate_fdir(self):
-        if self.FlagOther:
+        if self.FlagOther:#文件夹选择，名称不是实验编号
             return self.DirData+'/'+self.Other
-        else:
+        elif self.FlagDirect:#直接选择单张图
+            return self.DirDirect[:self.DirDirect.rfind('/')]#最后一个/之前的部分
+        else:#文件夹选择
             return self.DirData+'/实验编号'+str(self.ExpNo)
     def generate_ImageLabel(self):
         if self.FlagDirect:
-            return self.ImageLabel
+            return self.ImageLabel#不能改，否则存excel无法识别
         elif self.FlagOther:
             return self.Other
         else:
@@ -44,13 +47,14 @@ class DB_main(BaseSubDB):
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
-        self.SubClassName=['MeasureSheet','MeasureBreakupLength','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle','PlayAtmAngle']#增加实例
+        self.SubClassName=['MeasureSheet','MeasureBreakupLength','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle','PlayAtmAngle','CalcInductionLength']#增加实例
         self.MeasureSheet=DB_MeasureSheet(self.root)
         self.MeasureBreakupLength=DB_MeasureBreakupLength(self.root)
         self.MeasureFlameAngle=DB_MeasureFlameAngle(self.root)
         self.CalcAverageFigure=DB_CalcAverageFigure(self.root)
         self.CalcFlameAngle=DB_CalcFlameAngle(self.root)
-        self.PlayAtmAngle=DB_PlayAtmAngle(self.root)#增加实例
+        self.PlayAtmAngle=DB_PlayAtmAngle(self.root)
+        self.CalcInductionLength=DB_CalcInductionLength(self.root)#增加实例
         #后端变量
         self.FigureNameList=[]
         self.data=[]
@@ -71,12 +75,14 @@ class DB_FrameChoosePic(BaseSubDB):
             return self.root.Main.generate_fdir()+'/'+str(self.FigName)+'.tif'
     def get_dir_res(self,classname):
         name=''
-        if self.root.Main.FlagOther:
+        if self.root.Main.FlagOther:#文件夹选择，名称不是实验编号
             name=self.Other+'_'
-        else:
+        elif self.root.Main.FlagDirect:#直接选择单张图
+            name=self.root.Main.DirDirect.split('/')[-1]
+        else:#文件夹选择
             name='实验编号'+str(self.root.Main.ExpNo)+'_'
         return self.root.Main.generate_fdir()+'/'+name+classname+'.xlsx'
-    def save_data(self,data):
+    def save_data(self,data):#TODO:Table配套的，回头修改的时候删掉
         cursor=-1
         for j,i in enumerate(self.data):
             if i[0]==self.FigName:
