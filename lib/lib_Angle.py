@@ -77,32 +77,6 @@ def calc_thetaavgdis(img,originx,originy,AngleL,AngleR,YEnd=None):#返回L-R之�
             summ+=img[y,cache]
         theta_avg.append(summ/YEnd)
     return np.array(theta_avg)
-#雾化锥角
-def calculate_atmangle(img,XLeft,XRight,XMid,Y,thres):
-    WIDTH=img.shape[1]
-    if XMid<WIDTH/2:
-        img=img[:,:XMid*2+1]
-    else:
-        offset=2*XMid-WIDTH+1
-        img=img[:,offset:]
-        XLeft+=offset
-        XRight+=offset
-        XMid+=offset
-    resL=[np.arange(round(0.1,1),round(89.9,1)+0.1,0.1),calc_thetaavgdis(img,XLeft,Y,0.1,89.9,400)]
-    resR=[np.arange(round(90.1,1),round(179.9,1)+0.1,0.1),calc_thetaavgdis(img,XRight,Y,90.1,179.9,400)]
-    return resL,resR
-def calculate_atmangle2(img,XLeft,XRight,XMid,Y,thres):#灰度值加权二分查找，已发现有问题：同一工况下，雾化锥角越来越大
-    WIDTH=img.shape[1]
-    if XMid<WIDTH/2:
-        img=img[:,:XMid*2+1]
-    else:
-        offset=2*XMid-WIDTH+1
-        img=img[:,offset:]
-        XLeft+=offset
-        XRight+=offset
-        XMid+=offset
-    return [calc_angle(img,XMid,Y,0.5),calc_angle(img,XLeft,Y,thres),calc_angle(img,XRight,Y,1-thres)]
-
 if __name__=='__main__':
     length=1000
     img=np.ones([length,length])*65535

@@ -23,8 +23,8 @@ class FrameChoosePic(BaseFrame):
         self.create_panel()
         self.NotebookProcess=ttk.Notebook(self)
         self.NotebookProcess.grid(row=1,column=0)
-        self.Table=TableFrame(self,[0],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
-        self.Table.grid(row=0,column=1,rowspan=2)
+        # self.Table=TableFrame(self,[0],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
+        # self.Table.grid(row=0,column=1,rowspan=2)
         #创建Notebook界面
         self.MeasureSheet=ClassMeasureSheet(self)
         self.NotebookProcess.add(self.MeasureSheet,text='MeasureSheet')
@@ -43,14 +43,10 @@ class FrameChoosePic(BaseFrame):
 
         self.NotebookProcess.bind("<<NotebookTabChanged>>", self.on_page_changed)
         #Notebook初始化
-        self.NotebookProcess.select(5)
-        self.on_page_changed()
+        self.NotebookProcess.select(6)
         self.on_page_changed()
     def on_page_changed(self,event=None):#切换页面
-        self.Table.destroy()
         self.CurrentPage = getattr(self,self.NotebookProcess.tab(self.NotebookProcess.select(), "text"))
-        self.Table=TableFrame(self,self.CurrentPage.back.TableHeadings,visible_rows=40)
-        self.Table.grid(row=0,column=1,rowspan=2)
         print("Current page changed to:", self.CurrentPage)
     def create_panel(self):
         #R1
@@ -99,13 +95,13 @@ class FrameChoosePic(BaseFrame):
     
     def CommandButtonFigNameInc(self):
         self.back.save_data(self.CurrentPage.back.generate_data())
-        self.Table.update_table(self.back.data[:])
+        # self.Table.update_table(self.back.data[:])#TODO:需要修改到对应类中
         if self.FigName.get()+1 in self.back.get('FigureNameList'):
             self.back.update('FigName',self.FigName.get()+1)
             self.Fresh()
     def CommandButtonFigNameDec(self):
         self.back.delete_data(self.FigName.get())
-        self.Table.update_table(self.back.data[:])
+        # self.Table.update_table(self.back.data[:])
         if self.FigName.get()-1 in self.back.get('FigureNameList'):
             self.back.update('FigName',self.FigName.get()-1)
             self.Fresh()

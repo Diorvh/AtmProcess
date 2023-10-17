@@ -30,6 +30,8 @@ class ClassMeasureBreakupLength(BaseFrame):
         self.Figure.grid(row=1,column=0)
         self.Figure.Figure.bind('<Key>',self.CommandBindFigureKey)
         self.Figure.Figure.bind('<Button-1>',self.CommandBindFigureButton1)
+        self.Table=TableFrame(self,[0],visible_rows=40)#TODO:调整默认宽度,切换液面就切换标题（绑定到每个子类）
+        self.Table.grid(row=0,column=1,rowspan=2)
     def create_panel(self):
         #R1
         self.create_var('BreakupPosition',self.back,type='Int',init_value=0,FlagSave=True)
@@ -61,3 +63,5 @@ class ClassMeasureBreakupLength(BaseFrame):
         self.back.update_SheetData()
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
         self.Figure.Figure.change_figure(img)
+        #Table清空
+        self.Table.update_table(self.back.data[:])

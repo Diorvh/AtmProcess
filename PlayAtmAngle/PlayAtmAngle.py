@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 from multiprocessing import Pool
 from functools import partial
-from lib.lib_Angle import *
+from lib.lib_AtmAngle import *
 def process_calculate_atmangle(dir,settings,chunk):#省内存
     res=[]
     for i in chunk:

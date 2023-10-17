@@ -52,12 +52,20 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.FramePanel.grid(row=0,column=0)
         self.create_panel()
         self.AF=PlotFrame(self,[1],[1])
-        self.AF.grid(row=1,column=0)
+        self.AF.grid(row=1,column=1)
         self.BF=PlotFrame(self,[1],[1])
-        self.BF.grid(row=2,column=0)
+        self.BF.grid(row=2,column=1)
+        self.AAF=PlotFrame(self,[1],[1])#梯度
+        self.AAF.grid(row=1,column=2)
+        self.BBF=PlotFrame(self,[1],[1])#梯度
+        self.BBF.grid(row=2,column=2)
+        self.AAAF=PlotFrame(self,[1],[1])#梯度2
+        self.AAAF.grid(row=1,column=3)
+        self.BBBF=PlotFrame(self,[1],[1])#梯度2
+        self.BBBF.grid(row=2,column=3)
         self.Figure=ClassFigurePlus(self,ClassFigurePlayAtmAngle)#改名
         self.back.Figure=self.Figure
-        self.Figure.grid(row=3,column=0)
+        self.Figure.grid(row=1,column=0,rowspan=2)
         #以上为默认，不要动，以下可添加图片绑定功能self.Figure.Figure.bind('<Key>',self.CommandBindFigureKey)
     def create_panel(self):
         #R1
@@ -75,7 +83,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.create_var('XLeft',self.back,'Int',0,True)
         self.create_var('XRight',self.back,'Int',0,True)
         self.create_var('Y',self.back,'Int',0,True)
-        self.create_var('Thres',self.back,'Double',0,True)
+        self.create_var('LowpassFreq',self.back,'Int',50,True)
         self.LER2_1=LabelEntry(self.FramePanel,'左点X=',self.XLeft)
         self.LER2_1.grid(row=1,column=0,sticky='w')
         self.LER2_1.entry.bind('<Return>',self.CommandBindXLeft)
@@ -85,9 +93,9 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.LER2_3=LabelEntry(self.FramePanel,'Y=',self.Y)
         self.LER2_3.grid(row=1,column=2,sticky='w')
         self.LER2_3.entry.bind('<Return>',self.CommandBindY)
-        self.LER2_4=LabelEntry(self.FramePanel,'单侧阈值=',self.Thres)
+        self.LER2_4=LabelEntry(self.FramePanel,'低通滤波频率=',self.LowpassFreq,width=10)
         self.LER2_4.grid(row=1,column=3,sticky='w')
-        self.LER2_4.entry.bind('<Return>',self.CommandBindThres)
+        self.LER2_4.entry.bind('<Return>',self.CommandBindLowpassFreq)
         #R3
         self.create_var('AngleL',self.back,'Double',0,True)
         self.create_var('AngleR',self.back,'Double',0,True)
@@ -132,8 +140,8 @@ class ClassPlayAtmAngle(BaseFrame):#改名
     def CommandBindY(self,event):
         self.back.update('Y',self.Y.get(),False)
         self.FreshSelf()
-    def CommandBindThres(self,event):
-        self.back.update('Thres',self.Thres.get(),False)
+    def CommandBindLowpassFreq(self,event):
+        self.back.update('LowpassFreq',self.LowpassFreq.get(),False)
         self.FreshSelf()
     #R3
     def CommandButtonR3(self):
@@ -175,6 +183,12 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.Figure.Figure.change_figure(img)
         self.AF.update_data(self.back.resL[0],self.back.resL[1])
         self.BF.update_data(self.back.resR[0],self.back.resR[1])
+        self.AAF.update_data(self.back.resLdiff[0],self.back.resLdiff[1])
+        self.BBF.update_data(self.back.resRdiff[0],self.back.resRdiff[1])
+        self.AAAF.update_data(self.back.resLdiff2[0],self.back.resLdiff2[1])
+        self.BBBF.update_data(self.back.resRdiff2[0],self.back.resRdiff2[1])
+        self.back.update('AngleL',65.6)
+        self.back.update('AngleR',119.2)
         #R2
         # self.FrameR2=ttk.Frame(self.FramePanel)
         # self.FrameR2.pack()

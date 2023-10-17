@@ -116,7 +116,7 @@ class Main(BaseFrame):
         self.back.FrameChoosePic.Fresh()
         self.FrameChoosePic.Fresh()
         self.FrameChoosePic.back.data=[]
-        self.FrameChoosePic.Table.update_table(self.FrameChoosePic.back.data[:])
+        # self.FrameChoosePic.Table.update_table(self.FrameChoosePic.back.data[:])
 def close_window():
     App.Main.db.save()
     root.quit()
