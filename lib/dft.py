@@ -17,11 +17,13 @@ def lowpass(signal,freq,cutoff_freq):#保留cutoff_freq及以下的频率
         magnitude[i],phase[i]=0,0
         magnitude[-i],phase[-i]=0,0
     return idft(magnitude,phase)
+#限幅滤波
 def AmpFilter(signal,error_max):
     for i in range(1,len(signal)):
         if np.abs(signal[i]-signal[i-1])>=error_max:
             signal[i]=signal[i-1]
     return signal
+#SG滤波器
 
 def analyze_signal(signal, Fs):
     frequencies,magnitude,phase=dft(signal,Fs)
