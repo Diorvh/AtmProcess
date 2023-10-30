@@ -48,16 +48,10 @@ class ClassFigurePlayAtmAngle(ClassFigure):#改名
         if self.back.FlagCalcArea:
             self.img_show=cv.ellipse(self.img_show,(self.back.XLeft,self.back.Y),(self.back.Rmax,self.back.Rmax),0,90,180-self.back.ThetaLeft*0.1,(0,0,255),1)
             self.img_show=cv.ellipse(self.img_show,(self.back.XRight,self.back.Y),(self.back.Rmax,self.back.Rmax),0,180-self.back.ThetaRight*0.1,90,(0,0,255),1)
-        #R5计算区域显示
-        if self.back.FlagExtractRange:
-            self.draw_line(self.back.XLeft,self.back.Y,self.back.ThetaRangeLeft1*0.1,(255,0,0))
-            self.draw_line(self.back.XLeft,self.back.Y,self.back.ThetaRangeLeft2*0.1,(255,0,0))
-            self.draw_line(self.back.XRight,self.back.Y,self.back.ThetaRangeRight1*0.1,(255,0,0))
-            self.draw_line(self.back.XRight,self.back.Y,self.back.ThetaRangeRight2*0.1,(255,0,0))
         #R6雾化锥角线显示
         if self.back.FlagLineAngle:
-            self.draw_line(self.back.XLeft,self.back.Y,self.back.AngleL,(0,255,0))
-            self.draw_line(self.back.XRight,self.back.Y,self.back.AngleR,(0,255,0))
+            self.draw_line(self.back.XLeft,self.back.Y,self.back.AngleL,(255,0,0))
+            self.draw_line(self.back.XRight,self.back.Y,self.back.AngleR,(255,0,0))
     def generate_FilenameSave(self):#每个类要重写
         return str(self.back.root.Main.generate_ImageLabel())+'-'+str(self.back.root.Main.FrameChoosePic.FigName)+'-AtmAngle.tif'
 class ClassPlayAtmAngle(BaseFrame):#改名
@@ -77,14 +71,6 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.AFF.grid(row=1,column=2)
         self.BFF=PlotFrame(self,[1],[1])#滤波
         self.BFF.grid(row=2,column=2)
-        self.AFFF=PlotFrame(self,[1],[1])#滤波后一阶导
-        self.AFFF.grid(row=1,column=3)
-        self.BFFF=PlotFrame(self,[1],[1])#滤波后一阶导
-        self.BFFF.grid(row=2,column=3)
-        self.AFFFF=PlotFrame(self,[1],[1])#滤波后二阶导
-        self.AFFFF.grid(row=1,column=4)
-        self.BFFFF=PlotFrame(self,[1],[1])#滤波后二阶导
-        self.BFFFF.grid(row=2,column=4)
         self.Figure=ClassFigurePlus(self,ClassFigurePlayAtmAngle)#改名
         self.back.Figure=self.Figure
         self.Figure.grid(row=1,column=0,rowspan=2)
@@ -130,7 +116,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.LER3_3=LabelEntry(self.FramePanel,'ThetaRight=',self.ThetaRight,extratext='*0.1°')
         self.LER3_3.grid(row=2,column=3,sticky='w')
         self.LER3_3.entry.bind('<Return>',self.CommandBindThetaRight)
-        self.create_var('FlagCalcArea',self.back,'Boolean',False,True)
+        self.create_var('FlagCalcArea',self.back,'Boolean',True,True)
         self.ButtonR3=ttk.Button(self.FramePanel,text='显示计算区域',command=self.CommandButtonR3)
         self.ButtonR3.grid(row=2,column=4,sticky='we')
         #R4
@@ -144,58 +130,56 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.LER4_2.grid(row=3,column=2,sticky='w')
         self.LER4_2.entry.bind('<Return>',self.CommandBindpolyorder)
         #R5
-        ttk.Label(self.FramePanel,text='锥角提取范围：').grid(row=4,column=0)
-        self.create_var('ThetaRangeLeft1',self.back,'Int',-1,True)
-        self.create_var('ThetaRangeLeft2',self.back,'Int',900,True)
-        self.create_var('ThetaRangeRight1',self.back,'Int',900,True)
-        self.create_var('ThetaRangeRight2',self.back,'Int',1801,True)
-        #R5-1
-        self.FrameR5_1=ttk.Frame(self.FramePanel)
-        self.FrameR5_1.grid(row=4,column=1,columnspan=2)
-        ttk.Label(self.FrameR5_1,text='左侧').pack(side='left')
-        self.EntryR5_1=ttk.Entry(self.FrameR5_1,textvariable=self.ThetaRangeLeft1)
-        self.EntryR5_1.pack(side='left')
-        self.EntryR5_1.bind('<Return>',self.CommandThetaRangeLeft1)
-        ttk.Label(self.FrameR5_1,text='*0.1°-').pack(side='left')
-        self.EntryR5_2=ttk.Entry(self.FrameR5_1,textvariable=self.ThetaRangeLeft2)
-        self.EntryR5_2.pack(side='left')
-        self.EntryR5_2.bind('<Return>',self.CommandThetaRangeLeft2)
-        ttk.Label(self.FrameR5_1,text='*0.1°').pack(side='left')
-        #R5-2
-        self.FrameR5_2=ttk.Frame(self.FramePanel)
-        self.FrameR5_2.grid(row=4,column=3,columnspan=2)
-        ttk.Label(self.FrameR5_2,text='右侧').pack(side='left')
-        self.EntryR5_3=ttk.Entry(self.FrameR5_2,textvariable=self.ThetaRangeRight1)
-        self.EntryR5_3.pack(side='left')
-        self.EntryR5_3.bind('<Return>',self.CommandThetaRangeRight1)
-        ttk.Label(self.FrameR5_2,text='*0.1°-').pack(side='left')
-        self.EntryR5_4=ttk.Entry(self.FrameR5_2,textvariable=self.ThetaRangeRight2)
-        self.EntryR5_4.pack(side='left')
-        self.EntryR5_4.bind('<Return>',self.CommandThetaRangeRight2)
-        ttk.Label(self.FrameR5_2,text='*0.1°').pack(side='left')
-        self.create_var('FlagExtractRange',self.back,'Boolean',False,True)
-        self.ButtonR5=ttk.Button(self.FramePanel,text='显示提取区域',command=self.CommandButtonR5)
-        self.ButtonR5.grid(row=4,column=5,sticky='we')
+        ttk.Label(self.FramePanel,text='锥角提取参数：').grid(row=4,column=0)
+        self.create_var('NumAvgL',self.back,'Int',100,True)
+        self.create_var('RStartL',self.back,'Int',0,True)
+        self.create_var('NumAvgR',self.back,'Int',100,True)
+        self.create_var('RStartR',self.back,'Int',0,True)
+        self.create_var('ThresRatioL',self.back,'Double',1/2,True)
+        self.create_var('ThresRatioR',self.back,'Double',1/2,True)
+        self.LER5_1=LabelEntry(self.FramePanel,'NumAvgL=',self.NumAvgL)
+        self.LER5_1.grid(row=4,column=1,sticky='w')
+        self.LER5_1.entry.bind('<Return>',self.CommandBindNumAvgL)
+        self.LER5_2=LabelEntry(self.FramePanel,'RStartL=',self.RStartL)
+        self.LER5_2.grid(row=4,column=2,sticky='w')
+        self.LER5_2.entry.bind('<Return>',self.CommandBindRStartL)
+        self.LER5_3=LabelEntry(self.FramePanel,'NumAvgR=',self.NumAvgR)
+        self.LER5_3.grid(row=4,column=3,sticky='w')
+        self.LER5_3.entry.bind('<Return>',self.CommandBindNumAvgR)
+        self.LER5_4=LabelEntry(self.FramePanel,'RStartR=',self.RStartR)
+        self.LER5_4.grid(row=4,column=4,sticky='w')
+        self.LER5_4.entry.bind('<Return>',self.CommandBindRStartR)
+        self.LER5_5=LabelEntry(self.FramePanel,'ThresRatioL=',self.ThresRatioL)
+        self.LER5_5.grid(row=4,column=5,sticky='w')
+        self.LER5_5.entry.bind('<Return>',self.CommandBindThresRatioL)
+        self.LER5_6=LabelEntry(self.FramePanel,'ThresRatioR=',self.ThresRatioR)
+        self.LER5_6.grid(row=4,column=6,sticky='w')
+        self.LER5_6.entry.bind('<Return>',self.CommandBindThresRatioR)
         #R6
+        ttk.Label(self.FramePanel,text='锥角提取结果：').grid(row=5,column=0)
         self.create_var('AngleL',self.back,'Double',0,True)
         self.create_var('AngleR',self.back,'Double',0,True)
         self.create_var('Angle',self.back,'Double',0,True)
-        LabelLabel(self.FramePanel,'左边界角=',self.AngleL,extratext='°').grid(row=5,column=0,sticky='w')
-        LabelLabel(self.FramePanel,'右边界角=',self.AngleR,extratext='°').grid(row=5,column=1,sticky='w')
-        LabelLabel(self.FramePanel,'雾化锥角=',self.Angle,extratext='°').grid(row=5,column=2,sticky='w')
-        self.create_var('FlagLineAngle',self.back,'Boolean',False,True)
+        LabelLabel(self.FramePanel,'左边界角=',self.AngleL,extratext='°').grid(row=5,column=1,sticky='w')
+        LabelLabel(self.FramePanel,'右边界角=',self.AngleR,extratext='°').grid(row=5,column=2,sticky='w')
+        LabelLabel(self.FramePanel,'雾化锥角=',self.Angle,extratext='°').grid(row=5,column=3,sticky='w')
+        self.create_var('FlagLineAngle',self.back,'Boolean',True,True)
         self.ButtonR6=ttk.Button(self.FramePanel,text='显示锥角线',command=self.CommandButtonR6)
         self.ButtonR6.grid(row=5,column=3,sticky='we')
         #R7
+        ttk.Label(self.FramePanel,text='批量处理：').grid(row=6,column=0)
         self.create_var('FigStart',self.back,'Int',0,True)
         self.create_var('FigEnd',self.back,'Int',0,True)
         self.LER7_1=LabelEntry(self.FramePanel,'起始帧：',self.FigStart)
-        self.LER7_1.grid(row=7,column=0,sticky='w')
+        self.LER7_1.grid(row=6,column=1,sticky='w')
         self.LER7_1.entry.bind('<Return>',self.CommandBindFigStart)
         self.LER7_2=LabelEntry(self.FramePanel,'结束帧：',self.FigEnd)
-        self.LER7_2.grid(row=7,column=1,sticky='w')
+        self.LER7_2.grid(row=6,column=2,sticky='w')
         self.LER7_2.entry.bind('<Return>',self.CommandBindFigEnd)
-        ttk.Button(self.FramePanel,text='批量处理雾化锥角',command=self.CommandButtonCalcAtmAngle).grid(row=7,column=2,sticky='w')
+        ttk.Button(self.FramePanel,text='批量处理雾化锥角',command=self.CommandButtonCalcAtmAngle).grid(row=6,column=3,sticky='we')
+        self.create_var('FlagSaveImg',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FramePanel,text='运算时保存标记图片',onvalue=True,offvalue=False,
+                        variable=self.FlagSaveImg,command=self.CommandCheckButtonFlagSaveImg).grid(row=6,column=4,sticky='we')
     #R1
     def CommandButtonReverseColor(self):
         self.back.update('FlagReverseColor',not self.FlagReverseColor.get())
@@ -240,21 +224,23 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.back.update('polyorder',self.polyorder.get(),False)
         self.FreshSelf()
     #R5
-    def CommandThetaRangeLeft1(self,event):
-        self.back.update('ThetaRangeLeft1',self.ThetaRangeLeft1.get(),False)
+    def CommandBindNumAvgL(self,event):
+        self.back.update('NumAvgL',self.NumAvgL.get(),False)
         self.FreshSelf()
-    def CommandThetaRangeLeft2(self,event):
-        self.back.update('ThetaRangeLeft2',self.ThetaRangeLeft2.get(),False)
+    def CommandBindRStartL(self,event):
+        self.back.update('RStartL',self.RStartL.get(),False)
         self.FreshSelf()
-    def CommandThetaRangeRight1(self,event):
-        self.back.update('ThetaRangeRight1',self.ThetaRangeRight1.get(),False)
+    def CommandBindNumAvgR(self,event):
+        self.back.update('NumAvgR',self.NumAvgR.get(),False)
         self.FreshSelf()
-    def CommandThetaRangeRight2(self,event):
-        self.back.update('ThetaRangeRight2',self.ThetaRangeRight2.get(),False)
-        self.FreshSelf()    
-    def CommandButtonR5(self):
-        self.back.update('FlagExtractRange',not self.FlagExtractRange.get())
-        self.ButtonR5.config(text='关闭提取区域' if self.FlagExtractRange.get() else '显示提取区域')
+    def CommandBindRStartR(self,event):
+        self.back.update('RStartR',self.RStartR.get(),False)
+        self.FreshSelf()
+    def CommandBindThresRatioL(self,event):
+        self.back.update('ThresRatioL',self.ThresRatioL.get(),False)
+        self.FreshSelf()
+    def CommandBindThresRatioR(self,event):
+        self.back.update('ThresRatioR',self.ThresRatioR.get(),False)
         self.FreshSelf()
     #R6
     def CommandButtonR6(self):
@@ -266,29 +252,37 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.back.update('FigStart',self.FigStart.get(),False)
     def CommandBindFigEnd(self,event):
         self.back.update('FigEnd',self.FigEnd.get(),False)
+    def CommandCheckButtonFlagSaveImg(self):
+        self.back.update('FlagSaveImg',self.FlagSaveImg.get(),False)
     def CommandButtonCalcAtmAngle(self):
         start_time=time.time()
         # calculate_atmangle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum))
         print('计算雾化锥角中，实验编号：'+str(self.db.Main.ExpNo))
-        settings={}
-        for i in ['XLeft','XRight']:
-            settings[i]=getattr(self,i).get()
-        settings['XMid']=self.father.back.ImpactX
-        for i in ['Y','Thres']:
-            settings[i]=getattr(self,i).get()
-        res=[]#mul_calculate_atmangle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings)
+        res=mul_calculate_atmangle(self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,self.back.FlagSaveImg)
+        calc_time=time.time()-start_time
+        print('计算完成，耗时',calc_time,'秒')
+        cache_dftans=(dft(res[:,1],40000),dft(res[:,2],40000),dft(res[:,3],40000))
+        cache_dftans[0][1][0]=cache_dftans[0][1][0]/2
+        cache_dftans[1][1][0]=cache_dftans[1][1][0]/2
+        cache_dftans[2][1][0]=cache_dftans[2][1][0]/2
+        resfft=np.column_stack((cache_dftans[0][0],cache_dftans[0][1],cache_dftans[1][1],cache_dftans[2][1]))[:len(cache_dftans[0][0])//2,:]#只保留正频率
         #写入文档
         wb=openpyxl.Workbook()
         ws=wb.active
-        write_excel_mat(ws,list(zip(*settings.items())))#settings第一行是key，第二行是values，两行都是tuple格式
-        write_excel_mat(ws,[['帧数','中心线角','左边界角','右边界角','雾化锥角']],True)
+        settings=[['左锥角基点X','右锥角基点X','锥角基点Y','计算半径/pix','左锥角计算上界/°','右锥角计算上界/°','SG滤波窗宽','SG滤波阶次','左阈值上下界平均值取点数量','右阈值上下界平均值取点数量','左阈值选定比例','右阈值选定比例','进程数','计算时间'],[self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft*0.1,self.back.ThetaRight*0.1,self.back.window_length,self.back.polyorder,self.back.NumAvgL,self.back.NumAvgR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.root.Main.CoreNum,calc_time]]
+        write_excel_mat(ws,settings)
+        write_excel_mat(ws,[['帧数','左边界角/°','右边界角/°','雾化锥角/°']],True)
         write_excel_mat(ws,[['平均值']+list(np.mean(res,axis=0))[1:]],True)
         write_excel_mat(ws,[['标准差']+list(np.std(res,axis=0))[1:]],True)
-        write_excel_mat(ws,[['相对标准差%']+list(np.std(res,axis=0)/np.mean(res,axis=0)*100)[1:]],True)
+        write_excel_mat(ws,[['相对标准差%']+list(np.std(res,axis=0)/np.mean(res[:,3])*100)[1:]],True)
         write_excel_mat(ws,res,True)
-        wb.save(self.back.root.Main.generate_fdir()+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'批处理结果.xlsx')
-        print('计算完成，耗时',time.time()-start_time,'秒')
-
+        write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°']],FlagContinue=False,row_start=3,col_start=6)
+        write_excel_mat(ws,[['最大值']+list(np.max(resfft[1:,:],axis=0))[1:]],FlagContinue=False,row_start=4,col_start=6)
+        write_excel_mat(ws,resfft,FlagContinue=False,row_start=5,col_start=6)
+        fdir=r'E:\Sci\2022.1_impinging_jet\Research\1-U-Pc-rou\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
+        if not os.path.exists(fdir):
+            os.makedirs(fdir)
+        wb.save(fdir+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'雾化锥角批处理结果.xlsx')
     def FreshSelf(self):
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
         self.Figure.Figure.change_figure(img)
@@ -298,7 +292,5 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.BF.update_data(self.back.resR[0],self.back.resR[1])
         self.AFF.update_data(self.back.resLSG[0],self.back.resLSG[1])
         self.BFF.update_data(self.back.resRSG[0],self.back.resRSG[1])
-        self.AFFF.update_data(self.back.resLSGdiff1[0],self.back.resLSGdiff1[1])
-        self.BFFF.update_data(self.back.resRSGdiff1[0],self.back.resRSGdiff1[1])
-        self.AFFFF.update_data(self.back.resLSGdiff2[0],self.back.resLSGdiff2[1])
-        self.BFFFF.update_data(self.back.resRSGdiff2[0],self.back.resRSGdiff2[1])
+        self.back.update('FigStart',self.back.root.Main.FrameChoosePic.FigNameStart)
+        self.back.update('FigEnd',self.back.root.Main.FrameChoosePic.FigNameEnd)

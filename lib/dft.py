@@ -6,11 +6,11 @@ def dft(signal,freq=None):#freq为采样频率
         freq=len(signal)
     fft_result = np.fft.fft(signal)
     frequencies = np.fft.fftfreq(len(signal), 1 / freq)
-    magnitude = np.abs(fft_result)
+    magnitude = np.abs(fft_result)/len(signal)*2
     phase = np.angle(fft_result)
     return frequencies,magnitude,phase
 def idft(magnitude,phase):
-    return np.real(np.fft.ifft(magnitude * np.exp(1j * phase)))
+    return np.real(np.fft.ifft(magnitude*len(magnitude)/2 * np.exp(1j * phase)))
 def lowpass(signal,freq,cutoff_freq):#保留cutoff_freq及以下的频率
     frequencies,magnitude,phase=dft(signal,freq)
     for i in range(cutoff_freq+1,len(magnitude)//2):
@@ -77,8 +77,8 @@ if __name__=='__main__':
     N = int(T * Fs)  # Number of samples
     t = np.linspace(0.0, 1.0, N, endpoint=False)
     freq = 5  # Frequency in Hz
-    signal = np.sin(2 * np.pi * freq * t)+6*np.sin(2 * np.pi * freq*5 * t+np.pi/3)
-    signal[250]+=100
+    signal = np.sin(2 * np.pi * freq * t)+6*np.sin(2 * np.pi * freq*5 * t+np.pi/3)+5
+    # signal[250]+=100
 
     # Analyze the signal
     analyze_signal(signal, Fs)

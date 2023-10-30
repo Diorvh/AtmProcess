@@ -28,5 +28,7 @@ if __name__ == '__main__':
     pool = mp.Pool(processes=num_processes)
     start_time=time.time()
     results=pool.map(process_part,args_in)
+    pool.close()
+    pool.join()
     print("最终结果：", results)
     print('计算完成，耗时',time.time()-start_time,'秒')

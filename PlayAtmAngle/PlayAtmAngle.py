@@ -2,40 +2,56 @@ import numpy as np
 import cv2 as cv
 from multiprocessing import Pool
 from lib.lib_AtmAngle import *
-import time
-# def process_calculate_atmangle(dir,settings,chunk):#省内存
-#     res=[]
-#     for i in chunk:
-#         if i%100==0:
-#             print('正在处理：'+str(i))
-#         img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
-#         img_calc=65535-img
-#         #计算
-#         res0=[i]
-#         res1=calculate_atmangle(img_calc,settings['XLeft'],settings['XRight'],settings['XMid'],settings['Y'],settings['Thres'])
-#         res1.append(res1[2]-res1[1])
-#         res0.extend(res1)
-#         res.append(res0)
-#     return res
-# def mul_calculate_atmangle(dir,start,end,num_processes,settings):
-#     chunk_size = (end-start+1) // num_processes
-#     chunks=[]
-#     for i in range(num_processes-1):
-#         chunks.append(list(range(start+i*chunk_size,start+(i+1)*chunk_size)))
-#     chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
+import os
+def draw_line(img,originx,originy,angle,color=(255,255,255),length=1000):
+    x2 = int(originx - length * np.cos(angle/180*np.pi))
+    y2 = int(originy + length * np.sin(angle/180*np.pi))
+    cv.line(img,(originx,originy),(x2,y2),color,1)
+def process_calculate_atmangle(args):#省内存
+    dirr,NAME,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder,FlagSaveImg=args
+    resL=[]
+    resR=[]
+    for i in NAME:
+        if i%100==0:
+            print('正在处理：'+str(i))
+        img=cv.imdecode(np.fromfile(file=dirr+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        a,b=calculate_atm_angle_thres((65535-img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder))
+        resL.append(a)
+        resR.append(b)
+        if FlagSaveImg:
+            if len(img.shape)==2:
+                img=cv.cvtColor(img,cv.COLOR_GRAY2RGB)
+            MAX=65535 if np.max(img)>255 else 255
+            img=cv.ellipse(img,(XLeft,Y),(Rmax,Rmax),0,90,180-ThetaLeft*0.1,(0,0,MAX),1)
+            img=cv.ellipse(img,(XRight,Y),(Rmax,Rmax),0,180-ThetaRight*0.1,90,(0,0,MAX),1)
+            draw_line(img,XLeft,Y,a,(MAX,0,0))
+            draw_line(img,XRight,Y,b,(MAX,0,0))
+            if not os.path.exists(dirr+'/处理结果'):
+                os.makedirs(dirr+'/处理结果')
+            cv.imencode('.tif', img)[1].tofile(dirr+'/处理结果/'+str(i)+'.tif')
+    return resL,resR
+def mul_calculate_atmangle(dirr,START,END,num_processes,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder,FlagSaveImg):
+    array=np.array(list(range(START,END+1)))
+    chunk=np.array_split(array,num_processes)
+    chunk = [x.tolist() for x in chunk]
+    args_in=[]
+    for i in chunk:
+        args_in.append((dirr,i,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder,FlagSaveImg))
 
-#     pool = Pool(processes=num_processes)
-#     results = pool.map(partial(process_calculate_atmangle,dir,settings), chunks)
+    pool = Pool(processes=num_processes)
+    results=pool.map(process_calculate_atmangle,args_in)
+    pool.close()
+    pool.join()
+    resL=[]
+    resR=[]
+    for i in results:
+        resL=resL+i[0]
+        resR=resR+i[1]
+    res=np.column_stack((array,np.array(resL),np.array(resR),np.array(resR)-np.array(resL)))
+    return res
 
-#     pool.close()
-#     pool.join()
-    
-#     res=[]
-#     for i in results:
-#         res.extend(i)
-#     return res
-def mul_calculate_grayavg_byangle(img,XLeft,XRight,Y,num_processes,Rmax=1000,ThetaLeft=(899,-1),ThetaRight=(901,1801)):
-    start_time=time.time()
+def mul_calculate_grayavg_byangle(img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR):
+    num_processes=6
     chunk_sizeL=int((ThetaLeft[0]-ThetaLeft[1]))//num_processes
     chunk_sizeR=int((ThetaRight[1]-ThetaRight[0]))//num_processes
     chunksL=[]
@@ -47,7 +63,7 @@ def mul_calculate_grayavg_byangle(img,XLeft,XRight,Y,num_processes,Rmax=1000,The
     chunksR.append((ThetaRight[0]+(num_processes-1)*chunk_sizeR,ThetaRight[1]))
     args_in=[]
     for i in range(num_processes):
-        args_in.append((img,XLeft,XRight,Y,Rmax,chunksL[i],chunksR[i]))
+        args_in.append((img,XLeft,XRight,Y,Rmax,chunksL[i],chunksR[i],NumAvgL,RStartL,NumAvgR,RStartR,ThetaLeft[1],ThetaRight[1]))
     pool = Pool(processes=num_processes)
     results = pool.map(calculate_grayavg_byangle,args_in)
     pool.close()
