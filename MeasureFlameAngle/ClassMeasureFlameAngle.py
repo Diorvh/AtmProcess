@@ -34,9 +34,9 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
             cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),1)
         if self.back.FlagLineTheo:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
-            self.draw_line(x1,y1,-self.back.AngleO-90,(255,255,255))
-            self.draw_line(x1,y1,self.back.AngleF-90,(255,255,255))
-            self.draw_line(x1,y1,-self.back.AngleCalc+90,(255,255,255))
+            # self.draw_line(x1,y1,-self.back.AngleO-90,(0,0,255))
+            # self.draw_line(x1,y1,self.back.AngleF-90,(0,0,255))
+            self.draw_line(x1,y1,-self.back.AngleCalc+90,(255,0,0))
         if self.back.FlagLineAngle:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
             self.draw_line(x1,y1,self.back.AngleL,(255,0,0))

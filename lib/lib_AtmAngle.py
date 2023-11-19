@@ -57,14 +57,35 @@ def calculate_atm_angle_thres_p2(args):#输入参数和grayavg_byangle，直接�
     #再到滤波后的曲线中去找,找到滤波后曲线最接近阈值的元素的位置
     resLSG=[resL[0],savgol_filter(resL[1],window_length,polyorder)]
     resRSG=[resR[0],savgol_filter(resR[1],window_length,polyorder)]
-    AngleLPos=np.abs(resLSG[1]-ThresL).argmin()
-    AngleRPos=np.abs(resRSG[1]-ThresR).argmin()
+    # AngleLPos=np.abs(resLSG[1]-ThresL).argmin()
+    # AngleRPos=np.abs(resRSG[1]-ThresR).argmin()
+    #优化：找到最接近中心的，第一个小于0的元素索引
+    AngleLPos=find_last_greater_equal(resLSG[1],ThresL)
+    AngleRPos=find_last_greater_equal(resRSG[1],ThresR)
     #更新
     return resL[0][AngleLPos],resR[0][AngleRPos]
 def calculate_atm_angle_thres(args):#输入图片和参数，直接给出雾化锥角
     img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder=args
     resL,resR=calculate_grayavg_byangle((img,XLeft,XRight,Y,Rmax,(899,ThetaLeft),(901,ThetaRight),NumAvgL,RStartL,NumAvgR,RStartR,ThetaLeft,ThetaRight))
     return calculate_atm_angle_thres_p2((resL,resR,NumAvgL,NumAvgR,ThresRatioL,ThresRatioR,window_length,polyorder))
+def find_last_greater_equal(arr, thres):
+    """
+    找到从右往左第一个大于等于阈值的元素的位置
+
+    参数:
+    arr (np.array): 输入的一维NumPy数组
+    thres (int or float): 阈值
+
+    返回:
+    int: 从右往左第一个大于等于阈值的元素的位置，如果不存在返回-1
+    """
+    reversed_arr = arr[::-1]  # 反转数组
+    indices = np.where(reversed_arr >= thres)[0]
+    if indices.size > 0:
+        last_index = arr.size - indices[0] - 1  # 计算从右往左的索引
+        return last_index
+    else:
+        return -1
 '''
 def calculate_graysum_byangle(img,Xleft,Xright,Y,LowpassFreq):#计算图像两侧的灰度值和与梯度，每隔0.1°计算一个数值
     #最精确的方法就是完全用灰度值的面积积分，针对边界上每种情况都要讨论，进行三角形或者四边形的双线性插值函数积分，非常复杂
