@@ -107,8 +107,7 @@ class ClassFigurePlus(BaseFrame):
         self.create_var('FlagSaveimg',self.back,type='Boolean',init_value=False)
         ttk.Checkbutton(self.FrameR4,text='保存原图而不是处理后图片',onvalue=True,offvalue=False,
                         variable=self.FlagSaveimg,command=self.CommandCheckButtonSaveimg).pack(side='left')
-
-    
+   
     def MouseMotion(self,event):
         if event.x<self.Figure.img.shape[1]:
             self.MouseX.set(event.x)

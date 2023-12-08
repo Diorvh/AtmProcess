@@ -22,8 +22,10 @@ class DB_MeasureFlameAngle(BaseSubDB):
         self.update('AngleL',res[1])
         self.update('AngleR',res[2])
         self.update('Angle',self.AngleR-self.AngleL)
-        res=calc_y(img,self.Threshold)
-        self.update('YCenter',res[0])
-        self.update('YStart',res[1])
-        self.update('YEnd',res[2])
+        # res=calc_y(img,self.Threshold)#旧的提取y方向参数
+        # res=calc_Rparameter(img,father.ImpactX,father.ImpactY,self.Threshold,np.round(self.AngleL,1),np.round(self.AngleR,1))#根据灰度值和提取参数
+        res=calc_Rparameter_flamedirection(img,father.ImpactX,father.ImpactY,self.Threshold,np.round(self.AngleM,1))
+        # self.update('YCenter',res[0])#新版文章取消了这个概念
+        self.update('YStart',res[0])
+        self.update('YEnd',res[1])
         self.update('YLength',self.YEnd-self.YStart)

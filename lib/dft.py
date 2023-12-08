@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def dft(signal,freq=None):#freq为采样频率
+    signal=signal-np.mean(signal)#减去直流分量
     if freq==None:
         freq=len(signal)
     fft_result = np.fft.fft(signal)
@@ -12,11 +13,12 @@ def dft(signal,freq=None):#freq为采样频率
 def idft(magnitude,phase):
     return np.real(np.fft.ifft(magnitude*len(magnitude)/2 * np.exp(1j * phase)))
 def lowpass(signal,freq,cutoff_freq):#保留cutoff_freq及以下的频率
+    avg=np.mean(signal)
     frequencies,magnitude,phase=dft(signal,freq)
     for i in range(cutoff_freq+1,len(magnitude)//2):
         magnitude[i],phase[i]=0,0
         magnitude[-i],phase[-i]=0,0
-    return idft(magnitude,phase)
+    return idft(magnitude,phase)+avg
 #限幅滤波
 def AmpFilter(signal,error_max):
     for i in range(1,len(signal)):

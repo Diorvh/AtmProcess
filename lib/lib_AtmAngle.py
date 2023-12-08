@@ -3,48 +3,55 @@ from lib.diff import *
 from lib.dft import *
 from lib.Interpolate2D import *
 from scipy.signal import savgol_filter
-npsin,npcos=[],[]
-for i in range(1801):
-    npsin.append(np.sin((i*0.1+0.05)/180*np.pi))
-    npcos.append(np.cos((i*0.1+0.05)/180*np.pi))
 #雾化锥角
 def calculate_grayavg_byangle(args):#计算图像两侧的灰度值平均值与梯度，每隔0.1°，采用半径扇形平均
-    img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,IMGThetaLeft,IMGThetaRight=args
+    img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR=args
     resL=[]#从90°~89.9°到0.1°~0°
-    for theta in range(ThetaLeft[0],ThetaLeft[1],-1):
+    for theta in range(ThetaLeft[0],ThetaLeft[1]-1,-1):
         sumGray=np.int64(0)
         sumS=0
-        if abs(theta-IMGThetaLeft)>=NumAvgL:
+        r=0
+        npsin=np.sin((theta*0.1+0.05)/180*np.pi)
+        npcos=np.cos((theta*0.1+0.05)/180*np.pi)
+        if (theta-ThetaLeft[1])>=NumAvgL:#目前只对批量计算生效，单张不能使用，否则单张计算会出问题
             r=0
         else:
             r=RStartL
-        while (not ((XLeft-(r+0.5)*npcos[theta])<0 or (Y+(r+0.5)*npsin[theta])>img.shape[0]-1)) and (r<=Rmax):#下一个点不越界，同时不超过最大R限制
-            S=np.pi*((r+1)**2-r**2)*0.1/360
-            CenterX=XLeft-(r+0.5)*npcos[theta]
-            CenterY=Y+(r+0.5)*npsin[theta]
+        CenterX=XLeft-(r+0.5)*npcos
+        CenterY=Y+(r+0.5)*npsin
+        while (not (CenterX<0 or CenterY>img.shape[0]-1)) and (r<=Rmax):#下一个点不越界，同时不超过最大R限制
+            S=np.pi*(2*r+1)*0.1/360
             gray=interpolate2D(img,CenterY,CenterX)
             sumGray+=S*gray
             sumS+=S
             r+=1
+            CenterX=XLeft-(r+0.5)*npcos
+            CenterY=Y+(r+0.5)*npsin
         resL.append(sumGray/sumS)
     resR=[]#从90°~90.1°到179.9°~180°
     for theta in range(ThetaRight[0],ThetaRight[1]):
         sumGray=np.int64(0)
         sumS=0
-        if abs(theta-IMGThetaRight)>=NumAvgR:
+        r=0
+        npsin=np.sin((theta*0.1+0.05)/180*np.pi)
+        npcos=np.cos((theta*0.1+0.05)/180*np.pi)
+        if -(theta-ThetaRight[1])>=NumAvgR:
             r=0
         else:
             r=RStartR
-        while (not ((XRight-(r+0.5)*npcos[theta-1])>img.shape[1]-1 or (Y+(r+0.5)*npsin[theta-1])>img.shape[0]-1)) and (r<=Rmax):#下一个点不越界，同时不超过最大R限制
-            S=np.pi*((r+1)**2-r**2)*0.1/360
-            CenterX=XRight-(r+0.5)*npcos[theta-1]
-            CenterY=Y+(r+0.5)*npsin[theta-1]
+        
+        CenterX=XRight-(r+0.5)*npcos
+        CenterY=Y+(r+0.5)*npsin
+        while (not (CenterX>img.shape[1]-1 or CenterY>img.shape[0]-1)) and (r<=Rmax):#下一个点不越界，同时不超过最大R限制
+            S=np.pi*(2*r+1)*0.1/360
             gray=interpolate2D(img,CenterY,CenterX)
             sumGray+=S*gray
             sumS+=S
             r+=1
+            CenterX=XRight-(r+0.5)*npcos
+            CenterY=Y+(r+0.5)*npsin
         resR.append(sumGray/sumS)
-    return [np.array(list(range(ThetaLeft[0],ThetaLeft[1],-1)))*0.1+0.05,resL],[np.array(list(range(ThetaRight[0],ThetaRight[1])))*0.1-0.05,resR]#不知道出了什么bug，180.05就是变成901个数字
+    return [np.array(list(range(ThetaLeft[0],ThetaLeft[1],-1)))*0.1+0.05,resL],[np.array(list(range(ThetaRight[0],ThetaRight[1])))*0.1+0.05,resR]#不知道出了什么bug，180.05就是变成901个数字
 def calculate_atm_angle_thres_p2(args):#输入参数和grayavg_byangle，直接给出雾化锥角
     resL,resR,NumAvgL,NumAvgR,ThresRatioL,ThresRatioR,window_length,polyorder=args
     #先用原始曲线计算阈值
@@ -66,7 +73,7 @@ def calculate_atm_angle_thres_p2(args):#输入参数和grayavg_byangle，直接�
     return resL[0][AngleLPos],resR[0][AngleRPos]
 def calculate_atm_angle_thres(args):#输入图片和参数，直接给出雾化锥角
     img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder=args
-    resL,resR=calculate_grayavg_byangle((img,XLeft,XRight,Y,Rmax,(899,ThetaLeft),(901,ThetaRight),NumAvgL,RStartL,NumAvgR,RStartR,ThetaLeft,ThetaRight))
+    resL,resR=calculate_grayavg_byangle((img,XLeft,XRight,Y,Rmax,(899,ThetaLeft),(900,ThetaRight),NumAvgL,RStartL,NumAvgR,RStartR))
     return calculate_atm_angle_thres_p2((resL,resR,NumAvgL,NumAvgR,ThresRatioL,ThresRatioR,window_length,polyorder))
 def find_last_greater_equal(arr, thres):
     """

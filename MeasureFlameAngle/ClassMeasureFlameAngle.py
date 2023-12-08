@@ -6,14 +6,19 @@ from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
 from lib.lib_Angle import *
+from lib.excel_io import *
+import time
+import openpyxl
+from MeasureFlameAngle.MeasureFlameAngle import *
 
 class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
+        self.LINE_WIDTH=3
     def draw_line(self,originx,originy,angle,color=(255,255,255),length=1000):
         x2 = int(originx - length * np.cos(angle/180*np.pi))
         y2 = int(originy + length * np.sin(angle/180*np.pi))
-        cv.line(self.img_show,(originx,originy),(x2,y2),color,1)
+        cv.line(self.img_show,(originx,originy),(x2,y2),color,self.LINE_WIDTH)
     def draw_figure(self, **kwargs):
         #重新复制
         if self.img.dtype=='uint16':
@@ -30,22 +35,26 @@ class ClassFigureMeasureFlameAngle(ClassFigure):
         self.img_show=self.Scissor(self.img_show,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
         HEIGHT,WIDTH=self.img_show.shape[0],self.img_show.shape[1]
         if self.back.FlagCenterLine:
-            cv.line(self.img_show,(0,HEIGHT//2),(WIDTH-1,HEIGHT//2),(255,255,255),1)
-            cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),1)
+            cv.line(self.img_show,(0,HEIGHT//2),(WIDTH-1,HEIGHT//2),(255,255,255),self.LINE_WIDTH)
+            cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),self.LINE_WIDTH)
         if self.back.FlagLineTheo:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
-            # self.draw_line(x1,y1,-self.back.AngleO-90,(0,0,255))
-            # self.draw_line(x1,y1,self.back.AngleF-90,(0,0,255))
-            self.draw_line(x1,y1,-self.back.AngleCalc+90,(255,0,0))
+            # self.draw_line(x1,y1,-self.back.AngleO-90,(34,144,225))
+            # self.draw_line(x1,y1,self.back.AngleF-90,(34,144,225))
+            self.draw_line(x1,y1,-self.back.AngleCalc+90,(70,120,255))
         if self.back.FlagLineAngle:
             x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
-            self.draw_line(x1,y1,self.back.AngleL,(255,0,0))
-            self.draw_line(x1,y1,self.back.AngleR,(255,0,0))
-            self.draw_line(x1,y1,self.back.AngleM,(0,255,0))
+            # self.draw_line(x1,y1,self.back.AngleL,(255,153,153))
+            # self.draw_line(x1,y1,self.back.AngleR,(255,153,153))
+            self.draw_line(x1,y1,self.back.AngleM,(255,0,0))
         if self.back.FlagLineY:
-            cv.line(self.img_show,(0,self.back.YStart),(WIDTH-1,self.back.YStart),(255,0,0),1)
-            cv.line(self.img_show,(0,self.back.YEnd),(WIDTH-1,self.back.YEnd),(255,0,0),1)
-            cv.line(self.img_show,(0,self.back.YCenter),(WIDTH-1,self.back.YCenter),(0,255,0),1)
+            x1,y1=self.back.root.Main.FrameChoosePic.ImpactX,self.back.root.Main.FrameChoosePic.ImpactY
+            self.img_show=cv.ellipse(self.img_show,(x1,y1),(self.back.YStart,self.back.YStart),0,180-self.back.AngleR,180-self.back.AngleL,(255,153,153),self.LINE_WIDTH)
+            self.img_show=cv.ellipse(self.img_show,(x1,y1),(self.back.YEnd,self.back.YEnd),0,180-self.back.AngleR,180-self.back.AngleL,(255,153,153),self.LINE_WIDTH)
+            # 以下是画Y线的
+            # cv.line(self.img_show,(0,self.back.YStart),(WIDTH-1,self.back.YStart),(255,153,153),self.LINE_WIDTH)
+            # cv.line(self.img_show,(0,self.back.YEnd),(WIDTH-1,self.back.YEnd),(255,153,153),self.LINE_WIDTH)
+            # cv.line(self.img_show,(0,self.back.YCenter),(WIDTH-1,self.back.YCenter),(255,0,0),self.LINE_WIDTH)
     def generate_FilenameSave(self):#每个类要重写
         if self.back.root.Main.FlagDirect:
             name=self.back.root.Main.DirDirect.split('/')[-1][:-4]
@@ -124,6 +133,17 @@ class ClassMeasureFlameAngle(BaseFrame):
         self.create_var('FlagLineY',self.back,'Boolean',False,True)
         self.ButtonR4=ttk.Button(self.FramePanel,text='显示火焰长度线',command=self.CommandButtonR4)
         self.ButtonR4.grid(row=3,column=4,sticky='we')
+        #R5
+        ttk.Label(self.FramePanel,text='批量处理：').grid(row=4,column=0)
+        self.create_var('FigStart',self.back,'Int',0,True)
+        self.create_var('FigEnd',self.back,'Int',0,True)
+        self.LER4_1=LabelEntry(self.FramePanel,'起始帧：',self.FigStart)
+        self.LER4_1.grid(row=4,column=1,sticky='w')
+        self.LER4_1.entry.bind('<Return>',self.CommandBindFigStart)
+        self.LER4_2=LabelEntry(self.FramePanel,'结束帧：',self.FigEnd)
+        self.LER4_2.grid(row=4,column=2,sticky='w')
+        self.LER4_2.entry.bind('<Return>',self.CommandBindFigEnd)
+        ttk.Button(self.FramePanel,text='批量处理火焰信息',command=self.CommandButtonCalcFlameAngle).grid(row=4,column=3,sticky='we')
 
     def CommandBindGain(self,event):
         self.back.update('Gain',self.Gain.get(),False)
@@ -159,6 +179,36 @@ class ClassMeasureFlameAngle(BaseFrame):
         self.back.update('FlagLineY',not self.FlagLineY.get())
         self.ButtonR4.config(text='关闭火焰长度线' if self.FlagLineY.get() else '显示火焰长度线')
         self.FreshSelf()    
+    def CommandBindFigStart(self,event):
+        self.back.update('FigStart',self.FigStart.get(),False)
+    def CommandBindFigEnd(self,event):
+        self.back.update('FigEnd',self.FigEnd.get(),False)
+
+    def CommandButtonCalcFlameAngle(self):
+        start_time=time.time()
+        print('计算火焰信息中')
+        settings={}
+        for i in ['ScissorUp','ScissorDown','ScissorLeft','ScissorRight']:
+            settings[i]=getattr(self.back,i)
+        for i in ['Threshold']:
+            settings[i]=getattr(self,i).get()
+        for i in ['ImpactX','ImpactY']:
+            settings[i]=getattr(self.father.back,i)
+        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,settings)
+        calc_time=time.time()-start_time
+        print('计算完成，耗时',calc_time,'秒')
+        #写入文档
+        wb=openpyxl.Workbook()
+        ws=wb.active
+        write_excel_mat(ws,list(zip(*settings.items())))#settings第一行是key，第二行是values，两行都是tuple格式
+        write_excel_mat(ws,[['帧数','中心线角','左边界角','右边界角','火焰锥角','火焰起始','火焰结束','火焰长度']],True)
+        write_excel_mat(ws,[['平均值']+list(np.mean(res,axis=0))[1:]],True)
+        write_excel_mat(ws,[['标准差']+list(np.std(res,axis=0,ddof=1))[1:]],True)
+        write_excel_mat(ws,res,True)
+        fdir=r'E:\Sci\2023.3_mmhnto_combustion\第三次测量处理结果\火焰方向线提取火焰长度'
+        if not os.path.exists(fdir):
+            os.makedirs(fdir)
+        wb.save(fdir+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'批处理结果.xlsx')
 
     def FreshSelf(self):
         # self.back.update_SheetData()
@@ -166,3 +216,5 @@ class ClassMeasureFlameAngle(BaseFrame):
         self.Figure.Figure.change_figure(img)
         self.back.Fresh()
         self.Figure.Figure.change_figure(img)
+        self.back.update('FigStart',self.back.root.Main.FrameChoosePic.FigNameStart)
+        self.back.update('FigEnd',self.back.root.Main.FrameChoosePic.FigNameEnd)

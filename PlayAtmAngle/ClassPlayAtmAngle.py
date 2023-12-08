@@ -279,7 +279,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°']],FlagContinue=False,row_start=3,col_start=6)
         write_excel_mat(ws,[['最大值']+list(np.max(resfft[1:,:],axis=0))[1:]],FlagContinue=False,row_start=4,col_start=6)
         write_excel_mat(ws,resfft,FlagContinue=False,row_start=5,col_start=6)
-        fdir=r'E:\Sci\2022.1_impinging_jet\Research\1-U-Pc-rou\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
+        fdir=r'D:\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
         if not os.path.exists(fdir):
             os.makedirs(fdir)
         wb.save(fdir+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'雾化锥角批处理结果.xlsx')
@@ -292,5 +292,3 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.BF.update_data(self.back.resR[0],self.back.resR[1])
         self.AFF.update_data(self.back.resLSG[0],self.back.resLSG[1])
         self.BFF.update_data(self.back.resRSG[0],self.back.resRSG[1])
-        self.back.update('FigStart',self.back.root.Main.FrameChoosePic.FigNameStart)
-        self.back.update('FigEnd',self.back.root.Main.FrameChoosePic.FigNameEnd)

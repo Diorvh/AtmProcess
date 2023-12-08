@@ -52,18 +52,18 @@ def mul_calculate_atmangle(dirr,START,END,num_processes,XLeft,XRight,Y,Rmax,Thet
 
 def mul_calculate_grayavg_byangle(img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR):
     num_processes=6
-    chunk_sizeL=int((ThetaLeft[0]-ThetaLeft[1]))//num_processes
-    chunk_sizeR=int((ThetaRight[1]-ThetaRight[0]))//num_processes
+    chunk_sizeL=int(899-ThetaLeft)//num_processes
+    chunk_sizeR=int(ThetaRight-900)//num_processes
     chunksL=[]
     chunksR=[]
     for i in range(num_processes-1):
-        chunksL.append((ThetaLeft[0]-i*chunk_sizeL,ThetaLeft[0]-(i+1)*chunk_sizeL))
-        chunksR.append((ThetaRight[0]+i*chunk_sizeR,ThetaRight[0]+(i+1)*chunk_sizeR))
-    chunksL.append((ThetaLeft[0]-(num_processes-1)*chunk_sizeL,ThetaLeft[1]))
-    chunksR.append((ThetaRight[0]+(num_processes-1)*chunk_sizeR,ThetaRight[1]))
+        chunksL.append((899-i*chunk_sizeL,899-(i+1)*chunk_sizeL))
+        chunksR.append((900+i*chunk_sizeR,900+(i+1)*chunk_sizeR))
+    chunksL.append((899-(num_processes-1)*chunk_sizeL,ThetaLeft))
+    chunksR.append((900+(num_processes-1)*chunk_sizeR,ThetaRight))
     args_in=[]
     for i in range(num_processes):
-        args_in.append((img,XLeft,XRight,Y,Rmax,chunksL[i],chunksR[i],NumAvgL,RStartL,NumAvgR,RStartR,ThetaLeft[1],ThetaRight[1]))
+        args_in.append((img,XLeft,XRight,Y,Rmax,chunksL[i],chunksR[i],NumAvgL,RStartL,NumAvgR,RStartR))
     pool = Pool(processes=num_processes)
     results = pool.map(calculate_grayavg_byangle,args_in)
     pool.close()
