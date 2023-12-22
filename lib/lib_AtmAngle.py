@@ -51,7 +51,7 @@ def calculate_grayavg_byangle(args):#计算图像两侧的灰度值平均值与�
             CenterX=XRight-(r+0.5)*npcos
             CenterY=Y+(r+0.5)*npsin
         resR.append(sumGray/sumS)
-    return [np.array(list(range(ThetaLeft[0],ThetaLeft[1],-1)))*0.1+0.05,resL],[np.array(list(range(ThetaRight[0],ThetaRight[1])))*0.1+0.05,resR]#不知道出了什么bug，180.05就是变成901个数字
+    return [np.array(list(range(ThetaLeft[0],ThetaLeft[1]-1,-1)))*0.1+0.05,resL],[np.array(list(range(ThetaRight[0],ThetaRight[1])))*0.1+0.05,resR]#不知道出了什么bug，180.05就是变成901个数字
 def calculate_atm_angle_thres_p2(args):#输入参数和grayavg_byangle，直接给出雾化锥角
     resL,resR,NumAvgL,NumAvgR,ThresRatioL,ThresRatioR,window_length,polyorder=args
     #先用原始曲线计算阈值

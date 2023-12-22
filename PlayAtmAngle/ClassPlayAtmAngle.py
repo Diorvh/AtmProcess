@@ -279,7 +279,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°']],FlagContinue=False,row_start=3,col_start=6)
         write_excel_mat(ws,[['最大值']+list(np.max(resfft[1:,:],axis=0))[1:]],FlagContinue=False,row_start=4,col_start=6)
         write_excel_mat(ws,resfft,FlagContinue=False,row_start=5,col_start=6)
-        fdir=r'D:\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
+        fdir=r'E:\Sci\2022.1_impinging_jet\Research\1-U-Pc-rou\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
         if not os.path.exists(fdir):
             os.makedirs(fdir)
         wb.save(fdir+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'雾化锥角批处理结果.xlsx')

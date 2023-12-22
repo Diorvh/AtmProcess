@@ -3,6 +3,7 @@ import numpy as np
 from lib.lib_AtmAngle import *
 from scipy.signal import savgol_filter
 from PlayAtmAngle.PlayAtmAngle import *
+import openpyxl
 import time
 class DB_PlayAtmAngle(BaseSubDB):#改名
     def __init__(self,root):
@@ -21,7 +22,8 @@ class DB_PlayAtmAngle(BaseSubDB):#改名
         img=self.Figure.get_img()
         father=self.root.Main.FrameChoosePic
         start_time=time.time()
-        self.resL,self.resR=mul_calculate_grayavg_byangle(65535-img,self.XLeft,self.XRight,self.Y,self.Rmax,self.ThetaLeft,self.ThetaRight,self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR)#需要验证，不进行对称裁剪是否有影响
+        self.resL,self.resR=mul_calculate_grayavg_byangle(65535-img,self.root.Main.CoreNum,self.XLeft,self.XRight,self.Y,self.Rmax,self.ThetaLeft,self.ThetaRight,self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR)#需要验证，不进行对称裁剪是否有影响
+        # self.resL,self.resR=calculate_grayavg_byangle((65535-img,self.XLeft,self.XRight,self.Y,self.Rmax,(899,self.ThetaLeft),(900,self.ThetaRight),self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR))
         print('计算完成，耗时',time.time()-start_time,'秒')
         #先用原始曲线计算阈值
         cache_max=np.average(self.resL[1][:self.NumAvgL])
@@ -36,7 +38,12 @@ class DB_PlayAtmAngle(BaseSubDB):#改名
         #优化：找到最接近中心的，第一个小于0的元素索引
         AngleLPos=find_last_greater_equal(self.resLSG[1],ThresL)
         AngleRPos=find_last_greater_equal(self.resRSG[1],ThresR)
-        #更新
+        # #更新
+        # wb=openpyxl.Workbook()
+        # ws=wb.active
+        # for i in range(len(self.resL[0])):
+        #     ws.append([self.resL[0][i],self.resLSG[1][i],self.resR[0][i],self.resRSG[1][i]])
+        # wb.save('output-py.xlsx')
         self.update('AngleL',self.resL[0][AngleLPos])
         self.update('AngleR',self.resR[0][AngleRPos])
         self.update('Angle',self.AngleR-self.AngleL)

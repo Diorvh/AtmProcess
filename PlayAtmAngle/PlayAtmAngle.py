@@ -50,14 +50,14 @@ def mul_calculate_atmangle(dirr,START,END,num_processes,XLeft,XRight,Y,Rmax,Thet
     res=np.column_stack((array,np.array(resL),np.array(resR),np.array(resR)-np.array(resL)))
     return res
 
-def mul_calculate_grayavg_byangle(img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR):
+def mul_calculate_grayavg_byangle(img,num_processes,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR):
     num_processes=6
     chunk_sizeL=int(899-ThetaLeft)//num_processes
     chunk_sizeR=int(ThetaRight-900)//num_processes
     chunksL=[]
     chunksR=[]
     for i in range(num_processes-1):
-        chunksL.append((899-i*chunk_sizeL,899-(i+1)*chunk_sizeL))
+        chunksL.append((899-i*chunk_sizeL,899-(i+1)*chunk_sizeL+1))#为了兼容分角度和分图片，所以+1
         chunksR.append((900+i*chunk_sizeR,900+(i+1)*chunk_sizeR))
     chunksL.append((899-(num_processes-1)*chunk_sizeL,ThetaLeft))
     chunksR.append((900+(num_processes-1)*chunk_sizeR,ThetaRight))
