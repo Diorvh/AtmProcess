@@ -10,6 +10,7 @@ import time
 from lib.excel_io import *
 import openpyxl
 from lib.lib_tkPlot import *
+from lib.file import *
 #R1图像预处理，2个绘图Flag
 #R2锥角起点
 #R3计算区域，1个绘图Flag
@@ -256,33 +257,19 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.back.update('FlagSaveImg',self.FlagSaveImg.get(),False)
     def CommandButtonCalcAtmAngle(self):
         start_time=time.time()
-        # calculate_atmangle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum))
         print('计算雾化锥角中，实验编号：'+str(self.db.Main.ExpNo))
-        res=mul_calculate_atmangle(self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,self.back.FlagSaveImg)
-        calc_time=time.time()-start_time
-        print('计算完成，耗时',calc_time,'秒')
-        cache_dftans=(dft(res[:,1],40000),dft(res[:,2],40000),dft(res[:,3],40000))
-        cache_dftans[0][1][0]=cache_dftans[0][1][0]/2
-        cache_dftans[1][1][0]=cache_dftans[1][1][0]/2
-        cache_dftans[2][1][0]=cache_dftans[2][1][0]/2
-        resfft=np.column_stack((cache_dftans[0][0],cache_dftans[0][1],cache_dftans[1][1],cache_dftans[2][1]))[:len(cache_dftans[0][0])//2,:]#只保留正频率
-        #写入文档
-        wb=openpyxl.Workbook()
-        ws=wb.active
-        settings=[['左锥角基点X','右锥角基点X','锥角基点Y','计算半径/pix','左锥角计算上界/°','右锥角计算上界/°','SG滤波窗宽','SG滤波阶次','左阈值上下界平均值取点数量','右阈值上下界平均值取点数量','左阈值选定比例','右阈值选定比例','进程数','计算时间'],[self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft*0.1,self.back.ThetaRight*0.1,self.back.window_length,self.back.polyorder,self.back.NumAvgL,self.back.NumAvgR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.root.Main.CoreNum,calc_time]]
-        write_excel_mat(ws,settings)
-        write_excel_mat(ws,[['帧数','左边界角/°','右边界角/°','雾化锥角/°']],True)
-        write_excel_mat(ws,[['平均值']+list(np.mean(res,axis=0))[1:]],True)
-        write_excel_mat(ws,[['标准差']+list(np.std(res,axis=0))[1:]],True)
-        write_excel_mat(ws,[['相对标准差%']+list(np.std(res,axis=0)/np.mean(res[:,3])*100)[1:]],True)
-        write_excel_mat(ws,res,True)
-        write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°']],FlagContinue=False,row_start=3,col_start=6)
-        write_excel_mat(ws,[['最大值']+list(np.max(resfft[1:,:],axis=0))[1:]],FlagContinue=False,row_start=4,col_start=6)
-        write_excel_mat(ws,resfft,FlagContinue=False,row_start=5,col_start=6)
-        fdir=r'E:\Sci\2022.1_impinging_jet\Research\1-U-Pc-rou\雾化锥角'+'/'+self.back.root.Main.generate_fdir().split('/')[-2]
-        if not os.path.exists(fdir):
-            os.makedirs(fdir)
-        wb.save(fdir+'/'+self.back.root.Main.generate_fdir().split('/')[-1]+'雾化锥角批处理结果.xlsx')
+        # 打开文件并删除所有内容
+        with open(os.path.abspath(os.path.dirname(__file__))+'CPP//inputcpp.txt', 'w') as file:
+            file.truncate(0)
+        # 将列表中的元素逐行写入文件
+        with open(os.path.abspath(os.path.dirname(__file__))+'CPP//inputcpp.txt', 'a',encoding='utf-8') as file:
+            settings=[self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,int(self.back.FlagSaveImg)]
+            for element in settings:
+                file.write(r"{}".format(str(element) + '\n'))
+        #运行c++程序
+        os.system(os.path.abspath(os.path.dirname(__file__))+'CPP//main')
+        print('总耗时：',np.round(time.time()-start_time,3),'秒')
+
     def FreshSelf(self):
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
         self.Figure.Figure.change_figure(img)

@@ -5,13 +5,13 @@ from dft import *
 import os
 # fdir=r'E:\\Sci\\2022.1_impinging_jet\\Research\\1-U-Pc-rou\\雾化锥角\\20230416\\实验编号81'
 # MaxFreq=100#图像显示的最大频率
-
-with open("inputpy.txt", 'r',encoding='utf-8') as file:
+current_folder = os.path.abspath(os.path.dirname(__file__))
+with open(current_folder+"\\inputpy.txt", 'r',encoding='utf-8') as file:
     lines = file.readlines()
 fdir=lines[0].strip()+'\\'+lines[2].strip()
 MaxFreq=lines[1].strip()
 
-csv_filename='result.csv'
+csv_filename=current_folder+"\\result.csv"
 def convert_to_number(value):
     """尝试将字符串值转换为整数或浮点数"""
     try:
@@ -129,4 +129,5 @@ chart3.height = 10  # 高度
 if not os.path.exists(fdir):
     os.makedirs(fdir)
 wb.save(fdir+'雾化锥角批处理结果.xlsx')
+print('后处理文件完成')
 # wb.save('result.xlsx')

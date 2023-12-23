@@ -60,6 +60,30 @@ try {
         std::cerr << "保存图片时发生错误：" << e.what() << std::endl;
 }
 }
+
+void createFolder(const std::string& chineseFolderPath) {
+    try {
+        // Convert Chinese path to UTF-16 encoding
+        std::wstring wideFolderPath;
+        wideFolderPath.resize(MultiByteToWideChar(CP_UTF8, 0, chineseFolderPath.c_str(), -1, nullptr, 0));
+        MultiByteToWideChar(CP_UTF8, 0, chineseFolderPath.c_str(), -1, &wideFolderPath[0], static_cast<int>(wideFolderPath.size()));
+
+        // Check if the folder exists
+        if (GetFileAttributesW(wideFolderPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+            // If the folder doesn't exist, create it
+            if (!CreateDirectoryW(wideFolderPath.c_str(), NULL)) {
+                throw std::runtime_error("Error creating folder: " + std::to_string(GetLastError()));
+            }
+            std::wcout << L"Folder created successfully: " << wideFolderPath << std::endl;
+        }
+        else {
+            std::wcout << L"Folder already exists: " << wideFolderPath << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error creating folder: " << e.what() << std::endl;
+    }
+}
+
 // 线程函数
 
 pair<vector<double>,vector<double>> process_calculate_atmangle(string dirr, vector<int> NAME, int XLeft, int XRight, int Y, int Rmax, int ThetaLeft, int ThetaRight,
@@ -91,9 +115,7 @@ pair<vector<double>,vector<double>> process_calculate_atmangle(string dirr, vect
             draw_line(img, XRight, Y, res.second, Scalar(0, 0, MAX));
 
             string result_dir = dirr + "/处理结果";
-            if (!filesystem::exists(result_dir)) {
-                filesystem::create_directories(result_dir);
-            }
+            createFolder(result_dir);
             string savepath=result_dir + "/" + to_string(i) + ".tif";
             saveImageToChinesePath(img,savepath);
         }
@@ -135,45 +157,56 @@ vector<double> subtractVectors(const vector<double>& vec1, const vector<double>&
     return result;
 }
 
-void updateFile(const std::string& filename, const std::string& newString) {//读入一个txt文件，删掉最后一行，写入字符串到最后一行
-    // Open the .txt file
-    std::fstream file(filename, std::ios::in | std::ios::out | std::ios::ate);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening the file!" << std::endl;
+void updateFile(const std::string& filePath, const std::string& newStr) {
+    // Open the file in read mode to read its contents
+    std::ifstream inFile(filePath);
+    if (!inFile.is_open()) {
+        std::cerr << "Error opening file: " << filePath << std::endl;
         return;
     }
 
-    // Move the file pointer to the beginning of the last line
-    file.seekg(-1, std::ios::end);
-
-    // Find the beginning of the last line
-    while (file.tellg() > 0 && file.peek() != '\n') {
-        file.seekg(-1, std::ios::cur);
+    // Read all lines from the file and store them in a vector
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(inFile, line)) {
+        lines.push_back(line);
     }
 
-    // Save the position of the beginning of the last line
-    std::streampos lastLineBegin = file.tellg();
+    // Close the input file
+    inFile.close();
 
-    // Read the last line into a string
-    std::string lastLine;
-    getline(file, lastLine);
+    // Remove trailing empty lines
+    while (!lines.empty() && lines.back().empty()) {
+        lines.pop_back();
+    }
 
-    // Move the file pointer back to the beginning of the last line
-    file.seekp(lastLineBegin);
+    // Remove the last line
+    if (!lines.empty()) {
+        lines.pop_back();
+    }
 
-    // Output the new string to the last line
-    file << newString << std::endl;
+    // Add the new string as the last line
+    lines.push_back(newStr);
 
-    // Close the file
-    file.close();
+    // Open the file in write mode to update its contents
+    std::ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening file for writing: " << filePath << std::endl;
+        return;
+    }
 
-    std::cout << "File updated successfully." << std::endl;
+    // Write the modified lines back to the file
+    for (const auto& updatedLine : lines) {
+        outFile << updatedLine << std::endl;
+    }
+
+    // Close the output file
+    outFile.close();
 }
 
 std::string extractLastPathComponent(const std::string& path) {//读入一个文件路径字符串，只保留最后一个//后的内容
     // Find the last occurrence of '\\' in the path
-    size_t lastBackslashPos = path.find_last_of('\\');
+    size_t lastBackslashPos = path.find_last_of("//");
 
     // Check if the character was found
     if (lastBackslashPos != std::string::npos) {
@@ -184,17 +217,27 @@ std::string extractLastPathComponent(const std::string& path) {//读入一个文
         return path;
     }
 }
+std::string getFolderPath(const std::string& filePath) {
+    // 使用C++17中引入的std::filesystem
+    std::filesystem::path fullPath(filePath);
+
+    // 获取文件所在文件夹的路径
+    std::filesystem::path folderPath = fullPath.parent_path();
+
+    // 将路径转换为字符串
+    std::string folderPathString = folderPath.string();
+
+    return folderPathString;
+}
 
 int main() {
-    // string SAVEDIR="E:\\Sci\\2022.1_impinging_jet\\Research\\1-U-Pc-rou\\雾化锥角\\"
-    // 定义参数
-    // string dirr="E:\\实验数据\\雾化锥角\\20230416\\实验编号81";
-    // int START=44001, END=44001, num_processes=24;
-    // int XLeft=275, XRight=302, Y=114, Rmax=400, ThetaLeft=0, ThetaRight=1800, NumAvgL=100, RStartL=0, NumAvgR=100, RStartR=0;
-    // double ThresRatioL=0.5,ThresRatioR=0.4;
-    // int window_length=50,polyorder=1,FlagSaveImg=0;
     //读取
-    ifstream file("inputcpp.txt");
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    string wkdir(buffer);
+    wkdir=getFolderPath(wkdir);
+    cout<<wkdir<<endl;
+    ifstream file(wkdir+"//inputcpp.txt");
     if (!file.is_open()) {
         cerr << "Failed to open file\n";
         return 1;
@@ -222,6 +265,7 @@ int main() {
             chunks[i].push_back(j);
         }
     }
+    createFolder(dirr + "/处理结果");
 
     // 创建并启动异步任务
     vector<future<pair<vector<double>,vector<double>>>> futures;
@@ -240,7 +284,7 @@ int main() {
     cout << "The run time is: " <<compute_time << "s" << endl;//计时
     //输出结果
 
-    ofstream fileo("result.csv");
+    ofstream fileo(wkdir+"/result.csv");
 
     fileo << fixed << setprecision(3);
     fileo << "XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,window_length,polyorder,NumAvgL,NumAvgR,ThresRatioL,ThresRatioR,num_processes,compute_time" << endl;
@@ -256,8 +300,10 @@ int main() {
     }
     fileo.close();
 
-    updateFile("inputpy.txt",extractLastPathComponent(dirr));
-    system("python process_cpp_result.py");
+    updateFile(wkdir+"//inputpy.txt",extractLastPathComponent(dirr));
+
+    string command="python "+wkdir+"//process_cpp_result.py";
+    system(command.c_str());
 
     return 0;
 }
