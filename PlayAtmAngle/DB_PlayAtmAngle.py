@@ -22,7 +22,11 @@ class DB_PlayAtmAngle(BaseSubDB):#改名
         img=self.Figure.get_img()
         father=self.root.Main.FrameChoosePic
         start_time=time.time()
-        self.resL,self.resR=mul_calculate_grayavg_byangle(65535-img,self.root.Main.CoreNum,self.XLeft,self.XRight,self.Y,self.Rmax,self.ThetaLeft,self.ThetaRight,self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR)#需要验证，不进行对称裁剪是否有影响
+        if img.dtype=='uint16':
+            MX=65535
+        else:
+            MX=255
+        self.resL,self.resR=mul_calculate_grayavg_byangle(MX-img,self.root.Main.CoreNum,self.XLeft,self.XRight,self.Y,self.Rmax,self.ThetaLeft,self.ThetaRight,self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR)#需要验证，不进行对称裁剪是否有影响
         # self.resL,self.resR=calculate_grayavg_byangle((65535-img,self.XLeft,self.XRight,self.Y,self.Rmax,(899,self.ThetaLeft),(900,self.ThetaRight),self.NumAvgL,self.RStartL,self.NumAvgR,self.RStartR))
         print('计算完成，耗时',time.time()-start_time,'秒')
         #先用原始曲线计算阈值

@@ -28,10 +28,14 @@ class ClassFigurePlayAtmAngle(ClassFigure):#改名
     def draw_figure(self, **kwargs):
         self.img_show=self.img
         #R1图像预处理
+        if self.img_show.dtype=='uint16':
+            MX=65535
+        else:
+            MX=255
         if self.back.FlagReverseColor:
-            self.img_show=65535-self.img_show
+            self.img_show=MX-self.img_show
         if self.back.FlagBinary:
-            ret, self.img_show = cv.threshold(self.img_show, self.back.ThresBinary, 65535, cv.THRESH_BINARY)
+            ret, self.img_show = cv.threshold(self.img_show, self.back.ThresBinary, MX, cv.THRESH_BINARY)
         #默认处理方式，改成了基于现有img_show转8位处理
         if self.img.dtype=='uint16':
             self.img_show=np.array(np.floor(self.img_show/(2**8)),dtype='uint8')
@@ -171,10 +175,10 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         ttk.Label(self.FramePanel,text='批量处理：').grid(row=6,column=0)
         self.create_var('FigStart',self.back,'Int',0,True)
         self.create_var('FigEnd',self.back,'Int',0,True)
-        self.LER7_1=LabelEntry(self.FramePanel,'起始帧：',self.FigStart)
+        self.LER7_1=LabelEntry(self.FramePanel,'起始帧：',self.FigStart,width=6)
         self.LER7_1.grid(row=6,column=1,sticky='w')
         self.LER7_1.entry.bind('<Return>',self.CommandBindFigStart)
-        self.LER7_2=LabelEntry(self.FramePanel,'结束帧：',self.FigEnd)
+        self.LER7_2=LabelEntry(self.FramePanel,'结束帧：',self.FigEnd,width=6)
         self.LER7_2.grid(row=6,column=2,sticky='w')
         self.LER7_2.entry.bind('<Return>',self.CommandBindFigEnd)
         ttk.Button(self.FramePanel,text='批量处理雾化锥角',command=self.CommandButtonCalcAtmAngle).grid(row=6,column=3,sticky='we')
@@ -263,7 +267,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
             file.truncate(0)
         # 将列表中的元素逐行写入文件
         with open(os.path.abspath(os.path.dirname(__file__))+'CPP//inputcpp.txt', 'a',encoding='utf-8') as file:
-            settings=[self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,int(self.back.FlagSaveImg)]
+            settings=[self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.father.back.Decimate,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,int(self.back.FlagSaveImg),1]#最后一位是模式
             for element in settings:
                 file.write(r"{}".format(str(element) + '\n'))
         #运行c++程序
@@ -275,7 +279,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.Figure.Figure.change_figure(img)
         self.back.Fresh()
         self.Figure.Figure.change_figure(img)
-        self.AF.update_data(self.back.resL[0],self.back.resL[1])
-        self.BF.update_data(self.back.resR[0],self.back.resR[1])
-        self.AFF.update_data(self.back.resLSG[0],self.back.resLSG[1])
-        self.BFF.update_data(self.back.resRSG[0],self.back.resRSG[1])
+        self.AF.update_data(self.back.resL[0],self.back.resL[1],self.back.AngleL)
+        self.BF.update_data(self.back.resR[0],self.back.resR[1],self.back.AngleR)
+        self.AFF.update_data(self.back.resLSG[0],self.back.resLSG[1],self.back.AngleL)
+        self.BFF.update_data(self.back.resRSG[0],self.back.resRSG[1],self.back.AngleR)

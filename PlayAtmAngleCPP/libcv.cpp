@@ -6,6 +6,13 @@
 #include <locale>
 #include <codecvt>
 #include <windows.h>
+using namespace cv;
+// 用于绘制线条的函数
+void draw_line(cv::Mat &img, int originx, int originy, double angle, Scalar color = Scalar(255, 255, 255), int length = 1000) {
+    int x2 = static_cast<int>(originx - length * cos(angle * CV_PI / 180));
+    int y2 = static_cast<int>(originy + length * sin(angle * CV_PI / 180));
+    cv::line(img, Point(originx, originy), Point(x2, y2), color, 1);
+}
 
 cv::Mat imreadChinese(const std::string &filename) {
     // 将UTF-8字符串转换为宽字符串
@@ -31,6 +38,45 @@ cv::Mat imreadChinese(const std::string &filename) {
     // 使用OpenCV的imdecode函数读取图像数据
     cv::Mat img = cv::imdecode(buf, cv::IMREAD_UNCHANGED);
     return img;
+}
+
+void saveImageToChinesePath(const cv::Mat& image, const std::string& chinesePath) {
+    try {
+        // 将中文路径转换为UTF-16编码
+        std::wstring widePath;
+        widePath.resize(MultiByteToWideChar(CP_UTF8, 0, chinesePath.c_str(), -1, nullptr, 0));
+        MultiByteToWideChar(CP_UTF8, 0, chinesePath.c_str(), -1, &widePath[0], static_cast<int>(widePath.size()));
+
+        // 将图像编码为字节流
+        std::vector<uchar> imageBuffer;
+        cv::imencode(".tif", image, imageBuffer);
+
+        // 使用 Windows API 打开文件
+        HANDLE hFile = CreateFileW(
+            widePath.c_str(),
+            GENERIC_WRITE,
+            0,
+            nullptr,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr
+        );
+
+        if (hFile == INVALID_HANDLE_VALUE) {
+            throw std::runtime_error("无法打开文件：" + chinesePath);
+        }
+
+        // 写入字节流到文件
+        DWORD bytesWritten;
+        WriteFile(hFile, imageBuffer.data(), imageBuffer.size(), &bytesWritten, nullptr);
+
+        // 关闭文件
+        CloseHandle(hFile);
+
+        std::wcout << L"图片保存成功：" << widePath << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "保存图片时发生错误：" << e.what() << std::endl;
+    }
 }
 void writePixelValuesToCSV(const cv::Mat& img, const std::string& csv_filename) {//像素值写入csv文件
     std::ofstream csv_file(csv_filename);

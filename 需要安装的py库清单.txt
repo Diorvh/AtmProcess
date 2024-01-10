@@ -1,0 +1,2 @@
+先更新pip：python.exe -m pip install --upgrade pip
+然后直接在命令行输入：pip install opencv-python pillow scipy openpyxl matplotlib

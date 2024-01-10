@@ -1,42 +1,41 @@
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <vector>
+#include <windows.h>
+
+void removeFolder(const std::string& folderPath) {
+    try {
+        // Initialize SHFILEOPSTRUCT
+        SHFILEOPSTRUCTA fileOp;  // Use SHFILEOPSTRUCTA for ANSI version
+        ZeroMemory(&fileOp, sizeof(fileOp));
+        fileOp.wFunc = FO_DELETE;
+
+        // Ensure double null-termination
+        std::string folderPathWithDoubleNull = folderPath + '\0';
+
+        // Allocate a buffer for double null-termination
+        std::vector<char> buffer(folderPathWithDoubleNull.begin(), folderPathWithDoubleNull.end());
+
+        // Use directly as LPCSTR
+        fileOp.pFrom = buffer.data();
+
+        // Remove the folder and its contents
+        if (SHFileOperationA(&fileOp) != 0) {
+            throw std::runtime_error("Error removing folder: " + std::to_string(GetLastError()));
+        }
+
+        std::cout << "Folder removed successfully: " << folderPath << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
 
 int main() {
-    // Open the .txt file
-    std::fstream file("inputpy.txt", std::ios::in | std::ios::out | std::ios::ate);
+    // Folder path, including Chinese characters
+    std::string folderPath = "E:\\实验数据\\雾化锥角\\20230416\\实验编号81\\处理结果";
 
-    if (!file.is_open()) {
-        std::cerr << "Error opening the file!" << std::endl;
-        return 1;
-    }
-
-    // Move the file pointer to the beginning of the last line
-    file.seekg(-1, std::ios::end);
-
-    // Find the beginning of the last line
-    while (file.tellg() > 0 && file.peek() != '\n') {
-        file.seekg(-1, std::ios::cur);
-    }
-
-    // Save the position of the beginning of the last line
-    std::streampos lastLineBegin = file.tellg();
-
-    // Read the last line into a string
-    std::string lastLine;
-    getline(file, lastLine);
-
-    // Move the file pointer back to the beginning of the last line
-    file.seekp(lastLineBegin);
-
-    // Output a new string to the last line
-    std::string newString = "This is the new last line.";
-    file << newString << std::endl;
-
-    // Close the file
-    file.close();
-
-    std::cout << "File updated successfully." << std::endl;
+    // Remove the folder and its contents
+    removeFolder(folderPath);
 
     return 0;
 }

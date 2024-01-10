@@ -8,8 +8,9 @@ import os
 current_folder = os.path.abspath(os.path.dirname(__file__))
 with open(current_folder+"\\inputpy.txt", 'r',encoding='utf-8') as file:
     lines = file.readlines()
-fdir=lines[0].strip()+'\\'+lines[2].strip()
-MaxFreq=lines[1].strip()
+fdir=lines[0].strip()+'\\'+lines[3].strip()
+SummaryDir=lines[1].strip()
+MaxFreq=lines[2].strip()
 
 csv_filename=current_folder+"\\result.csv"
 def convert_to_number(value):
@@ -125,9 +126,52 @@ chart3.set_categories(cats2)
 ws.add_chart(chart3, "K42")
 chart3.width = 28  # 宽度
 chart3.height = 10  # 高度
+import psutil
+def close_all_excel():
+    for process in psutil.process_iter(['pid', 'name']):
+        if 'EXCEL.EXE' in process.info['name']:
+            try:
+                # 尝试终止Excel进程
+                psutil.Process(process.info['pid']).terminate()
+            except Exception as e:
+                print(f"Error closing Excel process: {e}")
 
-if not os.path.exists(fdir):
-    os.makedirs(fdir)
+close_all_excel()
 wb.save(fdir+'雾化锥角批处理结果.xlsx')
+os.system(r'start excel "'+fdir+'雾化锥角批处理结果.xlsx'+r'"')
 print('后处理文件完成')
+
+#写入汇总表
+def extract_and_convert_to_int(input_str):#抓取字符串最后的数字部分
+    # Find the numeric part at the end of the string
+    numeric_part = ''.join(filter(str.isdigit, input_str[::-1]))
+
+    # Reverse the numeric part to get the correct order
+    numeric_part = numeric_part[::-1]
+
+    # Convert the numeric part to an integer
+    result = int(numeric_part) if numeric_part else None
+
+    return result
+
+ExpNo=extract_and_convert_to_int(lines[3].strip())
+wb_target=openpyxl.load_workbook(SummaryDir)
+ws_target=wb_target.active
+for i in range(1,15):#写入设置参数
+    for j in range(1,ws_target.max_column+1):
+        if ws.cell(row=1,column=i).value == ws_target.cell(row=1,column=j).value:
+            ws_target.cell(ExpNo+2,j,ws.cell(row=2,column=i).value)
+for i in range(1,ws_target.max_column+1):
+    if ws_target.cell(row=1,column=i).value=='AngleL':
+        ws_target.cell(ExpNo+2,i,ws.cell(row=4,column=2).value)
+        ws_target.cell(ExpNo+2,i+1,ws.cell(row=5,column=2).value)
+    if ws_target.cell(row=1,column=i).value=='AngleR':
+        ws_target.cell(ExpNo+2,i,ws.cell(row=4,column=3).value)
+        ws_target.cell(ExpNo+2,i+1,ws.cell(row=5,column=3).value)
+    if ws_target.cell(row=1,column=i).value=='AtmAngle':
+        ws_target.cell(ExpNo+2,i,ws.cell(row=4,column=4).value)
+        ws_target.cell(ExpNo+2,i+1,ws.cell(row=5,column=4).value)
+wb_target.save(SummaryDir)
+os.system(r'start excel "'+SummaryDir+r'"')
+print('写入汇总表完成')
 # wb.save('result.xlsx')

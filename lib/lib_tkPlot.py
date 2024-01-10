@@ -38,7 +38,7 @@ class PlotFrame(ttk.Frame):
         self.status_label = ttk.Label(self, text='', font=('SimHei', FONTSIZE))
         self.status_label.pack()
 
-    def update_data(self, new_X, new_Y):#名字设置似乎无效
+    def update_data(self, new_X, new_Y, xRed=None):
         # 更新数据
         self.X = new_X
         self.Y = new_Y
@@ -53,6 +53,16 @@ class PlotFrame(ttk.Frame):
         self.ax.set_xlabel(self.X_name, fontproperties='SimHei', fontsize=FONTSIZE)
         self.ax.set_ylabel(self.Y_name, fontproperties='SimHei', fontsize=FONTSIZE)
 
+        if xRed != None:
+            # 在xRed位置处画一条竖直的红线
+            self.ax.axvline(x=xRed, color='red', linestyle='--')
+        # 找到最接近xRed的点的索引
+        index = np.abs(self.X - xRed).argmin()
+        if 0 <= index < len(self.X):
+            y_val = self.Y[index]
+
+            # 在(xRed, y_val)处画一条横线
+            self.ax.axhline(y=y_val, color='red', linestyle='--')
         # 更新画布
         self.canvas.draw()
 
