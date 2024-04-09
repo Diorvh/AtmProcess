@@ -271,7 +271,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
             for element in settings:
                 file.write(r"{}".format(str(element) + '\n'))
         #运行c++程序
-        os.system(os.path.abspath(os.path.dirname(__file__))+'CPP//main')
+        os.system(os.path.abspath(os.path.dirname(__file__))+'CPP\\main.exe')
         print('总耗时：',np.round(time.time()-start_time,3),'秒')
 
     def FreshSelf(self):

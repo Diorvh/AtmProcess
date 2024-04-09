@@ -51,9 +51,18 @@ with open(csv_filename, 'r', encoding='utf-8') as f:
         new_row = [convert_to_number(cell) for cell in row]
         ws.append(new_row)
 res=read_columns_to_list(ws)
-cache_dftans=(dft(res[:,0],40000),dft(res[:,1],40000),dft(res[:,2],40000))
-resfft=np.column_stack((cache_dftans[0][0],cache_dftans[0][1],cache_dftans[1][1],cache_dftans[2][1]))[:len(cache_dftans[0][0])//2,:]#只保留正频率
-write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°']],FlagContinue=False,row_start=3,col_start=6)
+AngleM=(res[:,0]+res[:,1])/2
+write_excel_mat(ws,[['AngleM']],FlagContinue=False,row_start=3,col_start=5)
+write_excel_mat(ws,[[np.mean(AngleM)]],FlagContinue=False,row_start=4,col_start=5)
+write_excel_mat(ws,[[np.std(AngleM,ddof=1)]],FlagContinue=False,row_start=5,col_start=5)
+write_excel_mat(ws,[[np.std(AngleM,ddof=1)/ws.cell(row=4,column=4).value]],FlagContinue=False,row_start=6,col_start=5)
+for ni,i in enumerate(AngleM):
+    ws.cell(ni+7,5,i)
+res=np.column_stack((res,AngleM))
+#频域特性
+cache_dftans=(dft(res[:,0],40000),dft(res[:,1],40000),dft(res[:,2],40000),dft(res[:,3],40000))
+resfft=np.column_stack((cache_dftans[0][0],cache_dftans[0][1],cache_dftans[1][1],cache_dftans[2][1],cache_dftans[3][1]))[:len(cache_dftans[0][0])//2,:]#只保留正频率
+write_excel_mat(ws,[['f/Hz','左边界角幅值/°','右边界角幅值/°','雾化锥角幅值/°','锥角中心线幅值/°']],FlagContinue=False,row_start=3,col_start=6)
 write_excel_mat(ws,[['最大值']+list(np.max(resfft[1:,:],axis=0))[1:]],FlagContinue=False,row_start=4,col_start=6)
 write_excel_mat(ws,resfft,FlagContinue=False,row_start=5,col_start=6)
 
@@ -64,7 +73,7 @@ chart1.y_axis.title = "角度/°"
 chart1.x_axis.title = "帧数"
 
 # 添加数据系列
-data1 = Reference(ws, min_col=2, min_row=7, max_col=4, max_row=ws.max_row)
+data1 = Reference(ws, min_col=2, min_row=7, max_col=5, max_row=ws.max_row)
 chart1.add_data(data1, titles_from_data=True)
 
 # 设置图例名称
@@ -88,7 +97,7 @@ chart2.y_axis.title = "幅值/°"
 chart2.x_axis.title = "频率"
 
 # 添加数据系列
-data2 = Reference(ws, min_col=7, min_row=5, max_col=9, max_row=MaxFreq)
+data2 = Reference(ws, min_col=7, min_row=5, max_col=10, max_row=MaxFreq)
 chart2.add_data(data2, titles_from_data=True)
 
 # 设置图例名称
@@ -111,7 +120,7 @@ chart3.y_axis.title = "幅值/°"
 chart3.x_axis.title = "频率"
 
 # 添加数据系列
-data2 = Reference(ws, min_col=7, min_row=5, max_col=9, max_row=ws.max_row//2)
+data2 = Reference(ws, min_col=7, min_row=5, max_col=10, max_row=ws.max_row//2)
 chart3.add_data(data2, titles_from_data=True)
 
 # 设置图例名称
@@ -171,6 +180,9 @@ for i in range(1,ws_target.max_column+1):
     if ws_target.cell(row=1,column=i).value=='AtmAngle':
         ws_target.cell(ExpNo+2,i,ws.cell(row=4,column=4).value)
         ws_target.cell(ExpNo+2,i+1,ws.cell(row=5,column=4).value)
+    if ws_target.cell(row=1,column=i).value=='AngleM':
+        ws_target.cell(ExpNo+2,i,ws.cell(row=4,column=5).value)
+        ws_target.cell(ExpNo+2,i+1,ws.cell(row=5,column=5).value)
 wb_target.save(SummaryDir)
 os.system(r'start excel "'+SummaryDir+r'"')
 print('写入汇总表完成')
