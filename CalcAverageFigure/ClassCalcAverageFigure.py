@@ -41,6 +41,14 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         self.LER1_2.pack(side='left')
         self.LER1_2.entry.bind('<Return>',self.CommandBindFigEnd)
         ttk.Button(self.FramePanel,text='计算平均图',command=self.CommandButtonCalcAverage).pack(side='left')
+        ttk.Button(self.FramePanel,text='Davis导出去前缀',command=self.CommandButtonRemovePrefix).pack(side='left')
+    
+    def CommandButtonProcess(self):
+        start_time=time.time()
+        print('彩色转黑白处理中，实验编号：'+str(self.db.Main.ExpNo))
+        process_color_to_gray(self.db.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.db.Main.CoreNum)
+        print('彩色转黑白处理完成，耗时',time.time()-start_time,'秒')
+
     def CommandBindFigStart(self,event):
         self.back.update('FigStart',self.FigStart.get(),False)
     def CommandBindFigEnd(self,event):
@@ -50,12 +58,10 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         print('计算平均图中')
         self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum),False)
         print('计算完成，耗时',time.time()-start_time,'秒')
-    def CommandButtonProcess(self):
-        start_time=time.time()
-        print('彩色转黑白处理中，实验编号：'+str(self.db.Main.ExpNo))
-        process_color_to_gray(self.db.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.db.Main.CoreNum)
-        print('彩色转黑白处理完成，耗时',time.time()-start_time,'秒')
-
+    
+    def CommandButtonRemovePrefix(self):
+        process_images(self.db.Main.generate_fdir())
+        print('去除Davis导出前缀完成')
     def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8'),FlagFreshRange=True):
         self.Figure.Figure.change_figure(img)
         if FlagFreshRange:

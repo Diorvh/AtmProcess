@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-import multiprocessing
+import multiprocessing,os
 from multiprocessing import Pool
 from functools import partial
 def calculate_sum(dir,chunk):#省内存
@@ -61,6 +61,26 @@ def process_color_to_gray(dir,start,end, num_processes):
     results = pool.map(partial(process,dir), chunks)
     pool.close()
     pool.join()
+def process_images(folder_path):
+    # 遍历文件夹中的所有文件
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".tif"):
+            # 构建完整的文件路径
+            filepath = os.path.join(folder_path, filename)
+            
+            # 去除前缀B和前导0
+            new_filename = filename.lstrip("B").lstrip("0")
+            print(filepath)
+            # 使用OpenCV读取图像
+            img=cv.imdecode(np.fromfile(file=filepath,dtype=np.uint8),cv.IMREAD_UNCHANGED)
+            
+            # 将图像每个像素点的灰度值乘以16
+            img = img * 16
+            
+            # 保存处理后的图像
+            cv.imencode('.tif', img)[1].tofile(os.path.join(folder_path, new_filename))
+            # 删除旧图像
+            os.remove(filepath)
 if __name__ == '__main__':
     num_processes = 4
     image_list=[]

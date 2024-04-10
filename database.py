@@ -30,18 +30,18 @@ class DB_main(BaseSubDB):
         super().__init__(root)
         self.SubClassName=['FrameChoosePic']
         self.FrameChoosePic=DB_FrameChoosePic(self.root)
-    def generate_fdir(self):
-        if self.FlagOther:#文件夹选择，名称不是实验编号
-            return self.DirData+'/'+self.Other
+    def generate_fdir(self):#生成当前文件夹
+        if self.FlagDirectFolder:#文件夹选择，名称不是实验编号
+            return self.DirectFolder
         elif self.FlagDirect:#直接选择单张图
             return self.DirDirect[:self.DirDirect.rfind('/')]#最后一个/之前的部分
         else:#文件夹选择
             return self.DirData+'/实验编号'+str(self.ExpNo)
-    def generate_ImageLabel(self):
+    def generate_ImageLabel(self):#生成当前标识，用于命名导出后结果
         if self.FlagDirect:
             return self.ImageLabel#不能改，否则存excel无法识别
-        elif self.FlagOther:
-            return self.Other
+        elif self.FlagDirectFolder:
+            return ''
         else:
             return self.ExpNo
 class DB_FrameChoosePic(BaseSubDB):
@@ -75,8 +75,8 @@ class DB_FrameChoosePic(BaseSubDB):
             return self.root.Main.generate_fdir()+'/'+str(self.FigName)+'.tif'
     def get_dir_res(self,classname):
         name=''
-        if self.root.Main.FlagOther:#文件夹选择，名称不是实验编号
-            name=self.Other+'_'
+        if self.root.Main.FlagDirectFolder:#文件夹选择
+            name=''
         elif self.root.Main.FlagDirect:#直接选择单张图
             name=self.root.Main.DirDirect.split('/')[-1]
         else:#文件夹选择

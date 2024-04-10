@@ -41,29 +41,32 @@ class Main(BaseFrame):
         self.create_var('DirData',self.back,init_value='',FlagSave=True)
         ttk.Label(self.FrameR2,text='数据文件夹：').pack(side='left')
         ttk.Label(self.FrameR2,textvariable=self.DirData,width=50).pack(side='left')
-        ttk.Button(self.FrameR2,text='选择文件',command=self.CommandButtonChooseFile).pack(side='left')
+        ttk.Button(self.FrameR2,text='选择文件夹',command=self.CommandButtonChooseFile).pack(side='left')
         self.create_var('ExpNo',self.back,type='Int',init_value=0,FlagSave=True)
         LE2=LabelEntry(self.FrameR2,'实验编号',self.ExpNo)
         LE2.pack(side='left')
         LE2.entry.bind('<Return>',self.CommandBindExpNo)
         ttk.Button(self.FrameR2,text='+1',width=2,command=self.CommandButtonExpNoInc).pack(side='left')
         ttk.Button(self.FrameR2,text='-1',width=2,command=self.CommandButtonExpNoDec).pack(side='left')
-        self.create_var('FlagOther',self.back,type='Boolean',init_value=False)
-        ttk.Checkbutton(self.FrameR2,onvalue=True,offvalue=False,
-                        variable=self.FlagOther,command=self.CommandCheckButtonOther).pack(side='left')
-        self.create_var('Other',self.back,type='String',init_value='',FlagSave=True)
-        LE2=LabelEntry(self.FrameR2,'其他文件夹名称',self.Other)
-        LE2.pack(side='left')
-        LE2.entry.bind('<Return>',self.CommandBindOther)
-        ttk.Button(self.FrameR2,text='刷新',width=4,command=self.Fresh).pack(side='left')
+
+        #R2.1
+        self.FrameR2_1=ttk.Frame(self.FramePanel)
+        self.FrameR2_1.pack(fill='x')
+        self.create_var('FlagDirectFolder',self.back,type='Boolean',init_value=False)
+        ttk.Checkbutton(self.FrameR2_1,text='直接打开文件夹：',onvalue=True,offvalue=False,
+                        variable=self.FlagDirectFolder,command=self.CommandCheckButtonDirectFolder).pack(side='left')
+        self.create_var('DirectFolder',self.back,init_value='',FlagSave=True)
+        ttk.Label(self.FrameR2_1,textvariable=self.DirectFolder,width=50).pack(side='left')
+        ttk.Button(self.FrameR2_1,text='选择文件夹',command=self.CommandButtonChooseFile2_1).pack(side='left')
+
         #R3
         self.FrameR3=ttk.Frame(self.FramePanel)
         self.FrameR3.pack(fill='x')
         self.create_var('FlagDirect',self.back,type='Boolean',init_value=False)
-        ttk.Checkbutton(self.FrameR3,text='直接选择图片',onvalue=True,offvalue=False,
+        ttk.Checkbutton(self.FrameR3,text='直接选择图片：',onvalue=True,offvalue=False,
                         variable=self.FlagDirect,command=self.CommandCheckButtonDirect).pack(side='left')
         self.create_var('DirDirect',self.back,init_value='',FlagSave=True)
-        ttk.Entry(self.FrameR3,textvariable=self.DirDirect,width=50).pack(side='left')
+        ttk.Label(self.FrameR3,textvariable=self.DirDirect,width=50).pack(side='left')
         ttk.Button(self.FrameR3,text='选择图片',command=self.CommandButtonChooseFile2).pack(side='left')
         self.create_var('ImageLabel',self.back,init_value='',FlagSave=True)
         self.LER3=LabelEntry(self.FrameR3,text='图片标识',var=self.ImageLabel)
@@ -96,14 +99,17 @@ class Main(BaseFrame):
         if '实验编号'+str(self.ExpNo.get()) in filename:
             self.back.update('ExpNo',self.ExpNo.get())
             self.Fresh()
-    def CommandCheckButtonOther(self):
-        self.back.update('FlagOther',self.FlagOther.get(),False)
-    def CommandBindOther(self,event):
-        self.back.update('Other',self.Other.get())
+
+    def CommandCheckButtonDirectFolder(self):
+        self.back.update('FlagDirectFolder',self.FlagDirectFolder.get(),False)
         self.Fresh()
-    
+    def CommandButtonChooseFile2_1(self):
+        self.back.update('DirectFolder',filedialog.askdirectory(title='选择文件夹'))
+        self.Fresh()
+
     def CommandCheckButtonDirect(self):
         self.back.update('FlagDirect',self.FlagDirect.get(),False)
+        self.Fresh()
     def CommandButtonChooseFile2(self):
         self.back.update('DirDirect',filedialog.askopenfilename(title='选择图像'))
         self.Fresh()

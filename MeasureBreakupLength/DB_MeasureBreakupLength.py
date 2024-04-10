@@ -32,8 +32,8 @@ class DB_MeasureBreakupLength(BaseSubDB):
                 'Decimate',c.Decimate,'总张数',len(t),'起始帧',t[0],'结束帧',t[-1]]
     def get_dir_res(self,classname):
         name=''
-        if self.root.Main.FlagOther:
-            name=self.Other+'_'
+        if self.root.Main.FlagDirectFolder:
+            name=''
         else:
             name='实验编号'+str(self.root.Main.ExpNo)+'_'
         DirData=self.root.Main.DirData
