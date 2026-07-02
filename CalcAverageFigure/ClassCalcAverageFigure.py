@@ -60,8 +60,12 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         print('计算完成，耗时',time.time()-start_time,'秒')
     
     def CommandButtonRemovePrefix(self):
-        process_images(self.db.Main.generate_fdir())
-        print('去除Davis导出前缀完成')
+        start_time=time.time()
+        print('去除Davis导出前缀中')
+        mul_process_DAVIS_images(self.db.Main.generate_fdir(),self.db.Main.CoreNum)
+        print('去除Davis导出前缀完成，耗时',time.time()-start_time,'秒')
+        self.FreshSelf()
+        
     def FreshSelf(self,img=np.random.randint(0,256,size=(640,704),dtype='uint8'),FlagFreshRange=True):
         self.Figure.Figure.change_figure(img)
         if FlagFreshRange:

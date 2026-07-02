@@ -18,13 +18,14 @@ from lib.file import *
 #R5锥角提取区域，1个绘图Flag
 #R6锥角提取结果，1个绘图Flag
 #R7批量处理
+LINE_WIDTH = 1
 class ClassFigurePlayAtmAngle(ClassFigure):#改名
     def __init__(self,father):#back为本文件前端Class的back
         super().__init__(father)
     def draw_line(self,originx,originy,angle,color=(255,255,255),length=1000):
         x2 = int(originx - length * np.cos(angle/180*np.pi))
         y2 = int(originy + length * np.sin(angle/180*np.pi))
-        cv.line(self.img_show,(originx,originy),(x2,y2),color,1)
+        cv.line(self.img_show,(originx,originy),(x2,y2),color,LINE_WIDTH)
     def draw_figure(self, **kwargs):
         self.img_show=self.img
         #R1图像预处理
@@ -47,12 +48,13 @@ class ClassFigurePlayAtmAngle(ClassFigure):#改名
         self.img_show=self.Scissor(self.img_show,[self.back.ScissorUp,self.back.ScissorDown,self.back.ScissorLeft,self.back.ScissorRight])
         HEIGHT,WIDTH=self.img_show.shape[0],self.img_show.shape[1]
         if self.back.FlagCenterLine:
-            cv.line(self.img_show,(0,HEIGHT//2),(WIDTH-1,HEIGHT//2),(255,255,255),1)
-            cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),1)
+            cv.line(self.img_show,(0,HEIGHT//2),(WIDTH-1,HEIGHT//2),(255,255,255),LINE_WIDTH)
+            cv.line(self.img_show,(WIDTH//2,0),(WIDTH//2,HEIGHT-1),(255,255,255),LINE_WIDTH)
         #R3计算区域显示
         if self.back.FlagCalcArea:
-            self.img_show=cv.ellipse(self.img_show,(self.back.XLeft,self.back.Y),(self.back.Rmax,self.back.Rmax),0,90,180-self.back.ThetaLeft*0.1,(0,0,255),1)
-            self.img_show=cv.ellipse(self.img_show,(self.back.XRight,self.back.Y),(self.back.Rmax,self.back.Rmax),0,180-self.back.ThetaRight*0.1,90,(0,0,255),1)
+            color = (255, 0, 0) #(0, 0, 255)
+            self.img_show=cv.ellipse(self.img_show,(self.back.XLeft,self.back.Y),(self.back.Rmax,self.back.Rmax),0,90,180-self.back.ThetaLeft*0.1,color,LINE_WIDTH)
+            self.img_show=cv.ellipse(self.img_show,(self.back.XRight,self.back.Y),(self.back.Rmax,self.back.Rmax),0,180-self.back.ThetaRight*0.1,90,color,LINE_WIDTH)
         #R6雾化锥角线显示
         if self.back.FlagLineAngle:
             self.draw_line(self.back.XLeft,self.back.Y,self.back.AngleL,(255,0,0))
@@ -283,3 +285,13 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         self.BF.update_data(self.back.resR[0],self.back.resR[1],self.back.AngleR)
         self.AFF.update_data(self.back.resLSG[0],self.back.resLSG[1],self.back.AngleL)
         self.BFF.update_data(self.back.resRSG[0],self.back.resRSG[1],self.back.AngleR)
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        for num, data in enumerate([self.back.resL, self.back.resLSG]):
+            for i in range(len(data[0])):
+                ws.cell(row=i+2, column=num*2+1, value=data[0][i])
+                ws.cell(row=i+2, column=num*2+2, value=data[1][i])
+        ws.cell(row=1, column=1, value='resL')
+        ws.cell(row=1, column=3, value='resLSG')
+        ws.cell(row=1, column=4, value=self.back.AngleL)
+        wb.save(r'D:\工作文件同步\2025.4_环境压力与密度独立变化\英文论文\压力图\4-雾化锥角'+f'\\面积平均灰度值数据.xlsx')

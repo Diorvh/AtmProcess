@@ -41,7 +41,7 @@ class DB_main(BaseSubDB):
         if self.FlagDirect:
             return self.ImageLabel#不能改，否则存excel无法识别
         elif self.FlagDirectFolder:
-            return ''
+            return self.DirectFolder.rsplit('/', 1)[-1]
         else:
             return self.ExpNo
 class DB_FrameChoosePic(BaseSubDB):

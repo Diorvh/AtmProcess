@@ -33,3 +33,11 @@ class DB_MeasureSheet(BaseSubDB):
         cache=np.array(self.root.Main.FrameChoosePic.data)
         c=self.root.Main.FrameChoosePic#
         return ['X',c.ImpactX,'Y',c.ImpactY,'像素大小/um/pix',c.PixSize,'平均液膜宽度/mm',np.mean(cache[:,7]),'平均液膜长度/mm',np.mean(cache[:,9])]
+    def get_dir_res(self,classname):
+        name=''
+        if self.root.Main.FlagDirectFolder:
+            name=''
+        else:
+            name='实验编号'+str(self.root.Main.ExpNo)+'_'
+        DirData=self.root.Main.DirData
+        return DirData[:DirData.rfind("/")+1]+'液膜信息/'+name+classname+'.xlsx'

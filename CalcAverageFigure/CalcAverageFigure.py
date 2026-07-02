@@ -3,6 +3,7 @@ import cv2 as cv
 import multiprocessing,os
 from multiprocessing import Pool
 from functools import partial
+from lib.lib_mulprocess import *
 def calculate_sum(dir,chunk):#省内存
     try:
         sum=np.zeros(cv.imdecode(np.fromfile(file=dir+'/'+str(chunk[0])+'.tif',dtype=np.uint8),-1).shape,dtype='uint64')
@@ -61,16 +62,15 @@ def process_color_to_gray(dir,start,end, num_processes):
     results = pool.map(partial(process,dir), chunks)
     pool.close()
     pool.join()
-def process_images(folder_path):
+def process_DAVIS_images(folder_path,filelist):#预处理DAVIS导出的图像
     # 遍历文件夹中的所有文件
-    for filename in os.listdir(folder_path):
+    for filename in filelist:
         if filename.endswith(".tif"):
             # 构建完整的文件路径
             filepath = os.path.join(folder_path, filename)
             
             # 去除前缀B和前导0
             new_filename = filename.lstrip("B").lstrip("0")
-            print(filepath)
             # 使用OpenCV读取图像
             img=cv.imdecode(np.fromfile(file=filepath,dtype=np.uint8),cv.IMREAD_UNCHANGED)
             
@@ -81,6 +81,14 @@ def process_images(folder_path):
             cv.imencode('.tif', img)[1].tofile(os.path.join(folder_path, new_filename))
             # 删除旧图像
             os.remove(filepath)
+def mul_process_DAVIS_images(folder_path,num_processes):
+    filelist=os.listdir(folder_path)
+    chunks=split_list(filelist,num_processes)
+    
+    pool=Pool(processes=num_processes)
+    results=pool.map(partial(process_DAVIS_images,folder_path),chunks)
+    pool.close()
+    pool.join()
 if __name__ == '__main__':
     num_processes = 4
     image_list=[]
