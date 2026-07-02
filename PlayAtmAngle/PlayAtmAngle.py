@@ -3,6 +3,7 @@ import cv2 as cv
 from multiprocessing import Pool
 from lib.lib_AtmAngle import *
 import os
+from core.image_io import read_image, write_tiff
 def draw_line(img,originx,originy,angle,color=(255,255,255),length=1000):
     x2 = int(originx - length * np.cos(angle/180*np.pi))
     y2 = int(originy + length * np.sin(angle/180*np.pi))
@@ -14,7 +15,7 @@ def process_calculate_atmangle(args):#省内存
     for i in NAME:
         if i%100==0:
             print('正在处理：'+str(i))
-        img=cv.imdecode(np.fromfile(file=dirr+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        img=read_image(dirr+'/'+str(i)+'.tif')
         a,b=calculate_atm_angle_thres((65535-img,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder))
         resL.append(a)
         resR.append(b)
@@ -28,7 +29,7 @@ def process_calculate_atmangle(args):#省内存
             draw_line(img,XRight,Y,b,(MAX,0,0))
             if not os.path.exists(dirr+'/处理结果'):
                 os.makedirs(dirr+'/处理结果')
-            cv.imencode('.tif', img)[1].tofile(dirr+'/处理结果/'+str(i)+'.tif')
+            write_tiff(dirr+'/处理结果/'+str(i)+'.tif', img)
     return resL,resR
 def mul_calculate_atmangle(dirr,START,END,num_processes,XLeft,XRight,Y,Rmax,ThetaLeft,ThetaRight,NumAvgL,RStartL,NumAvgR,RStartR,ThresRatioL,ThresRatioR,window_length,polyorder,FlagSaveImg):
     array=np.array(list(range(START,END+1)))

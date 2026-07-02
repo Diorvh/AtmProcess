@@ -4,11 +4,12 @@ import multiprocessing,os
 from multiprocessing import Pool
 from functools import partial
 from lib.lib_mulprocess import *
+from core.image_io import read_image, write_tiff
 def calculate_sum(dir,chunk):#省内存
     try:
-        sum=np.zeros(cv.imdecode(np.fromfile(file=dir+'/'+str(chunk[0])+'.tif',dtype=np.uint8),-1).shape,dtype='uint64')
+        sum=np.zeros(read_image(dir+'/'+str(chunk[0])+'.tif').shape,dtype='uint64')
         for i in chunk:
-            sum+=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+            sum+=read_image(dir+'/'+str(i)+'.tif')
         return sum
     except Exception as e:
         print(f"Error: {e}")
@@ -38,8 +39,8 @@ def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.ti
 def process(dir,chunk):#省内存
     try:
         for i in chunk:
-            img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
-            cv.imencode('.tif', cv.cvtColor(img,cv.COLOR_BGR2GRAY))[1].tofile(dir+'/'+str(i)+'.tif')
+            img=read_image(dir+'/'+str(i)+'.tif')
+            write_tiff(dir+'/'+str(i)+'.tif', cv.cvtColor(img,cv.COLOR_BGR2GRAY))
     except Exception as e:
         print(f"Error: {e}")
         # Check if the process is still alive before termination
@@ -72,13 +73,13 @@ def process_DAVIS_images(folder_path,filelist):#预处理DAVIS导出的图像
             # 去除前缀B和前导0
             new_filename = filename.lstrip("B").lstrip("0")
             # 使用OpenCV读取图像
-            img=cv.imdecode(np.fromfile(file=filepath,dtype=np.uint8),cv.IMREAD_UNCHANGED)
+            img=read_image(filepath)
             
             # 将图像每个像素点的灰度值乘以16
             img = img * 16
             
             # 保存处理后的图像
-            cv.imencode('.tif', img)[1].tofile(os.path.join(folder_path, new_filename))
+            write_tiff(os.path.join(folder_path, new_filename), img)
             # 删除旧图像
             os.remove(filepath)
 def mul_process_DAVIS_images(folder_path,num_processes):

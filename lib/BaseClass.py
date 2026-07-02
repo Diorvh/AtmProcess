@@ -24,6 +24,8 @@ class BaseSubDB:
         return getattr(self,name)
     def load(self,dict):
         for i in self.SaveVarName:
+            if i not in dict:
+                continue
             setattr(self,i,dict[i])
             if hasattr(self,i+'_front'):
                 getattr(self,i+'_front').set(dict[i])

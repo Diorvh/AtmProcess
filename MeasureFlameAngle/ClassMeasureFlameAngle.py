@@ -11,6 +11,7 @@ import time
 import openpyxl
 from MeasureFlameAngle.MeasureFlameAngle import *
 from services.flame_angle_service import FlameAngleService
+from core.image_io import read_image
 
 class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):
@@ -214,7 +215,7 @@ class ClassMeasureFlameAngle(BaseFrame):
 
     def FreshSelf(self):
         # self.back.update_SheetData()
-        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        img=read_image(self.back.root.Main.FrameChoosePic.get_dir_tif())
         self.Figure.Figure.change_figure(img)
         self.back.Fresh()
         self.Figure.Figure.change_figure(img)

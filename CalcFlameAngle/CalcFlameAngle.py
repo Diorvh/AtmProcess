@@ -3,6 +3,7 @@ import cv2 as cv
 from multiprocessing import Pool
 from functools import partial
 from lib.lib_Angle import *
+from core.image_io import read_image, write_tiff
 def Scissor(img,cut):#上下左右
     return img[cut[0]:img.shape[0]-cut[1],cut[2]:img.shape[1]-cut[3]]
 def draw_line(img_show,originx,originy,angle,color=(255,255,255),length=1000):
@@ -15,7 +16,7 @@ def process(dir,settings,FlagSave,chunk):#省内存
     for i in chunk:
         if i%100==0:
             print('正在处理：'+str(i))
-        img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        img=read_image(dir+'/'+str(i)+'.tif')
         img_calc=Scissor(img,[settings['ScissorUp'],settings['ScissorDown'],settings['ScissorLeft'],settings['ScissorRight']])
         #计算
         res0=[i]
@@ -51,7 +52,7 @@ def process(dir,settings,FlagSave,chunk):#省内存
             cv.line(img_show,(0,res2[2]),(WIDTH-1,res2[2]),(255,0,0),1)
             cv.line(img_show,(0,res2[0]),(WIDTH-1,res2[0]),(0,255,0),1)
             savefile=cv.cvtColor(img_show,cv.COLOR_RGB2BGR)
-            cv.imencode('.tif', savefile)[1].tofile(savedir+'/'+str(i)+'.tif')
+            write_tiff(savedir+'/'+str(i)+'.tif', savefile)
     return res
 def calc_flame_angle(dir,start,end,num_processes,settings,FlagSave):
     chunk_size = (end-start+1) // num_processes

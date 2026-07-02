@@ -5,6 +5,7 @@ from lib.lib_tkwidget import *
 from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
+from core.image_io import read_image
 class ClassFigureMeasureBreakupLength(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
@@ -61,7 +62,7 @@ class ClassMeasureBreakupLength(BaseFrame):
         self.FreshSelf()
     def FreshSelf(self):
         self.back.update_SheetData()
-        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        img=read_image(self.back.root.Main.FrameChoosePic.get_dir_tif())
         self.Figure.Figure.change_figure(img)
         #Table清空
         self.Table.update_table(self.back.data[:])

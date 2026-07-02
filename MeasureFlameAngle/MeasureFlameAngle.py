@@ -3,6 +3,7 @@ from multiprocessing import Pool
 from functools import partial
 from lib.lib_Angle import *
 import cv2 as cv
+from core.image_io import read_image
 def Scissor(img,cut):#上下左右
     return img[cut[0]:img.shape[0]-cut[1],cut[2]:img.shape[1]-cut[3]]
 def process(dir,settings,chunk):#省内存
@@ -10,7 +11,7 @@ def process(dir,settings,chunk):#省内存
     for i in chunk:
         if i%10==0:
             print('已完成：'+str((i-chunk[0])/len(chunk)*100)+'%')
-        img=cv.imdecode(np.fromfile(file=dir+'/'+str(i)+'.tif',dtype=np.uint8),-1)
+        img=read_image(dir+'/'+str(i)+'.tif')
         img_calc=Scissor(img,[settings['ScissorUp'],settings['ScissorDown'],settings['ScissorLeft'],settings['ScissorRight']])
         #计算
         res0=[i]

@@ -5,6 +5,7 @@ from lib.lib_tkwidget import *
 from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
+from core.image_io import read_image
 class ClassFigureMeasureSheet(ClassFigure):
     def __init__(self,father):
         super().__init__(father)
@@ -90,7 +91,7 @@ class ClassMeasureSheet(BaseFrame):
         self.FreshSelf()
     def FreshSelf(self):
         self.back.update_SheetData()
-        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        img=read_image(self.back.root.Main.FrameChoosePic.get_dir_tif())
         self.Figure.Figure.change_figure(img)
     # def update_figure(self):
     #     self.Figure.update_figure(self.master.master.DirData.get()+r'/原位/'+self.master.CurrentName.get()+'.tif',

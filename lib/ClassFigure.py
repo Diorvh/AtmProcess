@@ -5,6 +5,7 @@ from PIL import ImageTk,Image
 import numpy as np
 from lib.BaseClass import *
 from lib.lib_tkwidget import *
+from core.image_io import write_tiff
 class ClassFigure(ttk.Label):
     def __init__(self,father):
         self.father=father
@@ -141,7 +142,7 @@ class ClassFigurePlus(BaseFrame):
             savefile=self.Figure.img
         else:
             savefile=cv.cvtColor(self.Figure.img_show,cv.COLOR_RGB2BGR)
-        cv.imencode('.tif', savefile)[1].tofile(self.DirSave.get()+'/'+self.FilenameSave.get())
+        write_tiff(self.DirSave.get()+'/'+self.FilenameSave.get(), savefile)
     def CommandBindFilenameSave(self,event):
         self.back.update('FilenameSave',self.FilenameSave.get(),False)
     def CommandCheckButtonSaveimg(self):

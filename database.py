@@ -6,15 +6,17 @@ from MeasureBreakupLength.DB_MeasureBreakupLength import *
 from CalcAverageFigure.DB_CalcAverageFigure import *
 from CalcFlameAngle.DB_CalcFlameAngle import *
 from PlayAtmAngle.DB_PlayAtmAngle import *
+from core.config import SettingsStore
 import os
 import numpy as np
 class DB:
     def __init__(self):
         self.SubClassName=['Main']
         self.Main=DB_main(self)
+        self.settings=SettingsStore('settings.json')
     def load(self):
         try:
-            dict=read_json('settings.json')
+            dict=self.settings.load()
             for i in self.SubClassName:
                 getattr(self,i).load(dict)
         except:
@@ -23,7 +25,7 @@ class DB:
         dict={}
         for i in self.SubClassName:
             dict={**dict,**getattr(self,i).save()}
-        write_json('settings.json',dict)
+        self.settings.save(dict)
 class DB_main(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
