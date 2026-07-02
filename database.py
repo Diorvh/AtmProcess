@@ -6,7 +6,6 @@ from MeasureBreakupLength.DB_MeasureBreakupLength import *
 from CalcAverageFigure.DB_CalcAverageFigure import *
 from CalcFlameAngle.DB_CalcFlameAngle import *
 from PlayAtmAngle.DB_PlayAtmAngle import *
-from CalcInductionLength.DB_CalcInductionLength import *
 import os
 import numpy as np
 class DB:
@@ -47,14 +46,13 @@ class DB_main(BaseSubDB):
 class DB_FrameChoosePic(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
-        self.SubClassName=['MeasureSheet','MeasureBreakupLength','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle','PlayAtmAngle','CalcInductionLength']#增加实例
+        self.SubClassName=['MeasureSheet','MeasureBreakupLength','MeasureFlameAngle','CalcAverageFigure','CalcFlameAngle','PlayAtmAngle']#增加实例
         self.MeasureSheet=DB_MeasureSheet(self.root)
         self.MeasureBreakupLength=DB_MeasureBreakupLength(self.root)
         self.MeasureFlameAngle=DB_MeasureFlameAngle(self.root)
         self.CalcAverageFigure=DB_CalcAverageFigure(self.root)
         self.CalcFlameAngle=DB_CalcFlameAngle(self.root)
         self.PlayAtmAngle=DB_PlayAtmAngle(self.root)
-        self.CalcInductionLength=DB_CalcInductionLength(self.root)#增加实例
         #后端变量
         self.FigureNameList=[]
         self.data=[]
