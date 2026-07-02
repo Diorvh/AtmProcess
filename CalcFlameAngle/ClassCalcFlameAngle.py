@@ -10,6 +10,7 @@ from time import time
 from CalcFlameAngle.CalcFlameAngle import *
 from lib.excel_io import *
 import openpyxl
+from services.flame_angle_service import FlameAngleService
 
 class ClassCalcFlameAngle(BaseFrame):
     def __init__(self,father):
@@ -19,6 +20,7 @@ class ClassCalcFlameAngle(BaseFrame):
         super().__init__(self.father,padding=5,relief='sunken')
         self.FramePanel=ttk.Frame(self)
         self.FramePanel.pack()
+        self.service=FlameAngleService()
         self.create_panel()
     def create_panel(self):
         #R1
@@ -109,7 +111,7 @@ class ClassCalcFlameAngle(BaseFrame):
             settings[i]=getattr(self,i).get()
         for i in ['ImpactX','ImpactY']:
             settings[i]=getattr(self.father.back,i)
-        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings,self.FlagSave.get())
+        res=self.service.calculate_batch(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum,settings,self.FlagSave.get())
         #写入文档
         wb=openpyxl.Workbook()
         ws=wb.active

@@ -12,8 +12,9 @@ import openpyxl
 from lib.lib_tkPlot import *
 from lib.file import *
 from pathlib import Path
-from core.atomization_angle_runner import AtomizationAngleBatchConfig, AtomizationAngleCppRunner
+from core.atomization_angle_runner import AtomizationAngleBatchConfig
 from core.image_io import read_image
+from services.atomization_angle_service import AtomizationAngleService
 #R1图像预处理，2个绘图Flag
 #R2锥角起点
 #R3计算区域，1个绘图Flag
@@ -291,7 +292,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         )
         cpp_dir = Path(__file__).resolve().parent.with_name('PlayAtmAngleCPP')
         try:
-            AtomizationAngleCppRunner(cpp_dir).run_batch(config)
+            AtomizationAngleService(cpp_dir).run_batch(config)
         except Exception as exc:
             print('Atomization angle batch failed:', exc)
             raise

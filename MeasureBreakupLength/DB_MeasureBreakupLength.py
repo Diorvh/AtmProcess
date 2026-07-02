@@ -1,9 +1,11 @@
 from lib.BaseClass import *
 import numpy as np
+from services.breakup_length_service import BreakupLengthService
 class DB_MeasureBreakupLength(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
         self.SubClassName=[]
+        self.service=BreakupLengthService()
         #后端变量
         self.TableHeadings=['图名称','帧数','破碎线','破碎长度/pix','破碎长度/mm']
     def update_Sheet_Mouse(self,event):
@@ -15,8 +17,9 @@ class DB_MeasureBreakupLength(BaseSubDB):
             self.update('BreakupPosition',current)
         self.update_SheetData()
     def update_SheetData(self):
-        self.update('BreakupLengthPix',self.BreakupPosition-self.root.Main.FrameChoosePic.ImpactY)
-        self.update('BreakupLength',self.BreakupLengthPix*self.root.Main.FrameChoosePic.PixSize/1000)
+        result=self.service.calculate(self.BreakupPosition,self.root.Main.FrameChoosePic.ImpactY,self.root.Main.FrameChoosePic.PixSize)
+        self.update('BreakupLengthPix',result.length_px)
+        self.update('BreakupLength',result.length_mm)
     def generate_data(self):
         return [self.BreakupPosition,self.BreakupLengthPix,self.BreakupLength]
     def generate_title(self):

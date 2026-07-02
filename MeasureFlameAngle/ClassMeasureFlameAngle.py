@@ -10,6 +10,7 @@ from lib.excel_io import *
 import time
 import openpyxl
 from MeasureFlameAngle.MeasureFlameAngle import *
+from services.flame_angle_service import FlameAngleService
 
 class ClassFigureMeasureFlameAngle(ClassFigure):
     def __init__(self,father):
@@ -76,6 +77,7 @@ class ClassMeasureFlameAngle(BaseFrame):
         super().__init__(self.father,padding=5,relief='sunken')
         self.FramePanel=ttk.Frame(self)
         self.FramePanel.grid(row=0,column=0)
+        self.service=FlameAngleService()
         self.create_panel()
         self.Figure=ClassFigurePlus(self,ClassFigureMeasureFlameAngle)
         self.back.Figure=self.Figure
@@ -194,7 +196,7 @@ class ClassMeasureFlameAngle(BaseFrame):
             settings[i]=getattr(self,i).get()
         for i in ['ImpactX','ImpactY']:
             settings[i]=getattr(self.father.back,i)
-        res=calc_flame_angle(self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,settings)
+        res=self.service.calculate_lightweight_batch(self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.back.root.Main.CoreNum,settings)
         calc_time=time.time()-start_time
         print('计算完成，耗时',calc_time,'秒')
         #写入文档

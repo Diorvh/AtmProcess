@@ -6,6 +6,7 @@ from lib.ClassFigure import *
 from lib.BaseClass import *
 from lib.Table import *
 from CalcAverageFigure.CalcAverageFigure import *
+from services.average_image_service import AverageImageService
 import time
 class ClassFigureCalcAverageFigure(ClassFigure):#改名
     def __init__(self,father):
@@ -22,6 +23,7 @@ class ClassCalcAverageFigure(BaseFrame):#改名
         super().__init__(self.father,padding=5,relief='sunken')
         self.FramePanel=ttk.Frame(self)
         self.FramePanel.grid(row=0,column=0)
+        self.service=AverageImageService()
         self.create_panel()
         self.Figure=ClassFigurePlus(self,ClassFigureCalcAverageFigure)#改名
         self.back.Figure=self.Figure
@@ -46,7 +48,7 @@ class ClassCalcAverageFigure(BaseFrame):#改名
     def CommandButtonProcess(self):
         start_time=time.time()
         print('彩色转黑白处理中，实验编号：'+str(self.db.Main.ExpNo))
-        process_color_to_gray(self.db.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.db.Main.CoreNum)
+        self.service.convert_color_to_gray(self.db.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.db.Main.CoreNum)
         print('彩色转黑白处理完成，耗时',time.time()-start_time,'秒')
 
     def CommandBindFigStart(self,event):
@@ -56,13 +58,13 @@ class ClassCalcAverageFigure(BaseFrame):#改名
     def CommandButtonCalcAverage(self):
         start_time=time.time()
         print('计算平均图中')
-        self.FreshSelf(calculate_average_image(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum),False)
+        self.FreshSelf(self.service.calculate_average(self.back.root.Main.generate_fdir(),self.FigStart.get(),self.FigEnd.get(),self.back.root.Main.CoreNum),False)
         print('计算完成，耗时',time.time()-start_time,'秒')
     
     def CommandButtonRemovePrefix(self):
         start_time=time.time()
         print('去除Davis导出前缀中')
-        mul_process_DAVIS_images(self.db.Main.generate_fdir(),self.db.Main.CoreNum)
+        self.service.remove_davis_prefix(self.db.Main.generate_fdir(),self.db.Main.CoreNum)
         print('去除Davis导出前缀完成，耗时',time.time()-start_time,'秒')
         self.FreshSelf()
         

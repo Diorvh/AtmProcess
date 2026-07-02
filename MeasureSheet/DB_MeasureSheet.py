@@ -1,9 +1,11 @@
 from lib.BaseClass import *
 import numpy as np
+from services.sheet_measurement_service import SheetMeasurementService
 class DB_MeasureSheet(BaseSubDB):
     def __init__(self,root):
         super().__init__(root)
         self.SubClassName=[]
+        self.service=SheetMeasurementService()
         #后端变量
         self.TableHeadings=['图名称','帧数','左线','右线','上线','下线','宽度/pix','宽度/mm','长度/pix','长度/mm']
     def update_Sheet_Mouse(self,event):
@@ -22,10 +24,11 @@ class DB_MeasureSheet(BaseSubDB):
                 self.update('Line'+self.ClickMode+'Position',current)
         self.update_SheetData()
     def update_SheetData(self):
-        self.update('SheetWidthPix',self.LineRightPosition-self.LineLeftPosition)
-        self.update('SheetWidth',self.SheetWidthPix*self.root.Main.FrameChoosePic.PixSize/1000)
-        self.update('SheetLengthPix',self.LineDownPosition-self.LineUpPosition)
-        self.update('SheetLength',self.SheetLengthPix*self.root.Main.FrameChoosePic.PixSize/1000)
+        result=self.service.calculate(self.LineLeftPosition,self.LineRightPosition,self.LineUpPosition,self.LineDownPosition,self.root.Main.FrameChoosePic.PixSize)
+        self.update('SheetWidthPix',result.width_px)
+        self.update('SheetWidth',result.width_mm)
+        self.update('SheetLengthPix',result.length_px)
+        self.update('SheetLength',result.length_mm)
     def generate_data(self):
         return [self.LineLeftPosition,self.LineRightPosition,self.LineUpPosition,self.LineDownPosition,
                 self.SheetWidthPix,self.SheetWidth,self.SheetLengthPix,self.SheetLength]

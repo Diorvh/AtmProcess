@@ -1,12 +1,11 @@
+from core.excel_io import write_matrix
+
+
 def write_excel_mat(ws,data,FlagContinue=False,row_start=1,col_start=1):
     '''
     向ws工作表中写入data矩阵，矩阵左上角的单元格坐标为row_start,col_start
     '''
-    if FlagContinue:
-        row_start+=ws.max_row
-    for ni,i in enumerate(data):
-        for nj,j in enumerate(i):
-            ws.cell(ni+row_start,nj+col_start,j)
+    write_matrix(ws, data, append=FlagContinue, row_start=row_start, col_start=col_start)
 def read_rows_from_excel(ws, start_row, end_row=None):
     if end_row is None:
         # Read a single row
