@@ -1,0 +1,7 @@
+numpy
+opencv-python
+pillow
+scipy
+openpyxl
+matplotlib
+psutil
