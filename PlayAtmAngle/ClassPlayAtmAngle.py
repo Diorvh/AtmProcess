@@ -11,6 +11,8 @@ from lib.excel_io import *
 import openpyxl
 from lib.lib_tkPlot import *
 from lib.file import *
+from pathlib import Path
+from core.atomization_angle_runner import AtomizationAngleBatchConfig, AtomizationAngleCppRunner
 #R1图像预处理，2个绘图Flag
 #R2锥角起点
 #R3计算区域，1个绘图Flag
@@ -262,19 +264,37 @@ class ClassPlayAtmAngle(BaseFrame):#改名
     def CommandCheckButtonFlagSaveImg(self):
         self.back.update('FlagSaveImg',self.FlagSaveImg.get(),False)
     def CommandButtonCalcAtmAngle(self):
-        start_time=time.time()
-        print('计算雾化锥角中，实验编号：'+str(self.db.Main.ExpNo))
-        # 打开文件并删除所有内容
-        with open(os.path.abspath(os.path.dirname(__file__))+'CPP//inputcpp.txt', 'w') as file:
-            file.truncate(0)
-        # 将列表中的元素逐行写入文件
-        with open(os.path.abspath(os.path.dirname(__file__))+'CPP//inputcpp.txt', 'a',encoding='utf-8') as file:
-            settings=[self.back.root.Main.generate_fdir(),self.back.FigStart,self.back.FigEnd,self.father.back.Decimate,self.back.root.Main.CoreNum,self.back.XLeft,self.back.XRight,self.back.Y,self.back.Rmax,self.back.ThetaLeft,self.back.ThetaRight,self.back.NumAvgL,self.back.RStartL,self.back.NumAvgR,self.back.RStartR,self.back.ThresRatioL,self.back.ThresRatioR,self.back.window_length,self.back.polyorder,int(self.back.FlagSaveImg),1]#最后一位是模式
-            for element in settings:
-                file.write(r"{}".format(str(element) + '\n'))
-        #运行c++程序
-        os.system(os.path.abspath(os.path.dirname(__file__))+'CPP\\main.exe')
-        print('总耗时：',np.round(time.time()-start_time,3),'秒')
+        start_time = time.time()
+        print('Calculating atomization angle, experiment:', self.db.Main.ExpNo)
+        config = AtomizationAngleBatchConfig(
+            data_dir=self.back.root.Main.generate_fdir(),
+            fig_start=self.back.FigStart,
+            fig_end=self.back.FigEnd,
+            decimate=self.father.back.Decimate,
+            core_num=self.back.root.Main.CoreNum,
+            x_left=self.back.XLeft,
+            x_right=self.back.XRight,
+            y=self.back.Y,
+            r_max=self.back.Rmax,
+            theta_left=self.back.ThetaLeft,
+            theta_right=self.back.ThetaRight,
+            num_avg_left=self.back.NumAvgL,
+            r_start_left=self.back.RStartL,
+            num_avg_right=self.back.NumAvgR,
+            r_start_right=self.back.RStartR,
+            thres_ratio_left=self.back.ThresRatioL,
+            thres_ratio_right=self.back.ThresRatioR,
+            window_length=self.back.window_length,
+            polyorder=self.back.polyorder,
+            save_marked_images=self.back.FlagSaveImg,
+        )
+        cpp_dir = Path(__file__).resolve().parent.with_name('PlayAtmAngleCPP')
+        try:
+            AtomizationAngleCppRunner(cpp_dir).run_batch(config)
+        except Exception as exc:
+            print('Atomization angle batch failed:', exc)
+            raise
+        print('Total time:', np.round(time.time() - start_time, 3), 's')
 
     def FreshSelf(self):
         img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
