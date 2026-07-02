@@ -13,6 +13,7 @@ from lib.lib_tkPlot import *
 from lib.file import *
 from pathlib import Path
 from core.atomization_angle_runner import AtomizationAngleBatchConfig, AtomizationAngleCppRunner
+from core.image_io import read_image
 #R1图像预处理，2个绘图Flag
 #R2锥角起点
 #R3计算区域，1个绘图Flag
@@ -297,7 +298,7 @@ class ClassPlayAtmAngle(BaseFrame):#改名
         print('Total time:', np.round(time.time() - start_time, 3), 's')
 
     def FreshSelf(self):
-        img=cv.imdecode(np.fromfile(file=self.back.root.Main.FrameChoosePic.get_dir_tif(),dtype=np.uint8),-1)
+        img = read_image(self.back.root.Main.FrameChoosePic.get_dir_tif())
         self.Figure.Figure.change_figure(img)
         self.back.Fresh()
         self.Figure.Figure.change_figure(img)
