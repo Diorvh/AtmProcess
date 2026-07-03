@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from functools import partial
 from lib.lib_mulprocess import *
 from core.image_io import read_image, write_tiff
+from core.parallel import split_frame_range
 def calculate_sum(dir,chunk):#省内存
     try:
         sum=np.zeros(read_image(dir+'/'+str(chunk[0])+'.tif').shape,dtype='uint64')
@@ -22,13 +23,9 @@ def calculate_sum(dir,chunk):#省内存
                 current_process._popen.wait()  # Wait for the process to complete
 
 def calculate_average_image(dir,start,end, num_processes):#图片为dir/start.tif-end.tif，全数字，返回uint16的nparray平均值
-    chunk_size = (end-start+1) // num_processes
-    chunks=[]
-    for i in range(num_processes-1):
-        chunks.append(list(range(start+i*chunk_size,start+(i+1)*chunk_size)))
-    chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
+    chunks=split_frame_range(start,end,num_processes)
 
-    pool = Pool(processes=num_processes)
+    pool = Pool(processes=len(chunks))
     results = pool.map(partial(calculate_sum,dir), chunks)
     pool.close()
     pool.join()
@@ -53,13 +50,9 @@ def process(dir,chunk):#省内存
 
 
 def process_color_to_gray(dir,start,end, num_processes):
-    chunk_size = (end-start+1) // num_processes
-    chunks=[]
-    for i in range(num_processes-1):
-        chunks.append(list(range(start+i*chunk_size,start+(i+1)*chunk_size)))
-    chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
+    chunks=split_frame_range(start,end,num_processes)
 
-    pool = Pool(processes=num_processes)
+    pool = Pool(processes=len(chunks))
     results = pool.map(partial(process,dir), chunks)
     pool.close()
     pool.join()

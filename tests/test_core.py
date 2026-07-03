@@ -8,6 +8,7 @@ from algorithms.sheet import calculate_sheet_measurement
 from core.atomization_angle_runner import AtomizationAngleBatchConfig
 from core.excel_io import write_matrix
 from core.image_io import read_image
+from core.parallel import split_frame_range
 from core.paths import experiment_dir, image_path
 
 
@@ -66,6 +67,14 @@ class CoreTests(unittest.TestCase):
     def test_read_image_missing_file(self):
         with self.assertRaises(FileNotFoundError):
             read_image("__missing__.tif")
+
+    def test_split_frame_range_clamps_part_count(self):
+        chunks = split_frame_range(10, 12, 8)
+        self.assertEqual(chunks, [[10], [11], [12]])
+
+    def test_split_frame_range_balances_work(self):
+        chunks = split_frame_range(1, 5, 2)
+        self.assertEqual(chunks, [[1, 2, 3], [4, 5]])
 
 
 if __name__ == "__main__":

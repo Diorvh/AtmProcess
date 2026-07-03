@@ -4,6 +4,7 @@ from functools import partial
 from lib.lib_Angle import *
 import cv2 as cv
 from core.image_io import read_image
+from core.parallel import split_frame_range
 def Scissor(img,cut):#上下左右
     return img[cut[0]:img.shape[0]-cut[1],cut[2]:img.shape[1]-cut[3]]
 def process(dir,settings,chunk):#省内存
@@ -24,12 +25,8 @@ def process(dir,settings,chunk):#省内存
         res.append(res0)
     return res
 def calc_flame_angle(dir,start,end,num_processes,settings):
-    chunk_size = (end-start+1) // num_processes
-    chunks=[]
-    for i in range(num_processes-1):
-        chunks.append(list(range(start+i*chunk_size,start+(i+1)*chunk_size)))
-    chunks.append(list(range(start+(num_processes-1)*chunk_size,end+1)))
-    pool = Pool(processes=num_processes)
+    chunks=split_frame_range(start,end,num_processes)
+    pool = Pool(processes=len(chunks))
     results = pool.map(partial(process,dir,settings), chunks)
     pool.close()
     pool.join()
