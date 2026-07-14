@@ -1,9 +1,16 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
 import cv2 as cv
 import numpy as np
+
+
+try:
+    cv.setLogLevel(2)  # 只保留 Error 及以上，屏蔽 TIFF metadata warning 的大量输出
+except AttributeError:
+    if hasattr(cv, "utils") and hasattr(cv.utils, "logging"):
+        cv.utils.logging.setLogLevel(cv.utils.logging.LOG_LEVEL_ERROR)
 
 
 def read_image(path: Path | str, flags: int = cv.IMREAD_UNCHANGED) -> np.ndarray:

@@ -1,1 +1,1 @@
-"""Shared application services and data structures."""
+﻿"""Shared application services and data structures."""

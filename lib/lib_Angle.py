@@ -1,13 +1,12 @@
-import numpy as np
-import os,cv2
-from lib.Interpolate2D import *
+﻿import numpy as np
+from ImageProcessv2.lib.Interpolate2D import interpolate2D
 def calc_angle(img,originx,originy,threshold):#给定图片，原点，阈值，计算一张图片的角度
     img=np.array(img[originy:,:],dtype='uint64')
-    sum=np.sum(img)
+    total_intensity=np.sum(img)
     l,r,mid=0,np.pi,np.pi/2
     while (np.abs(l-r)>np.pi/1800):
         mid=(l+r)/2
-        sum_mid=sum-sum#初始化为0
+        sum_mid=0
         for i in range(img.shape[0]):
             cache=int(np.round(originx-i/np.tan(mid)))
             if cache<0:
@@ -15,7 +14,7 @@ def calc_angle(img,originx,originy,threshold):#给定图片，原点，阈值，
             elif cache>img.shape[1]:
                 cache=img.shape[1]
             sum_mid+=np.sum(img[i,:cache])#不含斜线上的像素点
-        if sum_mid>=sum*threshold:
+        if sum_mid>=total_intensity*threshold:
             r=mid
         else:
             l=mid
@@ -142,7 +141,3 @@ def calc_thetaavgdis(img,originx,originy,AngleL,AngleR,YEnd=None):#返回L-R之�
             summ+=img[y,cache]
         theta_avg.append(summ/YEnd)
     return np.array(theta_avg)
-if __name__=='__main__':
-    length=1000
-    img=np.ones([length,length])*65535
-    print(calc_angle(img,500,900,0.9))

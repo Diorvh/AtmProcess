@@ -1,50 +1,38 @@
-# ImageProcess
+# ImageProcess v2
 
-Tkinter desktop tools for impinging-jet image processing.
-
-Current tools:
-
-- sheet size measurement
-- breakup length measurement
-- flame angle measurement and batch processing
-- average image generation and image preprocessing
-- atomization angle preview and C++ accelerated batch processing
-
-The induction length tool has been removed.
+This folder is intended to run independently from the legacy ImageProcess GUI.
 
 ## Run
 
-Install Python dependencies:
+From the parent folder:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m ImageProcessv2.main
 ```
 
-Start the application:
+Or run the script directly:
 
 ```powershell
-python main.py
+python ImageProcessv2\main.py
 ```
 
-## Architecture
-
-The code is being refactored toward four layers:
-
-- `ui` / existing Tkinter page classes: user input and display
-- `services`: workflow orchestration for each tool
-- `algorithms`: calculation entry points
-- `core`: shared configuration, paths, image IO, Excel IO, and C++ runners
-
-The atomization angle batch path still uses the existing `PlayAtmAngleCPP/main.exe`
-runtime for performance. Python writes the legacy input file through
-`core.atomization_angle_runner.AtomizationAngleCppRunner` and executes the C++
-program with explicit error handling.
-
-## Validation
-
-Run lightweight checks:
+Install dependencies if needed:
 
 ```powershell
-python -B -m compileall .
-python -B -m unittest discover -s tests
+python -m pip install -r ImageProcessv2\requirements.txt
 ```
+
+## Structure
+
+- `domain/`: plain data models and settings.
+- `application/`: app state and GUI actions.
+- `ui/`: Tkinter windows and pages.
+- `ui/preview/`: shared right-side image preview pane used by each processing page.
+- `core/`: image IO, Excel IO, settings, path helpers, C++ runner.
+- `algorithms/`: calculation entry points.
+- `services/`: workflow services used by the GUI.
+- `lib/`: numerical helper functions required by the algorithms.
+- `PlayAtmAngleCPP/`: C++ atomization-angle runtime used by v2.
+- `sample_data/atomization/实验编号55/`: small atomization-angle TIFF sample copied from a real experiment for smoke tests.
+- `docs/ARCHITECTURE_CN.md`: detailed Chinese architecture guide.
+- `docs/GUI_REFACTOR_GUIDE_CN.md`: reusable guide for refactoring similar research GUI programs.

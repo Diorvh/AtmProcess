@@ -9,7 +9,6 @@
 #include <iomanip>
 #include <numeric>
 #include <cmath>
-#include <cstdlib>
 #include <Windows.h>
 #include "libcv.cpp"
 #include "lib_file.cpp"
@@ -55,53 +54,6 @@ pair<vector<double>,vector<double>> process_calculate_atmangle(string dirr, vect
         }
     }
     return {resL, resR};
-}
-
-void updateFile(const std::string& filePath, const std::string& newStr) {//删掉最后一行及空行，然后替换为newStr
-    // Open the file in read mode to read its contents
-    std::ifstream inFile(filePath);
-    if (!inFile.is_open()) {
-        std::cerr << "Error opening file: " << filePath << std::endl;
-        return;
-    }
-
-    // Read all lines from the file and store them in a vector
-    std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(inFile, line)) {
-        lines.push_back(line);
-    }
-
-    // Close the input file
-    inFile.close();
-
-    // Remove trailing empty lines
-    while (!lines.empty() && lines.back().empty()) {
-        lines.pop_back();
-    }
-
-    // Remove the last line
-    if (!lines.empty()) {
-        lines.pop_back();
-    }
-
-    // Add the new string as the last line
-    lines.push_back(newStr);
-
-    // Open the file in write mode to update its contents
-    std::ofstream outFile(filePath);
-    if (!outFile.is_open()) {
-        std::cerr << "Error opening file for writing: " << filePath << std::endl;
-        return;
-    }
-
-    // Write the modified lines back to the file
-    for (const auto& updatedLine : lines) {
-        outFile << updatedLine << std::endl;
-    }
-
-    // Close the output file
-    outFile.close();
 }
 
 int main() {
@@ -181,10 +133,7 @@ int main() {
         }
         fileo.close();
 
-        updateFile(wkdir+"//inputpy.txt",extractLastPathComponent(dirr));
-
-        string command="python "+wkdir+"//process_cpp_result.py";
-        system(command.c_str());        
+        cout << "Result saved: " << wkdir << "/result.csv" << endl;
     }
     else {//只处理单张，因为要显示曲线，所以只能用python原生计算了，这里先预留
         0;//process_calculate_atmangle(ref(dirr), vector<int>(START), XLeft, XRight, Y, Rmax, ThetaLeft, ThetaRight, NumAvgL, RStartL, NumAvgR, RStartR, ThresRatioL, ThresRatioR, window_length, polyorder, 1);

@@ -1,9 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
-from CalcFlameAngle.CalcFlameAngle import calc_flame_angle as calc_flame_angle_with_images
-from MeasureFlameAngle.MeasureFlameAngle import calc_flame_angle as calc_flame_angle_lightweight
+from ImageProcessv2.algorithms.flame import calc_flame_angle_lightweight, calc_flame_angle_with_marked_images
 
 
 class FlameAngleService:
@@ -16,7 +15,7 @@ class FlameAngleService:
         settings: dict,
         save_images: bool = False,
     ):
-        return calc_flame_angle_with_images(str(folder), start, end, core_num, settings, save_images)
+        return calc_flame_angle_with_marked_images(str(folder), start, end, core_num, settings, save_images)
 
     def calculate_lightweight_batch(
         self,

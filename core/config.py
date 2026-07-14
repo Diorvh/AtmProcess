@@ -1,8 +1,7 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
+import json
 from pathlib import Path
-
-from lib.lib_json import read_json, write_json
 
 
 class SettingsStore:
@@ -12,10 +11,13 @@ class SettingsStore:
     def load(self) -> dict:
         if not self.path.exists() or self.path.stat().st_size == 0:
             return {}
-        data = read_json(str(self.path))
+        data = json.loads(self.path.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
             raise ValueError(f"Settings file must contain a JSON object: {self.path}")
         return data
 
     def save(self, data: dict) -> None:
-        write_json(str(self.path), data)
+        self.path.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )

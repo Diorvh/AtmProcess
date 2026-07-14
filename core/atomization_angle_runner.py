@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Iterable
+from uuid import uuid4
 
 
 @dataclass(frozen=True)
@@ -43,7 +47,7 @@ class AtomizationAngleBatchConfig:
             raise ValueError("polyorder must be >= 0")
 
     def to_legacy_lines(self) -> list[str]:
-        """Return the line-based input format expected by PlayAtmAngleCPP/main.cpp."""
+        """Return the line-based input format expected by the C++ program."""
         values: Iterable[object] = (
             self.data_dir,
             self.fig_start,
@@ -70,29 +74,74 @@ class AtomizationAngleBatchConfig:
         return [str(value) for value in values]
 
 
-class AtomizationAngleCppRunner:
-    def __init__(self, cpp_dir: Path | str) -> None:
-        self.cpp_dir = Path(cpp_dir)
-        self.input_path = self.cpp_dir / "inputcpp.txt"
-        self.exe_path = self.cpp_dir / "main.exe"
+@dataclass(frozen=True)
+class AtomizationAngleRunResult:
+    process: subprocess.CompletedProcess
+    work_dir: Path
+    input_path: Path
+    result_csv: Path
+    result_workbook: Path | None = None
 
-    def run_batch(self, config: AtomizationAngleBatchConfig) -> subprocess.CompletedProcess:
+
+class AtomizationAngleCppRunner:
+    def __init__(self, runtime_dir: Path | str, run_root: Path | str | None = None) -> None:
+        self.runtime_dir = Path(runtime_dir)
+        self.exe_path = self.runtime_dir / "main.exe"
+        self.run_root = Path(run_root) if run_root is not None else self.runtime_dir / "runs"
+
+    def run_batch(self, config: AtomizationAngleBatchConfig) -> AtomizationAngleRunResult:
         config.validate()
         self._validate_runtime()
-        self._write_input(config)
-        return subprocess.run(
-            [str(self.exe_path)],
-            cwd=str(self.cpp_dir),
+        work_dir = self._create_work_dir(config)
+        staged_exe = self._stage_runtime(work_dir)
+        input_path = work_dir / "inputcpp.txt"
+        result_csv = work_dir / "result.csv"
+        self._write_input(input_path, config)
+
+        process = subprocess.run(
+            [str(staged_exe)],
+            cwd=str(work_dir),
             check=True,
+        )
+        if config.mode == 1 and not result_csv.exists():
+            raise FileNotFoundError(f"C++ result file not found: {result_csv}")
+        return AtomizationAngleRunResult(
+            process=process,
+            work_dir=work_dir,
+            input_path=input_path,
+            result_csv=result_csv,
         )
 
     def _validate_runtime(self) -> None:
-        if not self.cpp_dir.exists():
-            raise FileNotFoundError(f"C++ runtime directory not found: {self.cpp_dir}")
+        if not self.runtime_dir.exists():
+            raise FileNotFoundError(f"C++ runtime directory not found: {self.runtime_dir}")
         if not self.exe_path.exists():
             raise FileNotFoundError(f"C++ executable not found: {self.exe_path}")
 
-    def _write_input(self, config: AtomizationAngleBatchConfig) -> None:
-        tmp_path = self.input_path.with_suffix(".txt.tmp")
+    def _create_work_dir(self, config: AtomizationAngleBatchConfig) -> Path:
+        experiment_name = self._ascii_path_part(Path(config.data_dir).name or "experiment")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        work_dir = self.run_root / f"{timestamp}_{experiment_name}_{config.fig_start}-{config.fig_end}_{uuid4().hex[:8]}"
+        work_dir.mkdir(parents=True, exist_ok=False)
+        return work_dir
+
+    def _ascii_path_part(self, value: str) -> str:
+        safe = "".join(char if char.isascii() and (char.isalnum() or char in "-_") else "_" for char in value)
+        return safe.strip("_") or "experiment"
+
+    def _stage_runtime(self, work_dir: Path) -> Path:
+        runtime_files = [self.exe_path, *self.runtime_dir.glob("*.dll")]
+        for source in runtime_files:
+            self._link_or_copy(source, work_dir / source.name)
+        return work_dir / self.exe_path.name
+
+    def _link_or_copy(self, source: Path, target: Path) -> None:
+        try:
+            os.link(source, target)
+        except OSError:
+            shutil.copy2(source, target)
+
+    def _write_input(self, input_path: Path, config: AtomizationAngleBatchConfig) -> None:
+        tmp_path = input_path.with_suffix(".txt.tmp")
         tmp_path.write_text("\n".join(config.to_legacy_lines()) + "\n", encoding="utf-8")
-        tmp_path.replace(self.input_path)
+        tmp_path.replace(input_path)
