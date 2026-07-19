@@ -61,12 +61,22 @@ class ActionFrame(ttk.Frame):
         super().__init__(master, padding=10)
         self.apply_context = apply_context
         self.status = tk.StringVar(value="就绪")
+        self.progress_text = tk.StringVar(value="")
+        self.progress_group = None
+        self.progress_bar = None
 
     def add_status(self, row: int, columnspan: int = 8) -> None:
-        ttk.Label(self, textvariable=self.status).grid(row=row, column=0, columnspan=columnspan, sticky="w", pady=(8, 0))
+        status_frame = ttk.Frame(self)
+        status_frame.grid(row=row, column=0, columnspan=columnspan, sticky="w", pady=(8, 0))
+        ttk.Label(status_frame, textvariable=self.status).pack(side="left")
+        self.progress_group = ttk.Frame(status_frame)
+        self.progress_bar = ttk.Progressbar(self.progress_group, orient="horizontal", mode="determinate", length=240)
+        self.progress_bar.pack(side="left", padx=(12, 6))
+        ttk.Label(self.progress_group, textvariable=self.progress_text, width=24).pack(side="left")
 
     def run_action(self, title: str, apply_page: Callable[[], None], action: Callable[[], object]) -> object | None:
         try:
+            self._hide_progress()
             self.apply_context()
             apply_page()
             self.status.set(f"{title} 正在执行...")
@@ -78,3 +88,33 @@ class ActionFrame(ttk.Frame):
             self.status.set(f"{title} 失败：{exc}")
             messagebox.showerror(title, str(exc))
             return None
+
+    def run_progress_action(self, title: str, apply_page: Callable[[], None], action: Callable[[Callable[[int, int], None]], object]) -> object | None:
+        try:
+            self.apply_context()
+            apply_page()
+            self.status.set(f"{title} 正在执行...")
+            self._update_progress(0, 1)
+            result = action(self._update_progress)
+            self.status.set(f"{title} 完成：{result}" if result is not None else f"{title} 完成")
+            return result
+        except Exception as exc:
+            self.status.set(f"{title} 失败：{exc}")
+            messagebox.showerror(title, str(exc))
+            return None
+
+    def _update_progress(self, completed: int, total: int) -> None:
+        if self.progress_group is None or self.progress_bar is None:
+            return
+        if not self.progress_group.winfo_manager():
+            self.progress_group.pack(side="left")
+        maximum = max(total, 1)
+        completed = min(completed, maximum)
+        self.progress_bar.configure(maximum=maximum, value=completed)
+        percentage = completed * 100 / maximum
+        self.progress_text.set(f"{completed}/{total}（{percentage:.1f}%）")
+        self.update_idletasks()
+
+    def _hide_progress(self) -> None:
+        if self.progress_group is not None and self.progress_group.winfo_manager():
+            self.progress_group.pack_forget()

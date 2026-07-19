@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
@@ -9,12 +9,12 @@ import cv2 as cv
 import numpy as np
 from PIL import Image, ImageTk
 
-from ImageProcessv2.application.app_state import AppState
-from ImageProcessv2.core.image_io import read_image, write_tiff
-from ImageProcessv2.ui.widgets import short_path
+from ImageProcessv3.application.app_state import AppState
+from ImageProcessv3.core.image_io import read_image, write_tiff
+from ImageProcessv3.ui.widgets import short_path
 
 
-PreviewRenderer = Callable[[np.ndarray], np.ndarray]  # 页面负责把原图叠加成预览图
+PreviewRenderer = Callable[[np.ndarray, np.ndarray], np.ndarray]  # 页面接收显示图和原始图，避免算法再次读取文件。
 ClickHandler = Callable[[int, int, str], None]  # 页面负责解释一次鼠标点击的含义
 FilenameProvider = Callable[[], str]
 OverlayOption = tuple[str, str] | tuple[str, str, bool]  # key、显示名、可选默认勾选状态
@@ -148,7 +148,7 @@ class ImagePreviewPane(ttk.LabelFrame):
             self._source_image = image
             display = to_rgb8(image)
             if self.renderer is not None:
-                display = self.renderer(display.copy())  # renderer 可以直接在副本上画线
+                display = self.renderer(display.copy(), image)  # renderer 可以在显示副本上画线，并用原始位深图计算。
             self.show_array(display, path)
             self.status_text.set("预览已刷新")
         except Exception as exc:
@@ -210,6 +210,7 @@ class ImagePreviewPane(ttk.LabelFrame):
         self.canvas.create_image(x0, y0, anchor="nw", image=self._photo)
 
     def _handle_click(self, event) -> None:
+        self.focus_for_shortcuts()
         point = self._event_to_image_point(event)
         if point is None:
             return
@@ -220,6 +221,9 @@ class ImagePreviewPane(ttk.LabelFrame):
         if self.click_handler is not None and mode:
             self.click_handler(x, y, mode)
             self.refresh()
+
+    def focus_for_shortcuts(self) -> None:
+        self.canvas.focus_set()  # 焦点离开 Entry 后，小键盘按键由页面快捷键处理。
 
     def _handle_motion(self, event) -> None:
         point = self._event_to_image_point(event)

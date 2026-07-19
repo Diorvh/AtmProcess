@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import sys
 import tkinter as tk
@@ -7,13 +7,13 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ImageProcessv2.application.app_state import AppState
-from ImageProcessv2.ui.app_window import AppWindow
+from ImageProcessv3.application.app_state import AppState
+from ImageProcessv3.ui.app_window import AppWindow
 
 
 def main() -> None:
     root = tk.Tk()
-    root.title("ImageProcess v2")
+    root.title("ImageProcess v3")
     root.state("zoomed")
     state = AppState()
     app = AppWindow(root, state)

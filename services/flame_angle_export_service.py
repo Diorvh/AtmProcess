@@ -5,7 +5,8 @@ from pathlib import Path
 import numpy as np
 import openpyxl
 
-from ImageProcessv2.core.excel_io import write_matrix
+from ImageProcessv3.core.excel_io import write_matrix
+from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
 
 
 class FlameAngleExportService:
@@ -33,6 +34,9 @@ class FlameAngleExportService:
         "火焰结束",
         "火焰长度",
     ]
+
+    def __init__(self, workbook_coordinator: ExcelWorkbookCoordinator | None = None) -> None:
+        self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
 
     def export_batch(self, folder: str | Path, settings: dict, rows) -> Path:
         return self._export(
@@ -67,5 +71,4 @@ class FlameAngleExportService:
             write_matrix(sheet, [["标准差"] + list(np.std(rows, axis=0, ddof=1))[1:]], append=True)
         write_matrix(sheet, rows, append=True)
 
-        workbook.save(save_path)
-        return save_path
+        return self.workbook_coordinator.save_and_open(workbook, save_path)

@@ -5,6 +5,8 @@ from typing import Mapping, Sequence
 
 import openpyxl
 
+from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+
 
 class SummaryWorkbookService:
     experiment_headers = ("编号", "实验编号", "序号", "No")
@@ -19,8 +21,12 @@ class SummaryWorkbookService:
         "结束帧": ("结束帧",),
     }
 
+    def __init__(self, workbook_coordinator: ExcelWorkbookCoordinator | None = None) -> None:
+        self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
+
     def update(self, summary_path: str | Path, experiment_name: str, values: Mapping[str, object], experiment_no: int | None = None) -> int:
-        workbook = openpyxl.load_workbook(Path(summary_path))
+        summary_path = self.workbook_coordinator.close_if_open(summary_path)
+        workbook = openpyxl.load_workbook(summary_path)
         sheet = workbook.active
         headers = self._header_map(sheet)
         target_row = self._find_experiment_row(sheet, headers, experiment_name, experiment_no)
@@ -33,7 +39,7 @@ class SummaryWorkbookService:
             sheet.cell(target_row, column, value)  # 按第一行标题写入，兼容不同汇总表的列顺序
             written_count += 1
 
-        workbook.save(summary_path)
+        self.workbook_coordinator.save_and_open(workbook, summary_path)
         return written_count
 
     def update_contiguous_block(
@@ -45,7 +51,8 @@ class SummaryWorkbookService:
         values: Sequence[object],
         experiment_no: int | None = None,
     ) -> int:
-        workbook = openpyxl.load_workbook(Path(summary_path))
+        summary_path = self.workbook_coordinator.close_if_open(summary_path)
+        workbook = openpyxl.load_workbook(summary_path)
         sheet = workbook.active
         headers = self._header_map(sheet)
         target_row = self._find_experiment_row(sheet, headers, experiment_name, experiment_no)
@@ -60,7 +67,7 @@ class SummaryWorkbookService:
         for index, value in enumerate(values):
             sheet.cell(target_row, start_column + index, value)  # 连续参数块只定位起始列，然后按顺序写入
 
-        workbook.save(summary_path)
+        self.workbook_coordinator.save_and_open(workbook, summary_path)
         return len(values)
 
     def read_contiguous_block(

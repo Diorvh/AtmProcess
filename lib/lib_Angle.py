@@ -1,5 +1,5 @@
 ﻿import numpy as np
-from ImageProcessv2.lib.Interpolate2D import interpolate2D
+from ImageProcessv3.lib.Interpolate2D import interpolate2D
 def calc_angle(img,originx,originy,threshold):#给定图片，原点，阈值，计算一张图片的角度
     img=np.array(img[originy:,:],dtype='uint64')
     total_intensity=np.sum(img)

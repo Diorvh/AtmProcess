@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import tkinter as tk
 from tkinter import filedialog, ttk
@@ -10,13 +10,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from scipy.signal import savgol_filter
 
-from ImageProcessv2.application.actions import ImageProcessActions
-from ImageProcessv2.application.app_state import AppState
-from ImageProcessv2.core.image_io import read_image
-from ImageProcessv2.lib.lib_AtmAngle import calculate_grayavg_byangle, find_last_greater_equal
-from ImageProcessv2.services.atomization_preview_export_service import AtomizationPreviewExportService
-from ImageProcessv2.ui.preview.image_preview_pane import ImagePreviewPane, draw_angle_line
-from ImageProcessv2.ui.widgets import ActionFrame, BoundForm, FormField, labeled_entry
+from ImageProcessv3.application.actions import ImageProcessActions
+from ImageProcessv3.application.app_state import AppState
+from ImageProcessv3.core.image_io import read_image
+from ImageProcessv3.lib.lib_AtmAngle import build_sampling_geometry, calculate_grayavg_byangle, find_last_greater_equal
+from ImageProcessv3.services.atomization_preview_export_service import AtomizationPreviewExportService
+from ImageProcessv3.ui.preview.image_preview_pane import ImagePreviewPane, draw_angle_line
+from ImageProcessv3.ui.widgets import ActionFrame, BoundForm, FormField, labeled_entry
 
 
 mpl.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "SimSun", "Arial Unicode MS", "DejaVu Sans"]
@@ -30,7 +30,7 @@ class ProcessingPages(ttk.Notebook):
         state: AppState,
         actions: ImageProcessActions,
         apply_context,
-        refresh_experiment_panel,
+        sync_experiment_views,
         preview: ImagePreviewPane,
     ) -> None:
         super().__init__(master)
@@ -38,10 +38,10 @@ class ProcessingPages(ttk.Notebook):
         self.preview = preview  # 所有页面共用右侧预览窗格
         self.page_titles = ["液膜测量", "平均图", "火焰锥角", "雾化锥角"]
         self.pages = [
-            MeasurementPage(self, state, actions, apply_context, refresh_experiment_panel, preview),
-            AveragePage(self, state, actions, apply_context, refresh_experiment_panel, preview),
-            FlameBatchPage(self, state, actions, apply_context, refresh_experiment_panel, preview),
-            AtomizationPage(self, state, actions, apply_context, refresh_experiment_panel, preview),
+            MeasurementPage(self, state, actions, apply_context, sync_experiment_views, preview),
+            AveragePage(self, state, actions, apply_context, sync_experiment_views, preview),
+            FlameBatchPage(self, state, actions, apply_context, sync_experiment_views, preview),
+            AtomizationPage(self, state, actions, apply_context, sync_experiment_views, preview),
         ]
         for page, title in zip(self.pages, self.page_titles):
             self.add(page, text=title)
@@ -64,14 +64,26 @@ class ProcessingPages(ttk.Notebook):
             return page.handle_shortcut(event)
         return False
 
+    def handle_experiment_context_changed(self) -> None:
+        for page in self.pages:
+            handler = getattr(page, "handle_experiment_context_changed", None)
+            if handler is not None:
+                handler()
+
+    def handle_playback_changed(self, running: bool) -> None:
+        page = self.nametowidget(self.select())
+        handler = getattr(page, "handle_playback_changed", None)
+        if handler is not None:
+            handler(running)
+
 
 # 各功能页只定义自己的参数、按钮、预览图层和取点逻辑；右侧预览窗格由基类统一注册。
 class PreviewActionFrame(ActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, refresh_experiment_panel, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, apply_context)
         self.state = state
         self.actions = actions
-        self.refresh_experiment_panel = refresh_experiment_panel
+        self.sync_experiment_views = sync_experiment_views
         self.preview = preview
 
     def activate_preview(self) -> None:
@@ -94,7 +106,7 @@ class PreviewActionFrame(ActionFrame):
     def handle_preview_click(self, x: int, y: int, mode: str) -> None:
         return None
 
-    def render_preview(self, image: np.ndarray) -> np.ndarray:
+    def render_preview(self, image: np.ndarray, _source: np.ndarray | None = None) -> np.ndarray:
         self.apply_context()  # 渲染前先把上方实验参数写回 AppState
         return image
 
@@ -104,8 +116,8 @@ class PreviewActionFrame(ActionFrame):
 
 
 class MeasurementPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, refresh_experiment_panel, preview: ImagePreviewPane) -> None:
-        super().__init__(master, state, actions, apply_context, refresh_experiment_panel, preview)
+    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+        super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         measurement = state.settings.measurement
         self.mode = tk.StringVar(value=measurement.mode)
         self.export_dir = tk.StringVar(value=measurement.export_dir)
@@ -120,6 +132,8 @@ class MeasurementPage(PreviewActionFrame):
         self.record_stats_text = tk.StringVar(value="已记录 0 点")
         self.sheet_records: list[list] = []
         self.breakup_records: list[list] = []
+        self._records_context_key = self._measurement_context_key()
+        self._last_synced_breakup_frame: int | None = None
         self.table_display_width = 620
         self.table_height = 205
         self._resize_start_y = 0
@@ -144,6 +158,7 @@ class MeasurementPage(PreviewActionFrame):
         ttk.Button(self, text="记录并下一帧 (3)", command=self._record_and_next).grid(row=6, column=0, sticky="w", pady=(8, 0))
         ttk.Button(self, text="删除当前记录并上一帧 (9)", command=self._delete_and_previous).grid(row=6, column=1, sticky="w", pady=(8, 0))
         ttk.Button(self, text="导出当前数据", command=self._export_records).grid(row=6, column=2, sticky="w", pady=(8, 0))
+        ttk.Button(self, text="读取已有数据", command=self._read_records).grid(row=6, column=3, sticky="w", pady=(8, 0))
 
         self.table_frame = ttk.Frame(self, width=self.table_display_width, height=self.table_height)
         self.table_frame.grid(row=7, column=0, columnspan=8, sticky="w", pady=(8, 0))
@@ -171,6 +186,26 @@ class MeasurementPage(PreviewActionFrame):
 
     def _bind_measurement_state(self) -> None:
         self.mode.trace_add("write", lambda *_: self._mode_changed())
+
+    def handle_experiment_context_changed(self) -> None:
+        context_key = self._measurement_context_key()
+        if context_key == self._records_context_key:
+            return
+        self._records_context_key = context_key
+        self.sheet_records.clear()
+        self.breakup_records.clear()
+        self._last_synced_breakup_frame = None
+        self._refresh_table()
+        self.status.set("已切换实验数据，已清空液膜与破碎长度记录")
+
+    def _measurement_context_key(self) -> tuple:
+        experiment = self.state.experiment
+        return (
+            experiment.experiment_no,
+            str(experiment.data_root),
+            str(experiment.direct_folder or ""),
+            str(experiment.direct_image or ""),
+        )
 
     def _measurement_changed(self) -> None:
         self.apply_to_state()
@@ -215,8 +250,9 @@ class MeasurementPage(PreviewActionFrame):
         elif mode == "breakup":
             self.breakup_px.set(y)
 
-    def render_preview(self, image: np.ndarray) -> np.ndarray:
-        super().render_preview(image)
+    def render_preview(self, image: np.ndarray, source: np.ndarray | None = None) -> np.ndarray:
+        super().render_preview(image, source)
+        self._sync_breakup_position_for_current_frame()
         self.apply_to_state()
         self._update_results()
         height, width = image.shape[:2]
@@ -313,8 +349,9 @@ class MeasurementPage(PreviewActionFrame):
         self._step_frame(-1)
 
     def _step_frame(self, delta: int) -> None:
-        self.state.experiment.frames.current += delta
-        self.refresh_experiment_panel()
+        frames = self.state.experiment.frames
+        frames.move_current(delta)
+        self.sync_experiment_views()
         self.preview.refresh()
 
     def _sheet_row(self) -> list:
@@ -343,6 +380,16 @@ class MeasurementPage(PreviewActionFrame):
             result.length_px,
             result.length_mm,
         ]
+
+    def _sync_breakup_position_for_current_frame(self) -> None:
+        current_frame = self.state.experiment.frames.current
+        if current_frame == self._last_synced_breakup_frame:
+            return
+        self._last_synced_breakup_frame = current_frame
+        for row in self.breakup_records:
+            if row[1] == current_frame:
+                self.breakup_px.set(row[2])  # 破碎记录保存的是黄线对应的 y 坐标。
+                return
 
     def _upsert_record(self, records: list[list], row: list) -> None:
         current = row[1]
@@ -412,10 +459,32 @@ class MeasurementPage(PreviewActionFrame):
             path = self.actions.export_sheet_records(records, output_dir)
         self.status.set(f"导出完成：{path}")
 
+    def _read_records(self) -> None:
+        path = filedialog.askopenfilename(
+            title="选择液膜或破碎长度结果文件",
+            filetypes=[("Excel 表格", "*.xlsx"), ("全部文件", "*.*")],
+        )
+        if not path:
+            return
+        result = self.run_action("读取已有数据", self.apply_to_state, lambda: self.actions.read_measurement_records(path))
+        if result is None:
+            return
+
+        self.sheet_records.clear()
+        self.breakup_records.clear()
+        records = self.breakup_records if result.mode == "breakup" else self.sheet_records
+        records.extend(result.rows)
+        self._records_context_key = self._measurement_context_key()
+        self._last_synced_breakup_frame = None
+        self.mode.set(result.mode)
+        self._refresh_table()
+        mode_name = "破碎长度" if result.mode == "breakup" else "液膜尺寸"
+        self.status.set(f"已读取 {len(result.rows)} 条{mode_name}记录")
+
 
 class AveragePage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, refresh_experiment_panel, preview: ImagePreviewPane) -> None:
-        super().__init__(master, state, actions, apply_context, refresh_experiment_panel, preview)
+    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+        super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         ttk.Label(self, text="帧范围、实验目录和进程数使用上方实验参数面板。右侧显示当前帧或刚生成的平均图。").grid(row=0, column=0, columnspan=4, sticky="w")
         ttk.Button(self, text="彩色转灰度", command=self._convert_gray).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Button(self, text="计算并保存平均图", command=self._save_average).grid(row=1, column=1, sticky="w", padx=(8, 0), pady=(8, 0))
@@ -425,74 +494,116 @@ class AveragePage(PreviewActionFrame):
         return f"{self.state.experiment.image_name}_{self.state.experiment.frames.current}_平均图预览.tif"
 
     def _save_average(self) -> None:
-        result = self.run_action("计算平均图", lambda: None, self.actions.save_average_image)
+        result = self.run_progress_action("计算平均图", lambda: None, self.actions.save_average_image)
         if result is not None:
-            from ImageProcessv2.core.image_io import read_image
-            from ImageProcessv2.ui.preview.image_preview_pane import to_rgb8
+            from ImageProcessv3.core.image_io import read_image
+            from ImageProcessv3.ui.preview.image_preview_pane import to_rgb8
 
             image = read_image(result)
             self.preview.show_array(to_rgb8(image), result, source=image)  # 平均图生成后直接显示结果图
 
     def _convert_gray(self) -> None:
-        self.run_action("彩色转灰度", lambda: None, self.actions.convert_color_to_gray)
+        self.run_progress_action("彩色转灰度", lambda: None, self.actions.convert_color_to_gray)
         self.preview.refresh()
 
 
-class AtomizationProfilePlot(ttk.Frame):
-    def __init__(self, master, title: str, export_command) -> None:
-        super().__init__(master)
-        self.title = title
-        self.export_command = export_command
-        self.x_values = np.array([], dtype=float)
-        self.y_values = np.array([], dtype=float)
-        self.angle: float | None = None
+class AtomizationProfilePanel(ttk.Frame):
+    titles = ("左侧原始", "右侧原始", "左侧滤波", "右侧滤波")
 
-        self.figure = Figure(figsize=(2.8, 2.0), dpi=100)
-        self.axis = self.figure.add_subplot(111)
+    def __init__(self, master, export_command) -> None:
+        super().__init__(master)
+        self.export_command = export_command
+        self.data: dict[str, tuple[np.ndarray, np.ndarray, float | None]] = {}
+        self.figure = Figure(figsize=(5.6, 4.0), dpi=100)
+        self.axes = self.figure.subplots(2, 2).ravel()
         self.canvas = FigureCanvasTkAgg(self.figure, master=self)
         self.canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+        self.artists = {}
+        self._backgrounds = []
+        self._initialized = False
+
+        for title, axis in zip(self.titles, self.axes):
+            axis.set_title(title, fontsize=9)
+            axis.set_xlabel("角度/°", fontsize=8)
+            axis.set_ylabel("灰度", fontsize=8)
+            axis.tick_params(labelsize=7)
+            line, = axis.plot([], [], linewidth=1, animated=True)
+            angle_line = axis.axvline(0, color="red", linestyle="--", linewidth=1, animated=True)
+            gray_line = axis.axhline(0, color="red", linestyle="--", linewidth=1, animated=True)
+            self.artists[title] = (line, angle_line, gray_line)
+
+        self.figure.tight_layout(pad=0.6)
+        self.canvas.mpl_connect("draw_event", self._handle_canvas_draw)
+        self.canvas.draw()
         self.status = tk.StringVar(value="")
         bottom = ttk.Frame(self)
         bottom.grid(row=1, column=0, sticky="ew")
-        ttk.Label(bottom, text=title).pack(side="left")
-        ttk.Button(bottom, text="导出Excel", command=self._export).pack(side="right")
+        for title in self.titles:
+            ttk.Button(bottom, text=f"导出{title}", command=lambda title=title: self._export(title)).pack(side="left", padx=(0, 4))
         ttk.Label(self, textvariable=self.status).grid(row=2, column=0, sticky="w")
         self.columnconfigure(0, weight=1)
-        self._redraw()
 
-    def update_data(self, x_values, y_values, angle: float | None) -> None:
-        self.x_values = np.asarray(x_values, dtype=float)
-        self.y_values = np.asarray(y_values, dtype=float)
-        self.angle = angle
-        self._redraw()
+    def update_data(self, profile: dict) -> None:
+        needs_rescale = not self._initialized
+        for title, axis in zip(self.titles, self.axes):
+            x_values, y_values, angle = profile[title]
+            x_values = np.asarray(x_values, dtype=float)
+            y_values = np.asarray(y_values, dtype=float)
+            self.data[title] = (x_values, y_values, angle)
+            line, angle_line, gray_line = self.artists[title]
+            line.set_data(x_values, y_values)
+            angle_line.set_xdata([angle, angle])
+            index = int(np.abs(x_values - angle).argmin())
+            gray_line.set_ydata([y_values[index], y_values[index]])
 
-    def _redraw(self) -> None:
-        self.axis.clear()
-        self.axis.set_title(self.title, fontsize=9)
-        self.axis.set_xlabel("角度/°", fontsize=8)
-        self.axis.set_ylabel("灰度", fontsize=8)
-        self.axis.tick_params(labelsize=7)
-        if self.x_values.size and self.y_values.size:
-            self.axis.plot(self.x_values, self.y_values, linewidth=1)
-            if self.angle is not None:
-                self.axis.axvline(self.angle, color="red", linestyle="--", linewidth=1)
-                index = int(np.abs(self.x_values - self.angle).argmin())
-                if 0 <= index < self.y_values.size:
-                    self.axis.axhline(self.y_values[index], color="red", linestyle="--", linewidth=1)
-        self.figure.tight_layout(pad=0.6)
-        self.canvas.draw_idle()
+            if not self._initialized:
+                axis.set_xlim(float(np.min(x_values)), float(np.max(x_values)))
+                self._set_y_limits(axis, y_values)
+            else:
+                lower, upper = axis.get_ylim()
+                needs_rescale |= float(np.min(y_values)) < lower or float(np.max(y_values)) > upper
 
-    def _export(self) -> None:
-        if not self.x_values.size:
+        if needs_rescale:
+            for title, axis in zip(self.titles, self.axes):
+                self._set_y_limits(axis, self.data[title][1])
+            self.canvas.draw()
+            self._initialized = True
+        self._blit()
+
+    def _set_y_limits(self, axis, y_values: np.ndarray) -> None:
+        minimum, maximum = float(np.min(y_values)), float(np.max(y_values))
+        margin = max((maximum - minimum) * 0.05, 1.0)
+        axis.set_ylim(minimum - margin, maximum + margin)
+
+    def _capture_backgrounds(self) -> None:
+        self._backgrounds = [self.canvas.copy_from_bbox(axis.bbox) for axis in self.axes]
+
+    def _handle_canvas_draw(self, _event) -> None:
+        self._capture_backgrounds()
+        if self._initialized:
+            self.after_idle(self._blit)  # 窗口缩放导致完整重绘后，把动态曲线贴回新背景。
+
+    def _blit(self) -> None:
+        if len(self._backgrounds) != len(self.axes):
+            self.canvas.draw()
+        for axis, background, title in zip(self.axes, self._backgrounds, self.titles):
+            self.canvas.restore_region(background)
+            for artist in self.artists[title]:
+                axis.draw_artist(artist)
+        self.canvas.blit(self.figure.bbox)
+
+    def _export(self, title: str) -> None:
+        if title not in self.data:
             self.status.set("没有可导出的数据")
             return
-        path = self.export_command(self.title, self.x_values, self.y_values, self.angle)
+        x_values, y_values, angle = self.data[title]
+        path = self.export_command(title, x_values, y_values, angle)
         self.status.set(f"已导出：{path.name}")
 
 
 class FlameBatchPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, refresh_experiment_panel, preview: ImagePreviewPane) -> None:
-        super().__init__(master, state, actions, apply_context, refresh_experiment_panel, preview)
+    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+        super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         flame = state.settings.flame
         self.form = BoundForm(
             self,
@@ -536,15 +647,15 @@ class FlameBatchPage(PreviewActionFrame):
         if mode == "impact":
             self.state.experiment.impact_x = x
             self.state.experiment.impact_y = y
-            self.refresh_experiment_panel()  # 取点结果同步回上方实验参数输入框
+            self.sync_experiment_views()  # 取点结果统一回写到顶部实验参数输入框。
 
     def apply_to_state(self) -> None:
         flame = self.state.settings.flame
         self.form.save()
         flame.save_marked_images = self.save_marked_images.get()
 
-    def render_preview(self, image: np.ndarray) -> np.ndarray:
-        super().render_preview(image)
+    def render_preview(self, image: np.ndarray, source: np.ndarray | None = None) -> np.ndarray:
+        super().render_preview(image, source)
         self.apply_to_state()  # 渲染时使用输入框中的最新火焰参数
         experiment = self.state.experiment
         flame = self.state.settings.flame
@@ -565,15 +676,15 @@ class FlameBatchPage(PreviewActionFrame):
         return image
 
     def _run_batch(self) -> None:
-        self.run_action("火焰锥角完整批处理", self.apply_to_state, self.actions.calculate_flame_batch)
+        self.run_progress_action("火焰锥角完整批处理", self.apply_to_state, self.actions.calculate_flame_batch)
 
     def _run_lightweight(self) -> None:
-        self.run_action("火焰锥角轻量批处理", self.apply_to_state, self.actions.calculate_flame_lightweight_batch)
+        self.run_progress_action("火焰锥角轻量批处理", self.apply_to_state, self.actions.calculate_flame_lightweight_batch)
 
 
 class AtomizationPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, refresh_experiment_panel, preview: ImagePreviewPane) -> None:
-        super().__init__(master, state, actions, apply_context, refresh_experiment_panel, preview)
+    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+        super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         atom = state.settings.atomization
         self.form = BoundForm(
             self,
@@ -603,8 +714,11 @@ class AtomizationPage(PreviewActionFrame):
         self.angle_right_text = tk.StringVar(value="-")
         self.angle_text = tk.StringVar(value="-")
         self.profile_export_service = AtomizationPreviewExportService()
-        self.profile_plots: dict[str, AtomizationProfilePlot] = {}
+        self.profile_panel = None
         self._last_profile_key: tuple | None = None
+        self._playback_active = False
+        self._sampling_geometry = None
+        self._sampling_geometry_key: tuple | None = None
 
         self._build_form()
         self.bind_preview_refresh([self.save_marked_images])
@@ -629,8 +743,8 @@ class AtomizationPage(PreviewActionFrame):
         atom.export_dir = self.export_dir.get()
         atom.save_marked_images = self.save_marked_images.get()
 
-    def render_preview(self, image: np.ndarray) -> np.ndarray:
-        super().render_preview(image)
+    def render_preview(self, image: np.ndarray, source: np.ndarray | None = None) -> np.ndarray:
+        super().render_preview(image, source)
         self.apply_to_state()  # 渲染时使用输入框中的最新雾化参数
         atom = self.state.settings.atomization
         if self.preview.overlay_enabled("atom_invert"):
@@ -641,13 +755,13 @@ class AtomizationPage(PreviewActionFrame):
             cv.ellipse(image, (atom.x_left, atom.y), (atom.r_max, atom.r_max), 0, 90, 180 - atom.theta_left * 0.1, (255, 0, 0), 1)  # theta 参数以 0.1 deg 存储
             cv.ellipse(image, (atom.x_right, atom.y), (atom.r_max, atom.r_max), 0, 180 - atom.theta_right * 0.1, 90, (255, 0, 0), 1)
         if self.preview.overlay_enabled("atom_angle_line"):
-            self._draw_angle_lines(image)
+            self._draw_angle_lines(image, source)
         else:
             self._set_angle_result(None)
         return image
 
     def _run_batch(self) -> None:
-        self.run_action("雾化锥角批处理", self.apply_to_state, self.actions.run_atomization_batch)
+        self.run_progress_action("雾化锥角批处理", self.apply_to_state, self.actions.run_atomization_batch)
 
     def _build_form(self) -> None:
         ttk.Label(self, text="图像预处理：").grid(row=0, column=0, sticky="w", pady=2)
@@ -688,7 +802,7 @@ class AtomizationPage(PreviewActionFrame):
         ttk.Label(self, text="批量处理：").grid(row=7, column=0, sticky="w", pady=(8, 0))
         self._field(7, 1, "频域最大行数=", self.max_freq)
         ttk.Button(self, text="从汇总表读取参数", command=self._load_from_summary).grid(row=7, column=2, sticky="w", pady=(8, 0))
-        ttk.Button(self, text="C++ 批处理雾化锥角", command=self._run_batch).grid(row=7, column=3, sticky="w", padx=(8, 0), pady=(8, 0))
+        ttk.Button(self, text="批量处理雾化锥角", command=self._run_batch).grid(row=7, column=3, sticky="w", padx=(8, 0), pady=(8, 0))
         ttk.Checkbutton(self, text="运算时保存标记图片", variable=self.save_marked_images).grid(row=7, column=4, sticky="w", padx=(8, 0), pady=(8, 0))
         self._build_profile_area(8)
         self.add_status(10)
@@ -708,8 +822,8 @@ class AtomizationPage(PreviewActionFrame):
         ttk.Label(frame, textvariable=variable, width=8).pack(side="left")
         ttk.Label(frame, text="°").pack(side="left")
 
-    def _draw_angle_lines(self, image: np.ndarray) -> None:
-        profile = self._calculate_current_profiles()
+    def _draw_angle_lines(self, image: np.ndarray, source: np.ndarray | None = None) -> None:
+        profile = self._calculate_current_profiles(source=source)
         if profile is None:
             self._set_angle_result(None)
             return
@@ -775,10 +889,8 @@ class AtomizationPage(PreviewActionFrame):
     def _build_profile_area(self, row: int) -> None:
         frame = ttk.LabelFrame(self, text="面积加权平均灰度值", padding=6)
         frame.grid(row=row, column=0, columnspan=7, sticky="nw", pady=(8, 0))
-        for index, title in enumerate(["左侧原始", "右侧原始", "左侧滤波", "右侧滤波"]):
-            plot = AtomizationProfilePlot(frame, title, self._export_profile)
-            plot.grid(row=index // 2, column=index % 2, sticky="nsew", padx=4, pady=4)
-            self.profile_plots[title] = plot
+        self.profile_panel = AtomizationProfilePanel(frame, self._export_profile)
+        self.profile_panel.grid(row=0, column=0, sticky="nsew")
 
     def _refresh_profiles(self) -> None:
         self.apply_to_state()
@@ -790,7 +902,7 @@ class AtomizationPage(PreviewActionFrame):
         self._update_profile_plots(profile)
         self.status.set("灰度曲线已刷新")
 
-    def _calculate_current_profiles(self, force: bool = False) -> dict | None:
+    def _calculate_current_profiles(self, force: bool = False, source: np.ndarray | None = None) -> dict | None:
         atom = self.state.settings.atomization
         key = (
             self.state.experiment.current_image_path,
@@ -812,24 +924,43 @@ class AtomizationPage(PreviewActionFrame):
         if not force and self._last_profile_key == key and hasattr(self, "_last_profile"):
             return self._last_profile
         try:
-            source = read_image(self.state.experiment.current_image_path)
+            if source is None:
+                source = read_image(self.state.experiment.current_image_path)
             if source.ndim == 3:
                 source = cv.cvtColor(source, cv.COLOR_BGR2GRAY)
-            max_value = 65535 if source.dtype == np.uint16 else 255
-            inverted = max_value - source
-            res_left, res_right = calculate_grayavg_byangle((
-                inverted,
-                atom.x_left,
-                atom.x_right,
-                atom.y,
-                atom.r_max,
-                (899, atom.theta_left),
-                (900, atom.theta_right),
-                atom.num_avg_left,
-                atom.r_start_left,
-                atom.num_avg_right,
-                atom.r_start_right,
-            ))
+            if self._playback_active:
+                geometry_key = (
+                    source.shape,
+                    atom.x_left,
+                    atom.x_right,
+                    atom.y,
+                    atom.r_max,
+                    atom.theta_left,
+                    atom.theta_right,
+                    atom.num_avg_left,
+                    atom.r_start_left,
+                    atom.num_avg_right,
+                    atom.r_start_right,
+                )
+                if self._sampling_geometry_key != geometry_key:
+                    self._sampling_geometry = build_sampling_geometry(source.shape, *geometry_key[1:])
+                    self._sampling_geometry_key = geometry_key
+                res_left, res_right = self._sampling_geometry.calculate_profiles(source)
+            else:
+                max_value = 65535 if source.dtype == np.uint16 else 255
+                res_left, res_right = calculate_grayavg_byangle((
+                    max_value - source,
+                    atom.x_left,
+                    atom.x_right,
+                    atom.y,
+                    atom.r_max,
+                    (899, atom.theta_left),
+                    (900, atom.theta_right),
+                    atom.num_avg_left,
+                    atom.r_start_left,
+                    atom.num_avg_right,
+                    atom.r_start_right,
+                ))
             res_left_sg = [res_left[0], savgol_filter(res_left[1], atom.window_length, atom.polyorder)]
             res_right_sg = [res_right[0], savgol_filter(res_right[1], atom.window_length, atom.polyorder)]
             angle_left = res_left[0][self._angle_position(res_left, res_left_sg, atom.num_avg_left, atom.thres_ratio_left)]
@@ -847,6 +978,12 @@ class AtomizationPage(PreviewActionFrame):
         }
         return self._last_profile
 
+    def handle_playback_changed(self, running: bool) -> None:
+        self._playback_active = running
+        if not running:
+            self._sampling_geometry = None
+            self._sampling_geometry_key = None
+
     def _angle_position(self, raw_profile, filtered_profile, num_avg: int, thres_ratio: float) -> int:
         cache_max = np.average(raw_profile[1][:num_avg])
         cache_min = np.average(raw_profile[1][-num_avg:])
@@ -854,9 +991,7 @@ class AtomizationPage(PreviewActionFrame):
         return find_last_greater_equal(np.asarray(filtered_profile[1]), threshold)
 
     def _update_profile_plots(self, profile: dict) -> None:
-        for title, plot in self.profile_plots.items():
-            x_values, y_values, angle = profile[title]
-            plot.update_data(x_values, y_values, angle)
+        self.profile_panel.update_data(profile)
 
     def _export_profile(self, title: str, x_values, y_values, angle: float | None):
         self.apply_to_state()

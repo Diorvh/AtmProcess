@@ -2,15 +2,15 @@
 
 import os
 from functools import partial
-from multiprocessing import Pool
 from pathlib import Path
 
 import cv2 as cv
 import numpy as np
 
-from ImageProcessv2.core.image_io import read_image, write_tiff
-from ImageProcessv2.core.parallel import split_frame_range
-from ImageProcessv2.lib.lib_Angle import (
+from ImageProcessv3.core.image_io import read_image, write_tiff
+from ImageProcessv3.core.parallel import split_sequence
+from ImageProcessv3.core.progress import ProgressCallback, map_with_progress, report_worker_progress
+from ImageProcessv3.lib.lib_Angle import (
     calc_Rparameter_flamedirection,
     calc_angle,
     calc_intensty,
@@ -73,6 +73,7 @@ def process_with_marked_images(folder: str | Path, settings: dict, save_images: 
 
         if save_images:
             _save_marked_image(save_dir, frame_no, image, settings, theta, y_range)
+        report_worker_progress()
 
     return results
 
@@ -106,18 +107,23 @@ def _save_marked_image(save_dir: Path, frame_no: int, image: np.ndarray, setting
 
 def calc_flame_angle_with_marked_images(
     folder: str | Path,
-    start: int,
-    end: int,
+    frame_numbers: list[int],
     num_processes: int,
     settings: dict,
     save_images: bool,
+    progress_callback: ProgressCallback | None = None,
 ) -> list[list[float]]:
-    chunks = split_frame_range(start, end, num_processes)
+    chunks = split_sequence(frame_numbers, num_processes)
     if save_images:
         os.makedirs(Path(folder) / "\u4f2a\u5f69\u56fe", exist_ok=True)
 
-    with Pool(processes=len(chunks)) as pool:
-        chunk_results = pool.map(partial(process_with_marked_images, folder, settings, save_images), chunks)
+    chunk_results = map_with_progress(
+        partial(process_with_marked_images, folder, settings, save_images),
+        chunks,
+        len(chunks),
+        len(frame_numbers),
+        progress_callback,
+    )
 
     results = []
     for chunk_result in chunk_results:
@@ -146,19 +152,25 @@ def process_lightweight(folder: str | Path, settings: dict, chunk: list[int]) ->
         r_parameter.append(r_parameter[1] - r_parameter[0])
         row.extend(r_parameter)
         results.append(row)
+        report_worker_progress()
     return results
 
 
 def calc_flame_angle_lightweight(
     folder: str | Path,
-    start: int,
-    end: int,
+    frame_numbers: list[int],
     num_processes: int,
     settings: dict,
+    progress_callback: ProgressCallback | None = None,
 ) -> list[list[float]]:
-    chunks = split_frame_range(start, end, num_processes)
-    with Pool(processes=len(chunks)) as pool:
-        chunk_results = pool.map(partial(process_lightweight, folder, settings), chunks)
+    chunks = split_sequence(frame_numbers, num_processes)
+    chunk_results = map_with_progress(
+        partial(process_lightweight, folder, settings),
+        chunks,
+        len(chunks),
+        len(frame_numbers),
+        progress_callback,
+    )
 
     results = []
     for chunk_result in chunk_results:

@@ -3,3 +3,4 @@ opencv-python
 pillow
 scipy
 openpyxl
+comtypes; platform_system == "Windows"

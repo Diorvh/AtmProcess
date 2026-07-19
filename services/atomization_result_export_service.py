@@ -1,28 +1,26 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import csv
-import os
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import openpyxl
 from openpyxl.chart import LineChart, Reference
 
-from ImageProcessv2.core.excel_io import write_matrix
-from ImageProcessv2.lib.dft import dft
+from ImageProcessv3.core.excel_io import write_matrix
+from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+from ImageProcessv3.domain.settings import AtomizationSettings
+from ImageProcessv3.lib.dft import dft
+from ImageProcessv3.services.atomization_angle_service import AtomizationBatchResult
 
 
 @dataclass(frozen=True)
-class AtomizationPostprocessConfig:
+class AtomizationExportConfig:
     data_root: Path
     summary_path: Path
     max_freq: int
     experiment_name: str
-    result_csv: Path
     output_dir: Path | None = None
-    open_workbooks: bool = False
 
     @property
     def experiment_dir(self) -> Path:
@@ -36,56 +34,57 @@ class AtomizationPostprocessConfig:
 
 
 class AtomizationResultExportService:
-    def export_from_csv(self, config: AtomizationPostprocessConfig) -> Path:
+    def __init__(self, workbook_coordinator: ExcelWorkbookCoordinator | None = None) -> None:
+        self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
+
+    def export(self, config: AtomizationExportConfig, settings: AtomizationSettings, result: AtomizationBatchResult) -> Path:
         workbook = openpyxl.Workbook()
         sheet = workbook.active
-        self._append_csv(sheet, config.result_csv)
-        angle_data = self._read_angle_columns(sheet)
+        self._write_batch_data(sheet, settings, result)
+        angle_data = result.rows[:, 1:4]
         angle_mid = (angle_data[:, 0] + angle_data[:, 1]) / 2
         self._write_angle_mid(sheet, angle_mid)
         self._write_frequency_data(sheet, np.column_stack((angle_data, angle_mid)), config.max_freq)
         self._add_charts(sheet, config.max_freq)
 
         config.result_workbook.parent.mkdir(parents=True, exist_ok=True)
-        result_workbook = self._save_result_workbook(workbook, config.result_workbook)
+        result_workbook = self.workbook_coordinator.save_and_open(workbook, config.result_workbook)
 
         if config.summary_path.exists():
             self._update_summary(config.summary_path, config.experiment_name, sheet)
 
-        if config.open_workbooks:
-            os.startfile(result_workbook)
-            if config.summary_path.exists():
-                os.startfile(config.summary_path)
-
         return result_workbook
 
-    def _save_result_workbook(self, workbook, path: Path) -> Path:
-        try:
-            workbook.save(path)
-            return path
-        except PermissionError:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            fallback_path = path.with_name(f"{path.stem}_{timestamp}{path.suffix}")
-            workbook.save(fallback_path)
-            return fallback_path
+    def _write_batch_data(self, sheet, settings: AtomizationSettings, result: AtomizationBatchResult) -> None:
+        headers = [
+            "XLeft", "XRight", "Y", "Rmax", "ThetaLeft", "ThetaRight", "window_length", "polyorder",
+            "NumAvgL", "NumAvgR", "ThresRatioL", "ThresRatioR", "num_processes", "compute_time",
+        ]
+        values = [
+            settings.x_left, settings.x_right, settings.y, settings.r_max, settings.theta_left, settings.theta_right,
+            settings.window_length, settings.polyorder, settings.num_avg_left, settings.num_avg_right,
+            settings.thres_ratio_left, settings.thres_ratio_right, result.process_count, result.compute_time,
+        ]
+        angle_data = result.rows[:, 1:4]
+        means = np.mean(angle_data, axis=0)
+        standard_deviations = np.std(angle_data, axis=0, ddof=1) if len(angle_data) > 1 else np.zeros(3)
+        relative_deviations = standard_deviations / means[2]
 
-    def _append_csv(self, sheet, csv_path: Path) -> None:
-        with csv_path.open("r", encoding="utf-8") as file:
-            reader = csv.reader(file)
-            for row in reader:
-                sheet.append([self._convert_to_number(cell) for cell in row])
-
-    def _read_angle_columns(self, sheet, start_row: int = 7) -> np.ndarray:
-        rows = []
-        for row in sheet.iter_rows(min_row=start_row, min_col=2, max_col=4):
-            rows.append([float(cell.value) if cell.value is not None else None for cell in row])
-        return np.array(rows)
+        sheet.append(headers)
+        sheet.append(values)
+        sheet.append(["Frame", "AngleL", "AngleR", "AtmAngle"])
+        sheet.append(["Average", *map(float, means)])
+        sheet.append(["StDev", *map(float, standard_deviations)])
+        sheet.append(["RelativeStDev", *map(float, relative_deviations)])
+        for frame, angle_left, angle_right, atomization_angle in result.rows:
+            sheet.append([int(frame), float(angle_left), float(angle_right), float(atomization_angle)])
 
     def _write_angle_mid(self, sheet, angle_mid: np.ndarray) -> None:
+        standard_deviation = np.std(angle_mid, ddof=1) if len(angle_mid) > 1 else 0.0
         write_matrix(sheet, [["AngleM"]], row_start=3, col_start=5)
         write_matrix(sheet, [[np.mean(angle_mid)]], row_start=4, col_start=5)
-        write_matrix(sheet, [[np.std(angle_mid, ddof=1)]], row_start=5, col_start=5)
-        write_matrix(sheet, [[np.std(angle_mid, ddof=1) / sheet.cell(row=4, column=4).value]], row_start=6, col_start=5)
+        write_matrix(sheet, [[standard_deviation]], row_start=5, col_start=5)
+        write_matrix(sheet, [[standard_deviation / sheet.cell(row=4, column=4).value]], row_start=6, col_start=5)
         for row_index, value in enumerate(angle_mid):
             sheet.cell(row=row_index + 7, column=5, value=value)
 
@@ -105,7 +104,8 @@ class AtomizationResultExportService:
         ))[:len(dft_result[0][0]) // 2, :]
 
         write_matrix(sheet, [["f/Hz", "左边界角幅值/°", "右边界角幅值/°", "雾化锥角幅值/°", "锥角中心线幅值/°"]], row_start=3, col_start=6)
-        write_matrix(sheet, [["最大值"] + list(np.max(freq_matrix[1:, :], axis=0))[1:]], row_start=4, col_start=6)
+        max_amplitudes = np.max(freq_matrix[1:, 1:], axis=0) if len(freq_matrix) > 1 else np.zeros(4)
+        write_matrix(sheet, [["最大值", *max_amplitudes]], row_start=4, col_start=6)
         write_matrix(sheet, freq_matrix[:max_freq], row_start=5, col_start=6)
 
     def _add_charts(self, sheet, max_freq: int) -> None:
@@ -153,6 +153,7 @@ class AtomizationResultExportService:
         if experiment_no is None:
             return
 
+        summary_path = self.workbook_coordinator.close_if_open(summary_path)
         workbook = openpyxl.load_workbook(summary_path)
         sheet = workbook.active
         target_row = experiment_no + 2
@@ -178,30 +179,8 @@ class AtomizationResultExportService:
                 sheet.cell(target_row, target_col, source_sheet.cell(row=4, column=5).value)
                 sheet.cell(target_row, target_col + 1, source_sheet.cell(row=5, column=5).value)
 
-        workbook.save(summary_path)
-
-    def _convert_to_number(self, value: str):
-        try:
-            return int(value)
-        except ValueError:
-            try:
-                return float(value)
-            except ValueError:
-                return value
+        self.workbook_coordinator.save_and_open(workbook, summary_path)
 
     def _extract_last_int(self, value: str) -> int | None:
         digits = "".join(filter(str.isdigit, value[::-1]))[::-1]
         return int(digits) if digits else None
-
-
-def load_legacy_input(input_path: str | Path, result_csv: str | Path, open_workbooks: bool = False) -> AtomizationPostprocessConfig:
-    lines = Path(input_path).read_text(encoding="utf-8").splitlines()
-    return AtomizationPostprocessConfig(
-        data_root=Path(lines[0].strip()),
-        summary_path=Path(lines[1].strip()),
-        max_freq=int(lines[2].strip()),
-        experiment_name=lines[3].strip(),
-        result_csv=Path(result_csv),
-        output_dir=None,
-        open_workbooks=open_workbooks,
-    )

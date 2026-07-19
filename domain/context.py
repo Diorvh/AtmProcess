@@ -12,7 +12,26 @@ class FrameSelection:
     decimate: int = 1
 
     def as_range(self) -> range:
+        if self.start > self.end:
+            raise ValueError("起始帧不能大于结束帧")
+        if self.decimate <= 0:
+            raise ValueError("抽帧间隔必须大于 0")
         return range(self.start, self.end + 1, self.decimate)
+
+    def frame_numbers(self) -> list[int]:
+        return list(self.as_range())
+
+    def normalize_current(self) -> int:
+        frame_numbers = self.frame_numbers()
+        self.current = min(frame_numbers, key=lambda frame: (abs(frame - self.current), frame))
+        return self.current
+
+    def move_current(self, offset: int) -> int:
+        frame_numbers = self.frame_numbers()
+        current = self.normalize_current()
+        index = frame_numbers.index(current)
+        self.current = frame_numbers[max(0, min(index + offset, len(frame_numbers) - 1))]
+        return self.current
 
 
 @dataclass

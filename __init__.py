@@ -1,1 +1,1 @@
-﻿"""Standalone v2 GUI package for the ImageProcess application."""
+"""Standalone v3 GUI package for the ImageProcess application."""

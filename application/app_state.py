@@ -2,13 +2,15 @@
 
 from pathlib import Path
 
-from ImageProcessv2.core.config import SettingsStore
-from ImageProcessv2.application.frame_catalog import FrameCatalog
-from ImageProcessv2.domain.settings import AppSettings
+from ImageProcessv3.core.config import SettingsStore
+from ImageProcessv3.application.frame_catalog import FrameCatalog
+from ImageProcessv3.domain.settings import AppSettings
 
 
 class AppState:
-    def __init__(self, settings_path: str | Path = "settings_v2.json") -> None:
+    def __init__(self, settings_path: str | Path | None = None) -> None:
+        if settings_path is None:
+            settings_path = Path(__file__).resolve().parents[1] / "settings_v3.json"
         self.settings_store = SettingsStore(settings_path)
         self.settings = AppSettings.from_dict(self.settings_store.load())
         self.frame_catalog = FrameCatalog()
@@ -20,11 +22,11 @@ class AppState:
     def save(self) -> None:
         self.settings_store.save(self.settings.to_dict())
 
-    def refresh_frame_selection(self) -> list[int]:
+    def refresh_frame_selection(self, reset_current: bool = False) -> list[int]:
         frames = self.frame_catalog.scan_tif_numbers(self.experiment.image_folder)
         if frames:
             self.experiment.frames.start = frames[0]
             self.experiment.frames.end = frames[-1]
-            if self.experiment.frames.current not in frames:
+            if reset_current or self.experiment.frames.current not in frames:
                 self.experiment.frames.current = frames[0]
         return frames

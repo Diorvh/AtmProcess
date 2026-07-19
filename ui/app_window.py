@@ -3,11 +3,11 @@
 import tkinter as tk
 from tkinter import ttk
 
-from ImageProcessv2.application.actions import ImageProcessActions
-from ImageProcessv2.application.app_state import AppState
-from ImageProcessv2.ui.experiment_panel import ExperimentPanel
-from ImageProcessv2.ui.pages.processing_pages import ProcessingPages
-from ImageProcessv2.ui.preview import ImagePreviewPane
+from ImageProcessv3.application.actions import ImageProcessActions
+from ImageProcessv3.application.app_state import AppState
+from ImageProcessv3.ui.experiment_panel import ExperimentPanel
+from ImageProcessv3.ui.pages.processing_pages import ProcessingPages
+from ImageProcessv3.ui.preview import ImagePreviewPane
 
 
 class AppWindow(ttk.Frame):
@@ -33,16 +33,26 @@ class AppWindow(ttk.Frame):
             state,
             self.actions,
             self.experiment_panel.apply_to_state,
-            self.experiment_panel.refresh_from_state,
+            self._sync_experiment_views_from_state,
             self.preview,
         )
         self.content.add(self.pages, weight=1)
         self.content.add(self.preview, weight=3)  # 预览区域更宽，方便调参时看图
-        self.experiment_panel.bind_change(self.preview.refresh)  # 明确提交或按钮操作后立即刷新，不再对输入过程做延迟刷新
+        self.experiment_panel.bind_change(self._handle_experiment_panel_changed)
+        self.experiment_panel.bind_playback(self.pages.handle_playback_changed)
         master.bind_all("<Return>", self._commit_entry, add="+")  # Entry 中按回车立即提交并刷新当前预览
         master.bind_all("<Key>", self._handle_page_shortcut, add="+")
 
+    def _sync_experiment_views_from_state(self) -> None:
+        self.experiment_panel.refresh_from_state()  # 功能页改状态后，顶部输入框和帧信息统一回写。
+        self.pages.handle_experiment_context_changed()
+
+    def _handle_experiment_panel_changed(self) -> None:
+        self.pages.handle_experiment_context_changed()
+        self.preview.refresh()  # 顶部面板提交后立即更新当前页预览，不对普通输入过程做延迟刷新。
+
     def save(self) -> None:
+        self.experiment_panel.stop_playback()
         self.experiment_panel.apply_to_state()
         self.state.save()
 
@@ -53,9 +63,11 @@ class AppWindow(ttk.Frame):
 
     def _commit_entry_now(self, widget) -> None:
         self.experiment_panel.commit_entry(widget)
+        self.preview.focus_for_shortcuts()  # 回车提交后无需再点击图像即可使用小键盘快捷键。
 
-    def _handle_page_shortcut(self, event) -> None:
+    def _handle_page_shortcut(self, event) -> str | None:
         if event.widget.winfo_class() in {"Entry", "TEntry"}:
-            return
+            return None
         if self.pages.handle_shortcut(event):
             self.preview.refresh()
+        return None

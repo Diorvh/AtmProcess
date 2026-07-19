@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from ImageProcessv2.algorithms.breakup import BreakupLengthResult, calculate_breakup_length
+from ImageProcessv3.algorithms.breakup import BreakupLengthResult, calculate_breakup_length
 
 
 class BreakupLengthService:

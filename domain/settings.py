@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ImageProcessv2.domain.context import ExperimentContext, FrameSelection
+from ImageProcessv3.domain.context import ExperimentContext, FrameSelection
 
 
 @dataclass
@@ -56,7 +56,6 @@ class AtomizationSettings:
     max_freq: int = 100
     export_dir: str = ""
     save_marked_images: bool = False
-    mode: int = 1
 
 
 @dataclass
@@ -76,6 +75,7 @@ class PreviewSettings:
     save_dir: str = ""
     filename: str = ""
     overlay_values: dict[str, bool] = field(default_factory=dict)
+    playback_fps: int = 15
 
 
 @dataclass

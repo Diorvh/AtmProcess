@@ -1,4 +1,4 @@
-﻿from ImageProcessv2.domain.context import ExperimentContext, FrameSelection
-from ImageProcessv2.domain.settings import AppSettings
+﻿from ImageProcessv3.domain.context import ExperimentContext, FrameSelection
+from ImageProcessv3.domain.settings import AppSettings
 
 __all__ = ["AppSettings", "ExperimentContext", "FrameSelection"]

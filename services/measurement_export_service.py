@@ -1,21 +1,50 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
 import numpy as np
 import openpyxl
 
-from ImageProcessv2.core.excel_io import write_matrix
-from ImageProcessv2.services.summary_workbook_service import SummaryWorkbookService
+from ImageProcessv3.core.excel_io import write_matrix
+from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+from ImageProcessv3.services.summary_workbook_service import SummaryWorkbookService
+
+
+@dataclass(frozen=True)
+class MeasurementRecordImport:
+    mode: str
+    rows: list[list]
 
 
 class MeasurementExportService:
     sheet_headers = ["帧数", "左线", "右线", "上线", "下线", "宽度/pix", "宽度/mm", "长度/pix", "长度/mm"]
     breakup_headers = ["帧数", "破碎线", "破碎长度/pix", "破碎长度/mm"]
 
-    def __init__(self, summary_service: SummaryWorkbookService | None = None) -> None:
-        self.summary_service = summary_service or SummaryWorkbookService()
+    def __init__(
+        self,
+        summary_service: SummaryWorkbookService | None = None,
+        workbook_coordinator: ExcelWorkbookCoordinator | None = None,
+    ) -> None:
+        self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
+        self.summary_service = summary_service or SummaryWorkbookService(self.workbook_coordinator)
+
+    def read_records(self, file_path: str | Path) -> MeasurementRecordImport:
+        workbook = openpyxl.load_workbook(file_path, data_only=True)
+        try:
+            sheet = workbook.active
+            breakup_headers = [sheet.cell(2, column).value for column in range(1, len(self.breakup_headers) + 1)]
+            mode = "breakup" if breakup_headers == self.breakup_headers else "sheet"
+            column_count = len(self.breakup_headers) if mode == "breakup" else len(self.sheet_headers)
+            rows = []
+            for values in sheet.iter_rows(min_row=3, max_col=column_count, values_only=True):
+                if values[0] is None:
+                    continue
+                rows.append(self._breakup_record(values) if mode == "breakup" else self._sheet_record(values))
+        finally:
+            workbook.close()
+        return MeasurementRecordImport(mode, rows)
 
     def export_sheet(
         self,
@@ -139,8 +168,7 @@ class MeasurementExportService:
             row_stats = stats_values if index == 0 else [""] * len(stats_values)
             data_rows.append(list(row) + [""] + row_stats)
         write_matrix(sheet, data_rows, append=True)
-        workbook.save(save_path)
-        return save_path
+        return self.workbook_coordinator.save_and_open(workbook, save_path)
 
     def _update_summary(self, summary_path: str | Path | None, experiment_name: str, values: dict[str, object], experiment_no: int | None) -> None:
         if not summary_path:
@@ -168,3 +196,24 @@ class MeasurementExportService:
 
     def _without_image_name(self, rows: Sequence[Sequence]) -> list[list]:
         return [list(row[1:]) for row in rows]
+
+    @staticmethod
+    def _sheet_record(values: Sequence[object]) -> list:
+        frame = int(values[0])
+        return [
+            str(frame),
+            frame,
+            int(values[1]),
+            int(values[2]),
+            int(values[3]),
+            int(values[4]),
+            int(values[5]),
+            float(values[6]),
+            int(values[7]),
+            float(values[8]),
+        ]
+
+    @staticmethod
+    def _breakup_record(values: Sequence[object]) -> list:
+        frame = int(values[0])
+        return [str(frame), frame, int(values[1]), int(values[2]), float(values[3])]

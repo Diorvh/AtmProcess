@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from ImageProcessv2.algorithms.sheet import SheetMeasurementResult, calculate_sheet_measurement
+from ImageProcessv3.algorithms.sheet import SheetMeasurementResult, calculate_sheet_measurement
 
 
 class SheetMeasurementService:

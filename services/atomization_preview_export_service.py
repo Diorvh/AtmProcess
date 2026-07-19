@@ -4,8 +4,13 @@ from pathlib import Path
 
 import openpyxl
 
+from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+
 
 class AtomizationPreviewExportService:
+    def __init__(self, workbook_coordinator: ExcelWorkbookCoordinator | None = None) -> None:
+        self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
+
     def export_gray_profile(self, folder: str | Path, res_left, res_left_sg, angle_left: float) -> Path:
         folder_path = Path(folder)
         save_path = folder_path / f"{folder_path.name}雾化角灰度分布.xlsx"
@@ -21,8 +26,7 @@ class AtomizationPreviewExportService:
                 sheet.cell(row=row_index + 2, column=index * 2 + 1, value=data[0][row_index])
                 sheet.cell(row=row_index + 2, column=index * 2 + 2, value=data[1][row_index])
 
-        workbook.save(save_path)
-        return save_path
+        return self.workbook_coordinator.save_and_open(workbook, save_path)
 
     def export_profile(self, output_dir: str | Path, experiment_name: str, frame_no: int, profile_name: str, x_values, y_values, angle: float | None = None) -> Path:
         save_dir = Path(output_dir)
@@ -39,5 +43,4 @@ class AtomizationPreviewExportService:
         for x_value, y_value in zip(x_values, y_values):
             sheet.append([float(x_value), float(y_value)])
 
-        workbook.save(save_path)
-        return save_path
+        return self.workbook_coordinator.save_and_open(workbook, save_path)

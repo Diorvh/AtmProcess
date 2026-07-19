@@ -1,457 +1,255 @@
-# ImageProcess v2 架构说明
+# ImageProcess v3 架构说明
 
-这份文档说明 `ImageProcessv2` 的整体架构。它面向没有接触过专业 GUI 程序框架的维护者，重点解释每个目录为什么存在、代码之间如何调用、以后应该在哪里改功能。
+## 1. 程序定位
 
-## 1. 总体目标
+`ImageProcessv3` 是面向科研图像数据处理的桌面程序，主要功能包括：
 
-`ImageProcessv2` 是一个独立的科研图像处理程序包。它不再依赖旧工程根目录下的 `main.py`、`database.py`、`FrameChoosePic.py`、旧 GUI 页面，也不依赖根目录下的 `core/`、`services/`、`algorithms/`、`lib/`。
+- 液膜宽度、长度和破碎长度测量；
+- 平均图生成与彩色图转灰度图；
+- 火焰锥角处理；
+- 雾化锥角单帧调参与批量处理；
+- 结果图、灰度曲线和 Excel 数据导出；
+- 实验汇总表参数读取与结果写入。
 
-也就是说，后续可以把整个 `ImageProcessv2/` 文件夹复制到其他位置，只要 Python 依赖和 C++ runtime 所需 DLL 都在，就可以运行。
+程序以简洁、可读和可维护为优先目标。参数由科研人员负责设置，只保留能够防止程序进入明显错误状态的基础检查。
 
-启动方式：
+v3 是独立程序包，不引用 v2 或旧 GUI 文件。雾化锥角计算全部由 Python 完成，不需要额外的可执行程序和通信文件。
+
+## 2. 运行方式
+
+在 `ImageProcessv3` 的上一级目录运行：
 
 ```powershell
-python -m ImageProcessv2.main
+python -m ImageProcessv3.main
 ```
 
-或：
+或者直接运行：
 
 ```powershell
-python ImageProcessv2\main.py
+python ImageProcessv3\main.py
 ```
 
-## 2. 核心设计思想
+入口文件是 `main.py`。它只负责创建 Tk 根窗口、加载状态、构建主界面以及在关闭时保存配置。
 
-旧 GUI 的主要问题是：界面控件、全局变量、算法调用、文件路径、Excel 输出混在一起。典型代码类似：
-
-```python
-self.back.update('FigStart', self.back.root.Main.FrameChoosePic.FigNameStart)
-```
-
-这种写法的问题是：
-
-- 需要记住很深的对象层级。
-- 页面之间互相知道太多内部结构。
-- 参数在哪里创建、在哪里修改、在哪里保存不清楚。
-- 以后改一个控件，可能影响很多功能。
-
-v2 的改法是把程序拆成几层：
+## 3. 分层结构
 
 ```text
-UI 层
-  只负责窗口、按钮、输入框、图像预览、鼠标点击
-
-Application 层
-  负责应用状态、页面动作、把 GUI 参数转换成一次处理任务
-
-Domain 层
-  负责纯数据模型，例如实验路径、帧范围、火焰参数、雾化参数
-
-Service 层
-  负责完整业务流程，例如“计算火焰锥角并导出 Excel”
-
-Algorithm 层
-  负责实际计算公式和图像算法入口
-
-Core 层
-  负责通用基础能力，例如图像读写、配置读写、Excel 写入、C++ runner
-
-Lib 层
-  负责算法内部需要的数学 helper
-
-C++ Runtime
-  负责雾化锥角高速批处理
+ImageProcessv3/
+├─ main.py
+├─ settings_v3.json
+├─ application/
+│  ├─ app_state.py
+│  ├─ actions.py
+│  └─ frame_catalog.py
+├─ domain/
+│  ├─ context.py
+│  └─ settings.py
+├─ ui/
+│  ├─ app_window.py
+│  ├─ experiment_panel.py
+│  ├─ widgets.py
+│  ├─ pages/
+│  └─ preview/
+├─ services/
+├─ algorithms/
+├─ core/
+├─ lib/
+└─ sample_data/
 ```
 
-一个简单原则是：上层可以调用下层，下层不要反过来知道上层。
-
-例如：
+调用方向保持单向：
 
 ```text
-按钮点击
-  -> UI 页面
-  -> ImageProcessActions
-  -> Service
-  -> Algorithm / Core / C++ Runtime
-  -> 输出文件
+UI -> Application -> Services -> Algorithms/Core/Lib
+                  -> Domain
 ```
 
-算法层不应该知道 Tkinter 控件，也不应该知道哪个按钮触发了它。
-
-## 3. 目录结构
-
-当前主要目录如下：
-
-```text
-ImageProcessv2/
-  main.py
-  README.md
-  requirements.txt
-  docs/
-    ARCHITECTURE_CN.md
-  domain/
-    context.py
-    settings.py
-  application/
-    app_state.py
-    actions.py
-    frame_catalog.py
-  ui/
-    app_window.py
-    experiment_panel.py
-    widgets.py
-    preview/
-      image_preview_pane.py
-    pages/
-      processing_pages.py
-  services/
-  algorithms/
-  core/
-  lib/
-  PlayAtmAngleCPP/
-  sample_data/
-```
+下层模块不反向访问 GUI 控件，因此算法、导出和状态管理可以独立测试。
 
 ## 4. 各层职责
 
-### 4.1 main.py
+### 4.1 Domain
 
-`main.py` 是程序入口，只做三件事：
+`domain/context.py` 定义实验上下文：数据根目录、实验编号、帧范围、当前帧、抽帧间隔、撞击点和像素尺寸。
 
-- 创建 Tkinter 主窗口。
-- 创建 `AppState`。
-- 创建 `AppWindow`。
+`domain/settings.py` 定义各功能参数：
 
-它不应该放具体功能逻辑。比如“计算雾化锥角”“保存平均图”都不应该写在这里。
+- `FlameSettings`：火焰锥角参数；
+- `AtomizationSettings`：雾化锥角参数；
+- `MeasurementSettings`：液膜测量状态；
+- `PreviewSettings`：预览保存目录、文件名和图层状态；
+- `AppSettings`：组合全部设置并负责 JSON 转换。
 
-### 4.2 domain/
+Domain 中只保存数据，不访问 Tkinter，不读取图像，也不写 Excel。
 
-`domain/` 保存纯数据模型。
+### 4.2 Application
 
-代表文件：
+`application/app_state.py` 持有当前 `AppSettings`，负责加载和保存 `settings_v3.json`，以及重新扫描帧范围。
 
-- `context.py`
-- `settings.py`
+`application/actions.py` 是 GUI 的统一操作入口。页面只调用诸如：
 
-这里的数据模型不依赖 Tkinter，也不依赖算法。它们只是描述“程序当前有哪些参数”。
+- `save_average_image()`；
+- `export_breakup_records()`；
+- `calculate_flame_batch()`；
+- `run_atomization_batch()`。
 
-例如：
+Actions 负责组织参数和服务，不实现具体数学算法。
 
-- `ExperimentContext`：实验目录、实验编号、帧范围、撞击点、像素尺寸。
-- `FrameSelection`：起始帧、结束帧、当前帧、抽帧间隔。
-- `FlameSettings`：火焰锥角参数。
-- `AtomizationSettings`：雾化锥角参数。
+### 4.3 UI
 
-这种做法的好处是：参数有明确位置，不再散落在各个页面控件或旧 `DB` 对象中。
+`ui/app_window.py` 负责整体布局：
 
-### 4.3 application/
+- 顶部为实验参数；
+- 左侧为功能页；
+- 右侧为共享图像预览。
 
-`application/` 是 GUI 和业务功能之间的中间层。
+`ui/pages/processing_pages.py` 中的每个页面只管理本功能的输入控件、按钮、状态文字和预览叠加逻辑。
 
-代表文件：
+`ui/preview/image_preview_pane.py` 统一负责图像显示、缩放、坐标与灰度值显示、鼠标取点、图层开关以及预览图保存。
 
-- `app_state.py`
-- `actions.py`
-- `frame_catalog.py`
+普通 Entry 不会在输入过程中自动刷新。用户按回车后，数据写入状态并刷新当前页面。
 
-`AppState` 负责保存整个程序状态：
+液膜测量页只保留当前实验上下文的逐帧记录。实验编号、数据根目录或直接图像来源发生变化时，页面立即清空液膜尺寸与破碎长度两类记录，并将表格和统计文字恢复为空状态，避免不同工况的数据混合。
+
+### 4.4 Services
+
+Services 负责完整科研操作流程，例如：
+
+- 调用算法批量计算；
+- 统计平均值和标准差；
+- 生成工作簿；
+- 更新实验汇总表；
+- 确定输出路径。
+
+`measurement_export_service.py` 同时负责液膜尺寸和破碎长度结果表的导出与回读。回读时跳过前两行参数和列标题，只恢复逐帧数据区；页面根据结果表标题自动切换到相应测量模式，并重新计算平均值和标准差。
+
+雾化锥角相关服务分为：
+
+- `atomization_angle_service.py`：生成帧序列、调用多进程算法并记录计算时间；
+- `atomization_result_export_service.py`：直接接收计算结果矩阵，生成 Excel、频域数据和图表，并更新汇总表；
+- `atomization_preview_export_service.py`：导出单帧灰度曲线。
+
+### 4.5 Algorithms
+
+Algorithms 只处理数组和数值参数，不了解 GUI 控件和 Excel 格式。
+
+`algorithms/atomization.py` 定义：
+
+- `AtomizationParameters`：计算所需的纯数值参数；
+- `calculate_atomization_batch()`：按帧列表拆分任务并并行计算；
+- 单个工作进程内部的逐帧计算和可选标记图保存。
+
+### 4.6 Core 与 Lib
+
+`core/` 提供稳定的基础能力：图像读写、配置文件、Excel 矩阵写入、路径和任务拆分。
+
+其中 `excel_workbook_coordinator.py` 是所有 Excel 写入操作的统一协调层。写入前，它只按完整路径查找目标工作簿；若该文件已经在 Excel 中打开，则先保存并关闭该工作簿。写入完成后自动打开目标文件。它不会退出 Excel，也不会保存、关闭或修改其他已打开的工作簿。
+
+`lib/` 保存底层数值函数。雾化锥角的角度灰度积分位于 `lib_AtmAngle.py`，当前使用 NumPy 向量化实现。
+
+## 5. 雾化锥角处理流程
+
+### 5.1 单帧预览
 
 ```text
-AppState
-  settings
-    experiment
-    flame
-    atomization
+用户修改参数并按回车
+  -> 当前页面把 Entry 写入 AtomizationSettings
+  -> ImagePreviewPane 刷新当前图像
+  -> 计算左右面积加权平均灰度曲线
+  -> Savitzky-Golay 滤波
+  -> 根据阈值比例提取左右边界角
+  -> 更新锥角线、结果文字和四张灰度曲线
 ```
 
-`ImageProcessActions` 负责把一个按钮动作转换成具体业务调用。
+页面保留一份简单的完整结果缓存。当图像路径和全部计算参数都相同时直接复用结果；任一计算参数变化时重新计算。
 
-例如点击“C++ 批处理雾化锥角”后，调用链大致是：
+顶部实验参数栏提供播放/暂停和帧率输入。播放沿 `FrameSelection` 的有效帧集合前进，遵守帧范围和抽帧间隔，到达最后一帧后自动暂停。定时器使用 Tk `after()`，不会从后台线程操作 GUI。
+
+### 5.2 向量化计算
+
+旧式算法逐角度、逐半径调用 Python 插值函数。v3 将一组角度和半径组成二维坐标矩阵，批量完成：
+
+1. 采样坐标生成；
+2. 有效区域掩码；
+3. 双线性插值；
+4. 面积加权求和。
+
+普通单帧调参仍使用分块向量化计算。播放开始后建立临时 `AtomizationSamplingGeometry`，缓存采样坐标对应的像素索引、双线性插值权重和面积权重；后续帧只读取像素并求加权和，暂停后释放缓存。数学定义、角度分辨率和插值公式保持不变。
+
+四张面积加权灰度曲线使用一个 Figure 中的四个 Axes。坐标轴、曲线和角度标记只创建一次，逐帧刷新时通过 `set_data()` 和 Matplotlib blit 更新，不再清空坐标轴或重复执行 `tight_layout()`。数据超出当前纵坐标范围时才进行一次完整重绘。
+
+### 5.3 Python 批量处理
 
 ```text
-AtomizationPage._run_batch()
+用户点击“批量处理雾化锥角”
   -> ImageProcessActions.run_atomization_batch()
-  -> build_atomization_config()
   -> AtomizationAngleService.run_batch()
-  -> AtomizationAngleCppRunner.run_batch()
-  -> PlayAtmAngleCPP/main.exe
+  -> FrameSelection 统一生成 start/end/decimate 对应的实际帧列表
+  -> 按进程数均匀拆分帧列表
+  -> 每个工作进程为自己的图像分块建立一次采样几何缓存
+  -> 各进程调用同一套面积加权和阈值提取公式
+  -> 合并为 [Frame, AngleL, AngleR, AtmAngle] 矩阵
+  -> AtomizationResultExportService.export()
+  -> 保存结果工作簿并更新汇总表
 ```
 
-这样 UI 页面不需要知道 C++ 输入文件怎么写，也不需要知道 Excel 后处理怎么做。
+单帧预览和批量处理共用 `AtomizationSamplingGeometry`、面积加权和阈值提取函数。多进程之间不共享 NumPy 缓存对象，每个进程只在开始处理自己的帧分块时建立一次缓存。
 
-### 4.4 ui/
+平均图、彩色转灰度、火焰锥角和雾化锥角均接收同一份实际帧列表；当前帧加减按钮以及液膜测量快捷键也在该列表中移动。因此抽帧间隔统一限定四个页面能够处理的图像集合。
 
-`ui/` 是 Tkinter 界面层。
+Windows 启动多个 Python 进程存在数秒固定开销。1000 张左右时固定开销占比较高，10000 张时主要由实际计算决定。
 
-代表文件：
+### 5.4 批处理进度
 
-- `app_window.py`
-- `experiment_panel.py`
-- `widgets.py`
-- `preview/image_preview_pane.py`
-- `pages/processing_pages.py`
+雾化锥角、火焰锥角、平均图和彩色转灰度共用 `core/progress.py`：
 
-UI 层只做这些事：
+1. 每个工作进程完成一帧后，将共享计数器加一；
+2. 主进程每 100 ms 读取一次计数器；
+3. UI 更新 `已完成/总数/百分比` 和确定型进度条；
+4. 所有任务结束后统一显示 100%。
 
-- 创建窗口和控件。
-- 把输入框的值写回 `AppState`。
-- 响应按钮点击。
-- 显示状态信息。
-- 预览图像和记录鼠标点击坐标。
+批处理期间仍保持原来的阻塞方式，用户不能同时操作其他控件。GUI 只执行必要的重绘，不引入后台线程、取消状态或额外任务生命周期管理。
 
-当前 GUI 采用“左侧功能页 + 右侧共享预览窗格”的布局：
+## 6. 雾化结果工作簿
 
-- `ProcessingPages` 只负责左侧功能页：液膜测量、平均图、火焰锥角、雾化锥角。
-- `ImagePreviewPane` 只负责右侧图像显示、鼠标取点、刷新节流和坐标换算。
-- 切换页面时，当前页面会把自己的预览渲染函数和鼠标点击处理函数注册到 `ImagePreviewPane`。
-- 修改当前帧、实验编号、火焰参数、雾化参数或测量参数后，预览会自动延迟刷新。
-- 取点模式使用单选，因为一次鼠标点击只能表示一个动作。
-- 显示内容使用多选图层，例如裁剪框、撞击点、火焰角、动量角、雾化计算区域和锥角线可以按需要叠加显示。
+为了兼容已有科研数据，v3 保留原工作簿布局：
 
-这种布局适合科研调参：参数输入和图像反馈在同一屏幕中，不需要切到独立预览页。
+- 第 1 行：参数标题；
+- 第 2 行：参数值和计算时间；
+- 第 3 行：`Frame / AngleL / AngleR / AtmAngle / AngleM`；
+- 第 4 行：平均值；
+- 第 5 行：标准差；
+- 第 6 行：相对标准差；
+- 第 7 行起：逐帧结果；
+- 右侧：频域数据和时域、频域图表。
 
-UI 层不应该直接实现算法公式，不应该直接处理 Excel 表，也不应该直接拼 C++ 输入输出细节。
+结果可以写入实验目录，也可以写入雾化页面手动选择的导出目录。
 
-### 4.5 services/
+汇总表仍按第一行标题寻找参数位置，不依赖固定 Excel 列字母。
 
-`services/` 是功能流程层。
+所有结果工作簿和被更新的汇总表都使用同一套 Excel 写入协调流程。若目标文件被 WPS 或其他无法通过 Excel COM 控制的程序占用，程序会给出明确错误，不会另存为时间戳文件或写入意外位置。
 
-它负责组织一次完整处理流程，例如：
+## 7. 配置持久化
 
-- 平均图计算。
-- 火焰锥角批处理。
-- 火焰锥角结果导出。
-- 雾化锥角 C++ 批处理。
-- 雾化锥角结果后处理。
-- 液膜和破碎长度计算。
+`settings_v3.json` 位于 `ImageProcessv3` 目录内。关闭窗口时保存：
 
-Service 的特点是：它知道一次任务需要哪些算法和 IO，但不关心 GUI 控件。
+- 实验路径和编号；
+- 帧范围、当前帧和抽帧间隔；
+- 各功能参数；
+- 液膜测量状态；
+- 当前页面；
+- 预览图层勾选状态；
+- 导出目录与预览文件名。
 
-### 4.6 algorithms/
+因此复制整个 `ImageProcessv3` 文件夹后，配置和程序代码仍保持在一起。
 
-`algorithms/` 是算法入口层。
+## 8. 修改功能时的位置
 
-这里放图像计算逻辑，例如：
+- 修改控件布局或中文文字：`ui/`；
+- 修改按钮触发流程：`application/actions.py`；
+- 修改批处理组织方式：对应 `services/`；
+- 修改数学计算：`algorithms/` 或 `lib/`；
+- 修改 Excel 格式和汇总表：对应导出 service；
+- 新增持久参数：先修改 `domain/settings.py`，再绑定到页面。
 
-- 平均图。
-- 彩色转灰度。
-- 火焰锥角批处理。
-- 雾化锥角 Python 版计算入口。
-- 液膜尺寸和破碎长度的纯计算。
-
-这一层应该尽量保持“输入普通参数，输出普通结果”。不要在算法里访问 Tkinter，也不要依赖页面对象。
-
-### 4.7 core/
-
-`core/` 是基础设施层。
-
-例如：
-
-- `image_io.py`：支持中文路径的图像读写。
-- `excel_io.py`：Excel 矩阵写入。
-- `config.py`：`settings_v2.json` 读写。
-- `parallel.py`：帧范围切分。
-- `atomization_angle_runner.py`：调用 C++ 程序。
-
-这类代码不是某个功能专属，而是多个功能都会用。
-
-### 4.8 lib/
-
-`lib/` 是算法内部数学 helper。
-
-这里的代码更接近公式和数值方法，例如：
-
-- 双线性插值。
-- 火焰角计算 helper。
-- 雾化角计算 helper。
-- DFT helper。
-
-这层代码通常不需要知道“实验编号”“Excel 文件”“按钮”等概念。
-
-### 4.9 PlayAtmAngleCPP/
-
-`PlayAtmAngleCPP/` 是雾化锥角 C++ runtime。
-
-它包含：
-
-- `main.exe`
-- C++ 源码
-- OpenCV / MinGW 所需 DLL
-
-v2 运行雾化 C++ 批处理时，会在这个目录写入输入文件并执行 `main.exe`。
-
-## 5. 数据流示例
-
-### 5.1 刷新帧范围
-
-```text
-用户点击“刷新帧范围”
-  -> ExperimentPanel._refresh_frame_info()
-  -> AppState.refresh_frame_selection()
-  -> FrameCatalog.scan_tif_numbers()
-  -> 更新 ExperimentContext.frames
-  -> UI 显示帧范围
-```
-
-这里 `FrameCatalog` 只负责扫描文件夹中按数字命名的 `.tif` 文件。
-
-### 5.2 计算平均图
-
-```text
-用户点击“计算并保存平均图”
-  -> AveragePage._save_average()
-  -> ImageProcessActions.save_average_image()
-  -> AverageImageService.calculate_average()
-  -> algorithms.average.calculate_average_image()
-  -> core.image_io.write_tiff()
-```
-
-页面只触发动作，不直接读图、不直接算平均值。
-
-### 5.3 雾化锥角 C++ 批处理
-
-```text
-用户填写雾化参数
-  -> AtomizationPage.apply_to_state()
-  -> AtomizationSettings
-
-用户点击“C++ 批处理雾化锥角”
-  -> ImageProcessActions.run_atomization_batch()
-  -> build_atomization_config()
-  -> AtomizationAngleService.run_batch()
-  -> AtomizationAngleCppRunner 创建本次 runs/... 任务目录
-  -> 在任务目录写 inputcpp.txt
-  -> 在任务目录执行 main.exe
-  -> 在任务目录生成 result.csv
-  -> AtomizationResultExportService 导出 Excel
-```
-
-## 6. settings_v2.json 的作用
-
-`settings_v2.json` 是本机运行状态，不是固定配置模板。
-
-它保存：
-
-- 实验路径。
-- 实验编号。
-- 帧范围。
-- 撞击点。
-- 火焰参数。
-- 雾化参数。
-
-这个文件已被 `.gitignore` 忽略，因为不同电脑、不同实验日期的路径和参数都可能不同。
-
-## 7. 为什么这种结构更可维护
-
-### 7.1 参数位置明确
-
-旧写法中，一个变量可能在 UI 控件、DB 对象、父对象、子页面之间来回传。
-
-v2 中：
-
-- 实验公共参数在 `ExperimentContext`。
-- 火焰参数在 `FlameSettings`。
-- 雾化参数在 `AtomizationSettings`。
-
-需要找参数时，先看 `domain/settings.py`。
-
-### 7.2 页面不再互相穿透
-
-旧写法常见：
-
-```python
-self.back.root.Main.FrameChoosePic.xxx
-```
-
-这等于一个页面知道了整个窗口树的内部结构。
-
-v2 中，页面只拿到：
-
-- `AppState`
-- `ImageProcessActions`
-
-页面不需要知道其他页面怎么组织。
-
-### 7.3 算法可以单独测试
-
-算法函数不依赖 GUI 后，可以直接在测试里调用。
-
-这对于科研程序很重要，因为后续你可能要确认：
-
-- 某个公式有没有改错。
-- 某个图像处理流程结果是否稳定。
-- C++ 和 Python 结果是否一致。
-
-### 7.4 独立搬迁更容易
-
-v2 内部导入都使用：
-
-```python
-from ImageProcessv2.xxx import ...
-```
-
-而不是：
-
-```python
-from core.xxx import ...
-from services.xxx import ...
-```
-
-这保证了 `ImageProcessv2/` 搬到其他目录后，不会再去找旧工程根目录下的模块。
-
-## 8. 以后修改功能时应该改哪里
-
-### 修改界面文字或布局
-
-看：
-
-- `ui/experiment_panel.py`
-- `ui/pages/processing_pages.py`
-- `ui/preview/image_preview_pane.py`
-
-### 增加一个新参数
-
-一般需要改：
-
-1. `domain/settings.py`：把参数加入对应 dataclass。
-2. `ui/pages/processing_pages.py`：把参数加入表单字段。
-3. `application/actions.py`：如果这个参数要参与任务配置，在这里传给 service。
-
-### 修改平均图、火焰、雾化的处理流程
-
-看：
-
-- `application/actions.py`
-- `services/`
-
-### 修改具体算法公式
-
-看：
-
-- `algorithms/`
-- `lib/`
-
-### 修改 C++ 调用方式
-
-看：
-
-- `core/atomization_angle_runner.py`
-- `services/atomization_angle_service.py`
-- `PlayAtmAngleCPP/`
-
-## 9. C++ 通信文件隔离
-
-雾化 C++ 程序本身仍然按照旧规则读取 `inputcpp.txt`，并输出 `result.csv`。v2 没有强行重写 C++ 通信格式，而是在 Python runner 层做隔离：
-
-- 每次批处理都会在 `ImageProcessv2/PlayAtmAngleCPP/runs/` 下创建一个独立任务目录。
-- `main.exe` 和所需 DLL 会以硬链接方式放入任务目录；如果硬链接失败，则自动复制。
-- 本次任务的 `inputcpp.txt` 写入任务目录。
-- C++ 生成的 `result.csv` 也只存在于任务目录。
-- Excel 后处理直接读取本次任务目录下的 `result.csv`。
-
-这样做的好处是：
-
-- 不再覆盖 `PlayAtmAngleCPP/` 根目录下的固定通信文件。
-- 多次处理实验时，每次任务都有独立输入和输出。
-- 出错后可以回看对应任务目录，确认当时写入 C++ 的参数和结果。
-- 不需要重新编译 C++，保持当前高速程序稳定。
+不要让算法读取 Tkinter 变量，也不要让页面直接操作工作簿。保持这条边界，程序在功能继续增加后仍然容易理解和测试。
