@@ -6,6 +6,13 @@ AtmProcess 是用于科研实验的 Windows 图像处理程序，支持液膜尺
 
 程序附带编号29的20张雾化图像、提取参数和演示汇总表。第一次使用可以直接调参、计算和导出，不必先准备自己的实验数据。样例仅演示操作流程，不代表完整实验或论文全部结果的复现。
 
+## 0. 对应论文
+
+1. 费立涵，张玉园，尤冠文，汤成龙，黄佐华，张锋. 高环境压力下撞击射流雾化实验研究[C]//2023年中国工程热物理学会燃烧学学术年会. 2023-05.（墙报交流）
+2. FEI L H, ZHANG F, TANG C L, XU T G, YANG A L, YANG B E, HUANG Z H. An experimental investigation on MMH/NTO impinging jets flame characteristics at high chamber pressure[J]. Proceedings of the Combustion Institute, 2024, 40(1-4): 105709. DOI: [10.1016/j.proci.2024.105709](https://doi.org/10.1016/j.proci.2024.105709).
+3. FEI L H, LI Y, TANG C L, HUANG Z H, YANG A L. New observation of unsteady jets impingement caused by nozzle cavitation at varying ambient gas pressures[J]. Experimental Thermal and Fluid Science, 2026, 178: 111811. DOI: [10.1016/j.expthermflusci.2026.111811](https://doi.org/10.1016/j.expthermflusci.2026.111811).
+4. 费立涵，李源，汤成龙，黄佐华. 高环境气体密度下撞击式喷嘴雾化特性实验研究[J]. 推进技术（在投）.
+
 ## 1. 下载与准备
 
 1. 下载仓库 ZIP 并**完整解压**到可写的本地文件夹，不要在压缩包内直接运行。文件夹可以保留 `AtmProcess-main` 等名称。
