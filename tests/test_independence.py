@@ -82,7 +82,7 @@ from AtmProcess.algorithms.atomization import (
     AtomizationParameters, _calculate_atomization_chunk, calculate_atomization_batch,
 )
 
-folder = next((root / "sample_data" / "atomization").iterdir())
+folder = root / "sample_data" / "atomization" / "实验编号55"
 frames = [6800, 6802, 6804]
 parameters = AtomizationParameters(267, 312, 107, 250, 0, 1800, 100, 0, 100, 0, 0.85, 0.8, 101, 1)
 expected = np.asarray(_calculate_atomization_chunk((folder, frames, parameters, False)))

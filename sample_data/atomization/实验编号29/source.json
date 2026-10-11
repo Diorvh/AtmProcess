@@ -1,0 +1,182 @@
+{
+  "experiment_date": "2023-04-15",
+  "experiment_number": 29,
+  "source_cine": "实验编号29.cine",
+  "source_archive": "20230415喷注盘6-1-2高压雾化实验-5/高速相机",
+  "frame_range_inclusive": [
+    8000,
+    8019
+  ],
+  "frame_count": 20,
+  "selection": "First 20 frames of the historical 8000-8500 processing interval, not the first frames in the Cine.",
+  "purpose": "GUI demonstration; this short sequence is not a representative statistical sample.",
+  "sdk": {
+    "name": "Phantom PhPy",
+    "version": "3.11.11.806",
+    "save_type": "svi_Tif12",
+    "save_type_value": -9,
+    "bits_per_channel": 12,
+    "gain": 1.0,
+    "gamma": 1.0,
+    "no_processing": 0
+  },
+  "grayscale": {
+    "service": "AtmProcess.services.average_image_service.AverageImageService.convert_color_to_gray",
+    "opencv": "4.13.0",
+    "dtype": "uint16",
+    "shape": [
+      704,
+      640
+    ],
+    "source_decode": "OpenCV expands packed 12-bit color samples to uint16 by shifting left 4 bits.",
+    "conversion": "cv2.COLOR_BGR2GRAY; no 8-bit intermediate or normalization"
+  },
+  "parameter_reference": "实验编号29雾化锥角批处理结果.xlsx",
+  "parameter_settings": "settings.example.json",
+  "parameter_assumptions": {
+    "RStartL": 0,
+    "RStartR": 0
+  },
+  "files": [
+    {
+      "frame": 8000,
+      "file": "8000.tif",
+      "source_tiff_sha256": "38d7f50dc1696e99f5908c350adb8437f9bf330efe5bc499fe2c0d9ef1ea50cb",
+      "sha256": "846107baa4a41e4d82818a429a0a0169a4d2b163b768c14abb8587476180db6b",
+      "bytes": 1096942
+    },
+    {
+      "frame": 8001,
+      "file": "8001.tif",
+      "source_tiff_sha256": "fc2551527ffe7c0321251ee9e7e8a17d4b8ea7507ee9983df80e0c3d3af2e0b0",
+      "sha256": "6f0fd8b5f705d70555f48e3f856646ec0c92e0ad5b9163aa4b3340f92e43c05c",
+      "bytes": 1097342
+    },
+    {
+      "frame": 8002,
+      "file": "8002.tif",
+      "source_tiff_sha256": "a34147e2ce9df408783dddf8fbdd47a515d311123b49c25c46ad1aacd958506a",
+      "sha256": "c99296e351250a4524a7576c583684eec7e6a1d464239e66e335c5c36c2c774a",
+      "bytes": 1097986
+    },
+    {
+      "frame": 8003,
+      "file": "8003.tif",
+      "source_tiff_sha256": "ebc2b13c1a2d548e32adf319551b4eba86e7dba366482eeeccc8e78ffd6700f6",
+      "sha256": "d2785e711b2b2986068af894530277296d54c52c316ccdb4612ce4209e614486",
+      "bytes": 1097428
+    },
+    {
+      "frame": 8004,
+      "file": "8004.tif",
+      "source_tiff_sha256": "09c28fd142472c15c71e02c8b70e10a8ba0c56400ffc5a036267af6f213a25f0",
+      "sha256": "d1a553f17ce5b5bda5f8ca96dc9629e7a61680c7f7d486a96256db9b65e3069b",
+      "bytes": 1098046
+    },
+    {
+      "frame": 8005,
+      "file": "8005.tif",
+      "source_tiff_sha256": "5c1e3051698b18464f5d925e3117334380bb7e85761a6a72bcf5eeff2cf720dd",
+      "sha256": "b35b62a4a7ef3ed4b0c36c0b687040a1d60350108c31668ab53228b5040d576b",
+      "bytes": 1097328
+    },
+    {
+      "frame": 8006,
+      "file": "8006.tif",
+      "source_tiff_sha256": "b2283ff311d1d3e2cd85ef0ae9fa465b14e267d73673227890738f76d16e74a8",
+      "sha256": "42b8b3a2bf96259a19fe160a19c983df34f8e22efe217650aead05d2bde089d7",
+      "bytes": 1096966
+    },
+    {
+      "frame": 8007,
+      "file": "8007.tif",
+      "source_tiff_sha256": "f5b855c3da0d1114729264f8e42f431afa4c34f26661b19345c3107f0f856f5f",
+      "sha256": "310840a6b4726d68650c436ee1755a13715ec7f6b8bfd8bc5bcfa02a9f1b86e7",
+      "bytes": 1096214
+    },
+    {
+      "frame": 8008,
+      "file": "8008.tif",
+      "source_tiff_sha256": "d0d2cecc74578c0b79a23080cf0b14599131fe8db26c5826540f18fb0ad5be4b",
+      "sha256": "e3707c9a66e3e29909bbfb5d9f160b93924eac02196d9567930ef006fecfe80c",
+      "bytes": 1097192
+    },
+    {
+      "frame": 8009,
+      "file": "8009.tif",
+      "source_tiff_sha256": "68bbf77f295dae61c2cae34839f54f5cb6f3a9d186060fe71fcb8ccd8383baf4",
+      "sha256": "d070c47f0526eb7bad4b8b7d4fcf8057d0700c856e6378dd143b1980d618d6b2",
+      "bytes": 1097360
+    },
+    {
+      "frame": 8010,
+      "file": "8010.tif",
+      "source_tiff_sha256": "04441060e70387af9a8aff6f7607d5350323618c4b4e353ac99612172280ca62",
+      "sha256": "4c866c5e86e101ae7f95c268b12b139bca107b4edc3cb26b7e2101544dbc9ed8",
+      "bytes": 1097716
+    },
+    {
+      "frame": 8011,
+      "file": "8011.tif",
+      "source_tiff_sha256": "b86f79360bc695307787aa75cc270fbf5a63e1012ecde061b32833a67f5f18c0",
+      "sha256": "2b68e858b2aed8398bc19ba3021818b33f211c30a7cf3bb12283970d210a5e2d",
+      "bytes": 1097270
+    },
+    {
+      "frame": 8012,
+      "file": "8012.tif",
+      "source_tiff_sha256": "81fb64299f73d6688e304d88331377588dd8d60f283fb822e6893098b9fd2d2c",
+      "sha256": "c39e1a553a2cdd8b36e4c376382484717f250fb0ebd5df4da7ec975bf3746ad9",
+      "bytes": 1097608
+    },
+    {
+      "frame": 8013,
+      "file": "8013.tif",
+      "source_tiff_sha256": "8df349b548278537a4362b23ccf28429b46fafb8a2894513ae6177c591cda68d",
+      "sha256": "a658d6a89898302843dd922090aaa1b87e304f66a8d6915ba40dac182eb58d72",
+      "bytes": 1098164
+    },
+    {
+      "frame": 8014,
+      "file": "8014.tif",
+      "source_tiff_sha256": "b63c2db224505ddca14bda2d39f8e8c27835947f8eb2d207d16aca974121770a",
+      "sha256": "b9fafbc87775ccd305c4d27a2da168b0f2f777d7e21dfd6eb0af46f000245e8d",
+      "bytes": 1097918
+    },
+    {
+      "frame": 8015,
+      "file": "8015.tif",
+      "source_tiff_sha256": "ff4413182ca00c8e43d79bbe0ad8a700b0526f9f1e040e8a34a92c224113a5bd",
+      "sha256": "9460d3b1de2c3b0d162e2b5e3611c2cf69cddf5c24dd5525a0f338c7da590ebd",
+      "bytes": 1097010
+    },
+    {
+      "frame": 8016,
+      "file": "8016.tif",
+      "source_tiff_sha256": "b9948602a22184db0152e74b8f30f2bd8437d1c19f80d6affd87d2fc01642e63",
+      "sha256": "4fb86d6b8b07110549f6cbea4637a53e2b93042db8fdb946e9d579abc6c672e9",
+      "bytes": 1097176
+    },
+    {
+      "frame": 8017,
+      "file": "8017.tif",
+      "source_tiff_sha256": "1323c1b2438bd91a694c8d203fbc7b15db25441a7a17d1702ce908b786022211",
+      "sha256": "a515a6fddfc21179a90bab569fa636d7958fd8d4eb7b81cce2b86bd5784398e2",
+      "bytes": 1096682
+    },
+    {
+      "frame": 8018,
+      "file": "8018.tif",
+      "source_tiff_sha256": "739bc0b80e5b9d1652fe67308aafc5e8361093cac1e2bede6f88ff76b7b08b4c",
+      "sha256": "d6d8c153bd45db5d21103a239df192219b1e9af94603c995a88aa6b93919d789",
+      "bytes": 1096696
+    },
+    {
+      "frame": 8019,
+      "file": "8019.tif",
+      "source_tiff_sha256": "6f53138c04b969be4c6db047179f4cc52b129389c9beb7e1cae2796ba3b27574",
+      "sha256": "165b681b7834b5f7496c3ea9c198f805e84d4cc1c7e243eea1aa0c6a9ad29002",
+      "bytes": 1097332
+    }
+  ]
+}

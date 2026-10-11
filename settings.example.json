@@ -1,16 +1,46 @@
 {
   "language": "zh",
+  "active_page": "雾化锥角",
   "experiment": {
+    "data_root": "sample_data/atomization",
+    "experiment_no": 29,
     "core_num": 4,
+    "direct_folder": "",
+    "direct_image": "",
+    "result_summary": "",
     "frames": {
-      "start": 0,
-      "end": 0,
-      "current": 0,
+      "start": 8000,
+      "end": 8019,
+      "current": 8000,
       "decimate": 1
     }
   },
+  "preview": {
+    "save_dir": "sample_data/results/preview",
+    "overlay_values": {
+      "atom_angle_line": true,
+      "atom_calc_area": true,
+      "atom_invert": false
+    }
+  },
   "atomization": {
+    "x_left": 277,
+    "x_right": 302,
+    "y": 111,
+    "r_max": 250,
+    "theta_left": 0,
+    "theta_right": 1800,
+    "num_avg_left": 100,
+    "r_start_left": 0,
+    "num_avg_right": 100,
+    "r_start_right": 0,
+    "thres_ratio_left": 0.5,
+    "thres_ratio_right": 0.5,
     "window_length": 101,
-    "polyorder": 1
+    "polyorder": 1,
+    "frame_rate_hz": 40000.0,
+    "max_freq": 100,
+    "export_dir": "sample_data/results",
+    "save_marked_images": false
   }
 }

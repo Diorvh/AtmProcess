@@ -11,4 +11,5 @@ dist/
 .idea/
 .vscode/
 /settings.json
+/sample_data/results/
 ~$*.xlsx
