@@ -1,5 +1,7 @@
 # AtmProcess 架构说明
 
+[English documentation](ARCHITECTURE_EN.md) · [返回使用说明](../README.md)
+
 ## 1. 程序定位
 
 `AtmProcess` 是面向科研图像数据处理的桌面程序，主要功能包括：
@@ -17,25 +19,29 @@ AtmProcess 的界面、算法和基础工具全部位于本目录。雾化锥角
 
 ## 2. 运行方式
 
-在 `AtmProcess` 目录内运行：
+Windows 用户首次双击 `setup_env.bat`，在本目录创建 `.venv` 并安装 `requirements.txt` 中的依赖；之后双击 `start.bat`。脚本复用已安装的64位 Python 3.10或更高版本，不自动安装系统 Python，不改变全局依赖。错误时保留控制台信息。
+
+已有依赖环境时，在程序目录内也可以运行：
 
 ```powershell
 python main.py
 ```
 
-或者在上一级目录运行：
+目录名恰好为 `AtmProcess` 时，也可在上一级目录运行：
 
 ```powershell
 python -m AtmProcess.main
 ```
 
-入口文件是 `main.py`。它只负责创建 Tk 根窗口、加载状态、构建主界面以及在关闭时保存配置。
+入口文件是 `main.py`。它负责直接运行时注册本地包、创建 Tk 根窗口、加载状态、构建主界面以及在关闭时保存配置。本地包注册使 ZIP 解压目录使用 `AtmProcess-main` 等名称时仍能直接启动。
 
 ## 3. 分层结构
 
 ```text
 AtmProcess/
 ├─ main.py
+├─ setup_env.bat
+├─ start.bat
 ├─ settings.json
 ├─ settings.example.json
 ├─ requirements.txt
@@ -228,7 +234,9 @@ Windows 启动多个 Python 进程存在固定开销。服务层根据任务规�
 
 结果可以写入实验目录，也可以写入雾化页面手动选择的导出目录。
 
-汇总表仍按第一行标题寻找参数位置，不依赖固定 Excel 列字母。
+汇总表按第一行标题寻找参数位置，不依赖固定 Excel 列字母。`SummaryWorkbookService` 在编号列中匹配当前实验编号；找不到对应记录时追加。行号和实验编号不是同一个概念。雾化参数区以 `XLeft` 定位，避免误写其他区域的同名 `Y`。
+
+演示汇总表来自2023年4月15日原始表，只保留编号29的工况。第一行是标题，第二行保留单位和校准、流量修正信息，第三行是编号29。左侧保留工况及公式，删除破碎长度区域和其他实验数据；右侧预填雾化参数，并在两侧 `NumAvg` 后分别补充 `RStart`。历史锥角、进程数、耗时留空，批处理后写入新结果。原表的相对标准差预留列保留，但当前汇总写入只填角度均值和标准差；单独结果表包含相对标准差。
 
 所有结果工作簿和被更新的汇总表都使用同一套 Excel 写入协调流程。若目标文件被 WPS 或其他无法通过 Excel COM 控制的程序占用，程序会给出明确错误，不会另存为时间戳文件或写入意外位置。
 
@@ -246,7 +254,11 @@ Windows 启动多个 Python 进程存在固定开销。服务层根据任务规�
 
 因此复制整个 `AtmProcess` 文件夹后，配置和程序代码仍保持在一起。
 
-`settings.json` 属于本机运行状态，由 `.gitignore` 排除；代码仓库保留不含实验路径的 `settings.example.json`。缓存和虚拟环境同样不进入 Git，样例图像和迁移检查保留在仓库中。
+`settings.json` 属于本机运行状态，由 `.gitignore` 排除；代码仓库保留使用相对样例路径的 `settings.example.json`。缓存、虚拟环境和样例输出同样不进入 Git。
+
+首次启动没有本机配置时，`SettingsStore` 加载样例设置，`AppState` 把 `sample_data/atomization_summary_template.xlsx` 复制到配置指定的结果位置。只有目标尚不存在时才复制；已有本机配置或已有结果不被替换。默认进入雾化页，选择编号29的8000–8019帧。汇总表中左侧原始工况范围21000–21520与样例处理范围分开说明，避免将两个范围误认为同一次统计。
+
+相对路径按配置文件所在目录解析，保存时尽量恢复为相对路径。程序文件和样例可以迁移；`.venv` 必须在新位置重新创建，不作为可搬运运行时发布。
 
 ## 8. 修改功能时的位置
 
