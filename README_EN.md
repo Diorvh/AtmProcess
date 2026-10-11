@@ -2,6 +2,8 @@
 
 # AtmProcess User Guide
 
+Current release: **V1.0**.
+
 AtmProcess is a Windows desktop application for processing images from impinging-jet injector atomization and combustion experiments. It supports liquid-sheet dimensions and breakup-length measurement, image averaging, color-to-grayscale conversion, flame cone angles, and atomization cone angles. The interface supports Chinese and English.
 
 The download includes 20 images from experiment 29, extraction settings, and a demonstration summary workbook. You can adjust parameters and export results before preparing your own data. The short sample demonstrates the workflow; it is not a complete experimental dataset or a reproduction of all published results.
@@ -84,6 +86,12 @@ Frequency analysis uses the image sampling rate entered on the page. Enter the *
 | Atomization cone angle | Adjust parameters, inspect grayscale curves, process batches, and read/write the summary. |
 
 Changing the experiment or image source clears the current liquid-sheet measurement records. Export them first if needed. Averaging and conversion operations may create or overwrite output images; retain original-image backups before processing your own data.
+
+## Licensing and Citation
+
+The program code and user documentation are licensed under the [MIT License](LICENSE), with copyright attributed to Lihan Fei. The bundled sample images, provenance metadata and demonstration summary workbook template are separately licensed under [CC BY 4.0](sample_data/LICENSE), not the root MIT license; see the [sample description](sample_data/README.md#scope-and-reuse) for scope and attribution. Third-party dependencies retain their own licenses. Using this program does not license users' own input data under either of these licenses.
+
+When publishing research using this software, please cite the publications above that correspond to the features used. This is an academic citation request, not an additional condition of the MIT license.
 
 ## Detailed Documentation
 

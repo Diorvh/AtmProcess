@@ -20,4 +20,10 @@ First launch copies the template to `results/atomization_summary.xlsx` only when
 
 ## Scope and Reuse
 
-Before public distribution, the data owner needs to confirm acquisition conditions, calibration, permitted reuse and the relationship of this sample set to the paper. The provenance record is linked above. No data license or publication permission is implied by this file. No ground-truth angles are currently provided.
+Copyright (c) 2023-2026 Lihan Fei.
+
+The bundled TIFF images under `atomization/`, their `source.json` provenance metadata, and `atomization_summary_template.xlsx` are licensed under the Creative Commons Attribution 4.0 International license ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). The complete license is included in [LICENSE](LICENSE). These materials are excluded from the repository's root MIT license; program code and user documentation remain MIT-licensed.
+
+When sharing the sample materials or adaptations, give appropriate credit, retain the license information and indicate changes as required by CC BY 4.0. Suggested attribution: "Lihan Fei, AtmProcess V1.0, experiment 29 demonstration data (2023-04-15), CC BY 4.0." Include a link to the source repository or provenance record where reasonably practicable. The license does not imply endorsement of adaptations or subsequent findings.
+
+This grant applies only to the bundled materials listed above, not to users' own input data or unrelated experiment files. The sample remains a workflow demonstration, not a complete reproduction of the associated papers. The provenance record is linked above; no ground-truth angles are currently provided.
