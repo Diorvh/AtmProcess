@@ -2,9 +2,16 @@
 
 # AtmProcess User Guide
 
-AtmProcess is a Windows desktop application for research image processing. It supports liquid-sheet dimensions and breakup-length measurement, image averaging, color-to-grayscale conversion, flame cone angles, and atomization cone angles. The interface supports Chinese and English.
+AtmProcess is a Windows desktop application for processing images from impinging-jet injector atomization and combustion experiments. It supports liquid-sheet dimensions and breakup-length measurement, image averaging, color-to-grayscale conversion, flame cone angles, and atomization cone angles. The interface supports Chinese and English.
 
 The download includes 20 images from experiment 29, extraction settings, and a demonstration summary workbook. You can adjust parameters and export results before preparing your own data. The short sample demonstrates the workflow; it is not a complete experimental dataset or a reproduction of all published results.
+
+## 0. Related Publications
+
+1. **Breakup length:** 费立涵，张玉园，尤冠文，汤成龙，黄佐华，张锋. 高环境压力下撞击射流雾化实验研究[C]//2023年中国工程热物理学会燃烧学学术年会. 2023-05. (In Chinese; poster presentation.)
+2. **Flame cone angle:** FEI L H, ZHANG F, TANG C L, XU T G, YANG A L, YANG B E, HUANG Z H. An experimental investigation on MMH/NTO impinging jets flame characteristics at high chamber pressure[J]. Proceedings of the Combustion Institute, 2024, 40(1-4): 105709. DOI: [10.1016/j.proci.2024.105709](https://doi.org/10.1016/j.proci.2024.105709).
+3. **Atomization cone angle:** FEI L H, LI Y, TANG C L, HUANG Z H, YANG A L. New observation of unsteady jets impingement caused by nozzle cavitation at varying ambient gas pressures[J]. Experimental Thermal and Fluid Science, 2026, 178: 111811. DOI: [10.1016/j.expthermflusci.2026.111811](https://doi.org/10.1016/j.expthermflusci.2026.111811).
+4. **Breakup length and atomization cone angle:** 费立涵，李源，汤成龙，黄佐华. 高环境气体密度下撞击式喷嘴雾化特性实验研究[J]. 推进技术 (Journal of Propulsion Technology). (In Chinese; under review.)
 
 ## 1. Download and Prerequisites
 
@@ -53,19 +60,7 @@ Default outputs, relative to the application directory:
 | Demonstration summary | `sample_data/results/atomization_summary.xlsx` |
 | Preview images | `sample_data/results/preview/` |
 
-Each grayscale curve can also be exported to Excel using the atomization page's result directory. Preview images use the directory and filename configured in the right pane. Switching the interface language does not translate output filenames or spreadsheet fields.
-
-### Understanding the Summary Workbook
-
-The demonstration retains the layout of the original April 15, 2023 experimental summary: injector, pressure, flow, image-range fields, and associated formulas on the left; atomization parameters and results on the right. The breakup-length section, unrelated sheets, and other experimental records have been removed.
-
-- Row 1 contains field names. Row 2 retains units, calibration, and correction information. Row 3 contains the only experimental record, number 29.
-- Records are located by identifier and parameters by header, not by Excel row 29 or fixed column letters.
-- The original condition record covers frames 21000–21520, whereas the included demonstration processes frames 8000–8019. A note distinguishes them. The batch result workbook lists the frames actually processed.
-- Historical angle results are blank to avoid confusing them with statistics for the 20 sample images. Legacy `*RevStd` columns are retained but not populated by the current summary writer; relative standard deviations are available in the separate batch workbook.
-- `RStartL` and `RStartR` follow their corresponding `NumAvgL` and `NumAvgR` fields.
-
-On first launch, the bundled template is copied to the result directory. Only that writable copy is updated; the template and any existing result copy are preserved. Single-frame preview does not write to the summary on every refresh.
+Each grayscale curve can also be exported to Excel using the atomization page's result directory. Preview images use the directory and filename configured in the right pane.
 
 ## 4. Process Your Own Images
 
@@ -89,17 +84,6 @@ Frequency analysis uses the image sampling rate entered on the page. Enter the *
 | Atomization cone angle | Adjust parameters, inspect grayscale curves, process batches, and read/write the summary. |
 
 Changing the experiment or image source clears the current liquid-sheet measurement records. Export them first if needed. Averaging and conversion operations may create or overwrite output images; retain original-image backups before processing your own data.
-
-## 6. Settings and Troubleshooting
-
-- **Will every launch reset to the sample?** No. Closing the application saves `settings.json`; subsequent launches restore the previous page, paths, parameters, and preview options.
-- **How do I repeat the first-run experience?** Extract a fresh copy. Alternatively, close the application and back up and move away `settings.json`. Existing result workbooks are not erased.
-- **Setup failed.** Keep the error message, check network access, Python availability, and folder permissions, then rerun setup. Avoid protected directories requiring administrator access.
-- **Start asks for setup.** Run `setup_env.bat`. Installing packages in a system Python environment does not configure this folder's `.venv`.
-- **The folder was moved.** Code and settings can be moved, but virtual environments should be recreated at the destination. Close the application, move aside the old `.venv`, and rerun setup; retain settings and results.
-- **A workbook is locked.** Only Excel workbooks matching the full target path are saved and closed. Other workbooks are not intentionally modified or closed. If WPS or another application holds the file, save and close that target manually before retrying.
-- **A saved workbook cannot open automatically.** Configure a default `.xlsx` application. An opening error can interrupt the subsequent summary update; check the summary and rerun after fixing the association.
-- **Does the sample contain all paper data?** No. See the [sample description and provenance](sample_data/README.md) for source, bit depth, and checksums.
 
 ## Detailed Documentation
 
