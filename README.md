@@ -38,7 +38,7 @@ python -m AtmProcess.main
 - `algorithms/`：图像计算算法。
 - `core/`：图像、Excel、配置和并行等基础工具。
 - `lib/`：插值、滤波和频域计算等数值函数。
-- `sample_data/`：20 张雾化锥角演示图像，以及 5 张回归测试图像。
+- `sample_data/`：实验编号29的 20 张雾化锥角演示图像。
 - `tests/`：配置、统计、导出、界面翻译及独立运行等检查。
 - `docs/ARCHITECTURE_CN.md`：详细中文架构说明。
 
@@ -58,4 +58,4 @@ Git 跟踪程序代码、依赖清单、文档、测试和小型样例图像；�
 python -B -m unittest discover -s tests -p test_independence.py
 ```
 
-检查使用样例图像，不打开 GUI 或 Excel，也不修改实验数据。
+检查模块导入和启动入口，不打开真实 GUI 或 Excel，也不修改实验数据。
