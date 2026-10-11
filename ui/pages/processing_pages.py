@@ -706,6 +706,7 @@ class AtomizationPage(PreviewActionFrame):
                 FormField("thres_ratio_left", "ThresRatioL=", tk.DoubleVar),
                 FormField("thres_ratio_right", "ThresRatioR=", tk.DoubleVar),
                 FormField("max_freq", "频域最大行数=", tk.IntVar),
+                FormField("frame_rate_hz", "图像帧率/Hz=", tk.DoubleVar),
             ],
         )
         self.save_marked_images = tk.BooleanVar(value=atom.save_marked_images)
@@ -800,10 +801,15 @@ class AtomizationPage(PreviewActionFrame):
         ttk.Button(self, text="浏览", command=self._choose_export_dir).grid(row=6, column=6, sticky="w", pady=(8, 0))
 
         ttk.Label(self, text="批量处理：").grid(row=7, column=0, sticky="w", pady=(8, 0))
-        self._field(7, 1, "频域最大行数=", self.max_freq)
-        ttk.Button(self, text="从汇总表读取参数", command=self._load_from_summary).grid(row=7, column=2, sticky="w", pady=(8, 0))
-        ttk.Button(self, text="批量处理雾化锥角", command=self._run_batch).grid(row=7, column=3, sticky="w", padx=(8, 0), pady=(8, 0))
-        ttk.Checkbutton(self, text="运算时保存标记图片", variable=self.save_marked_images).grid(row=7, column=4, sticky="w", padx=(8, 0), pady=(8, 0))
+        batch_controls = ttk.Frame(self)
+        batch_controls.grid(row=7, column=1, columnspan=6, sticky="w", pady=(8, 0))
+        ttk.Label(batch_controls, text="图像帧率/Hz=").pack(side="left")
+        ttk.Entry(batch_controls, textvariable=self.frame_rate_hz, width=8).pack(side="left", padx=(0, 8))
+        ttk.Label(batch_controls, text="频域最大行数=").pack(side="left")
+        ttk.Entry(batch_controls, textvariable=self.max_freq, width=8).pack(side="left", padx=(0, 8))
+        ttk.Button(batch_controls, text="从汇总表读取参数", command=self._load_from_summary).pack(side="left")
+        ttk.Button(batch_controls, text="批量处理雾化锥角", command=self._run_batch).pack(side="left", padx=(8, 0))
+        ttk.Checkbutton(batch_controls, text="运算时保存标记图片", variable=self.save_marked_images).pack(side="left", padx=(8, 0))
         self._build_profile_area(8)
         self.add_status(10)
 
@@ -865,7 +871,9 @@ class AtomizationPage(PreviewActionFrame):
             "window_length": self.window_length,
             "polyorder": self.polyorder,
             "num_avg_left": self.num_avg_left,
+            "r_start_left": self.r_start_left,
             "num_avg_right": self.num_avg_right,
+            "r_start_right": self.r_start_right,
             "thres_ratio_left": self.thres_ratio_left,
             "thres_ratio_right": self.thres_ratio_right,
         }

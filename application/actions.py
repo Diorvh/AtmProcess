@@ -30,7 +30,7 @@ class ProcessingActions:
         self.sheet_service = SheetMeasurementService()
         self.breakup_service = BreakupLengthService()
         self.atomization_service = AtomizationAngleService()
-        self.atomization_export_service = AtomizationResultExportService(self.workbook_coordinator)
+        self.atomization_export_service = AtomizationResultExportService(self.workbook_coordinator, self.summary_service)
 
     @property
     def folder(self) -> Path:
@@ -119,6 +119,8 @@ class ProcessingActions:
         experiment = self.state.experiment
         frames = experiment.frames
         atom = self.state.settings.atomization
+        if atom.frame_rate_hz <= 0:
+            raise ValueError("图像帧率必须大于 0")
         result = self.atomization_service.run_batch(
             self.folder,
             frames.frame_numbers(),
@@ -132,6 +134,7 @@ class ProcessingActions:
             max_freq=atom.max_freq,
             experiment_name=experiment.image_name,
             output_dir=Path(atom.export_dir) if atom.export_dir else None,
+            experiment_no=experiment.experiment_no,
         )
         return self.atomization_export_service.export(export_config, atom, result)
 
@@ -153,7 +156,15 @@ class ProcessingActions:
             "thres_ratio_left",
             "thres_ratio_right",
         ]
-        values = self.summary_service.read_contiguous_block(experiment.result_summary, experiment.image_name, "XLeft", len(titles), experiment.experiment_no)
+        values = self.summary_service.read_contiguous_block(
+            experiment.result_summary,
+            experiment.image_name,
+            "XLeft",
+            len(titles),
+            experiment.experiment_no,
+            extra_titles=("RStartL", "RStartR"),
+        )
         if not values:
             raise ValueError("汇总表中没有找到 XLeft 参数块")
+        titles.extend(("r_start_left", "r_start_right"))
         return {title: value for title, value in zip(titles, values) if value is not None}

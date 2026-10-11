@@ -12,6 +12,7 @@ from AtmProcess.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
 from AtmProcess.domain.settings import AtomizationSettings
 from AtmProcess.lib.dft import dft
 from AtmProcess.services.atomization_angle_service import AtomizationBatchResult
+from AtmProcess.services.summary_workbook_service import SummaryWorkbookService
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class AtomizationExportConfig:
     max_freq: int
     experiment_name: str
     output_dir: Path | None = None
+    experiment_no: int | None = None
 
     @property
     def experiment_dir(self) -> Path:
@@ -34,8 +36,13 @@ class AtomizationExportConfig:
 
 
 class AtomizationResultExportService:
-    def __init__(self, workbook_coordinator: ExcelWorkbookCoordinator | None = None) -> None:
+    def __init__(
+        self,
+        workbook_coordinator: ExcelWorkbookCoordinator | None = None,
+        summary_service: SummaryWorkbookService | None = None,
+    ) -> None:
         self.workbook_coordinator = workbook_coordinator or ExcelWorkbookCoordinator()
+        self.summary_service = summary_service or SummaryWorkbookService(self.workbook_coordinator)
 
     def export(self, config: AtomizationExportConfig, settings: AtomizationSettings, result: AtomizationBatchResult) -> Path:
         workbook = openpyxl.Workbook()
@@ -44,14 +51,14 @@ class AtomizationResultExportService:
         angle_data = result.rows[:, 1:4]
         angle_mid = (angle_data[:, 0] + angle_data[:, 1]) / 2
         self._write_angle_mid(sheet, angle_mid)
-        self._write_frequency_data(sheet, np.column_stack((angle_data, angle_mid)), config.max_freq)
+        self._write_frequency_data(sheet, np.column_stack((angle_data, angle_mid)), config.max_freq, settings.frame_rate_hz)
         self._add_charts(sheet, config.max_freq)
 
         config.result_workbook.parent.mkdir(parents=True, exist_ok=True)
         result_workbook = self.workbook_coordinator.save_and_open(workbook, config.result_workbook)
 
         if config.summary_path.exists():
-            self._update_summary(config.summary_path, config.experiment_name, sheet)
+            self._update_summary(config, sheet)
 
         return result_workbook
 
@@ -59,11 +66,13 @@ class AtomizationResultExportService:
         headers = [
             "XLeft", "XRight", "Y", "Rmax", "ThetaLeft", "ThetaRight", "window_length", "polyorder",
             "NumAvgL", "NumAvgR", "ThresRatioL", "ThresRatioR", "num_processes", "compute_time",
+            "RStartL", "RStartR",
         ]
         values = [
             settings.x_left, settings.x_right, settings.y, settings.r_max, settings.theta_left, settings.theta_right,
             settings.window_length, settings.polyorder, settings.num_avg_left, settings.num_avg_right,
             settings.thres_ratio_left, settings.thres_ratio_right, result.process_count, result.compute_time,
+            settings.r_start_left, settings.r_start_right,
         ]
         angle_data = result.rows[:, 1:4]
         means = np.mean(angle_data, axis=0)
@@ -88,12 +97,12 @@ class AtomizationResultExportService:
         for row_index, value in enumerate(angle_mid):
             sheet.cell(row=row_index + 7, column=5, value=value)
 
-    def _write_frequency_data(self, sheet, result_matrix: np.ndarray, max_freq: int) -> None:
+    def _write_frequency_data(self, sheet, result_matrix: np.ndarray, max_freq: int, frame_rate_hz: float) -> None:
         dft_result = (
-            dft(result_matrix[:, 0], 40000),
-            dft(result_matrix[:, 1], 40000),
-            dft(result_matrix[:, 2], 40000),
-            dft(result_matrix[:, 3], 40000),
+            dft(result_matrix[:, 0], frame_rate_hz),
+            dft(result_matrix[:, 1], frame_rate_hz),
+            dft(result_matrix[:, 2], frame_rate_hz),
+            dft(result_matrix[:, 3], frame_rate_hz),
         )
         freq_matrix = np.column_stack((
             dft_result[0][0],
@@ -148,39 +157,21 @@ class AtomizationResultExportService:
         chart3.height = 10
         sheet.add_chart(chart3, "K42")
 
-    def _update_summary(self, summary_path: Path, experiment_name: str, source_sheet) -> None:
-        experiment_no = self._extract_last_int(experiment_name)
-        if experiment_no is None:
-            return
-
-        summary_path = self.workbook_coordinator.close_if_open(summary_path)
-        workbook = openpyxl.load_workbook(summary_path)
-        sheet = workbook.active
-        target_row = experiment_no + 2
-
-        for source_col in range(1, 15):
-            source_title = source_sheet.cell(row=1, column=source_col).value
-            for target_col in range(1, sheet.max_column + 1):
-                if source_title == sheet.cell(row=1, column=target_col).value:
-                    sheet.cell(target_row, target_col, source_sheet.cell(row=2, column=source_col).value)
-
-        for target_col in range(1, sheet.max_column + 1):
-            title = sheet.cell(row=1, column=target_col).value
-            if title == "AngleL":
-                sheet.cell(target_row, target_col, source_sheet.cell(row=4, column=2).value)
-                sheet.cell(target_row, target_col + 1, source_sheet.cell(row=5, column=2).value)
-            if title == "AngleR":
-                sheet.cell(target_row, target_col, source_sheet.cell(row=4, column=3).value)
-                sheet.cell(target_row, target_col + 1, source_sheet.cell(row=5, column=3).value)
-            if title == "AtmAngle":
-                sheet.cell(target_row, target_col, source_sheet.cell(row=4, column=4).value)
-                sheet.cell(target_row, target_col + 1, source_sheet.cell(row=5, column=4).value)
-            if title == "AngleM":
-                sheet.cell(target_row, target_col, source_sheet.cell(row=4, column=5).value)
-                sheet.cell(target_row, target_col + 1, source_sheet.cell(row=5, column=5).value)
-
-        self.workbook_coordinator.save_and_open(workbook, summary_path)
-
-    def _extract_last_int(self, value: str) -> int | None:
-        digits = "".join(filter(str.isdigit, value[::-1]))[::-1]
-        return int(digits) if digits else None
+    def _update_summary(self, config: AtomizationExportConfig, source_sheet) -> None:
+        blocks = {
+            "XLeft": [source_sheet.cell(2, column).value for column in range(1, 15)],
+        }  # 旧参数块保持原顺序，避免把雾化参数 Y 写到液膜测量区的同名列
+        for column in range(2, 6):
+            title = source_sheet.cell(3, column).value
+            blocks[title] = [source_sheet.cell(row, column).value for row in (4, 5)]
+        extra_values = {
+            source_sheet.cell(1, column).value: source_sheet.cell(2, column).value
+            for column in (15, 16)
+        }
+        self.summary_service.update_blocks(
+            config.summary_path,
+            config.experiment_name,
+            blocks,
+            config.experiment_no,
+            extra_values=extra_values,
+        )

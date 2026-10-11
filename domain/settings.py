@@ -54,6 +54,7 @@ class AtomizationSettings:
     window_length: int = 100
     polyorder: int = 2
     max_freq: int = 100
+    frame_rate_hz: float = 40000.0  # 直接作为频谱采样率，不再按抽帧间隔换算
     export_dir: str = ""
     save_marked_images: bool = False
 

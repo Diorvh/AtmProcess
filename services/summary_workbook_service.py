@@ -70,6 +70,44 @@ class SummaryWorkbookService:
         self.workbook_coordinator.save_and_open(workbook, summary_path)
         return len(values)
 
+    def update_blocks(
+        self,
+        summary_path: str | Path,
+        experiment_name: str,
+        blocks: Mapping[str, Sequence[object]],
+        experiment_no: int | None = None,
+        *,
+        extra_values: Mapping[str, object] | None = None,
+    ) -> int:
+        summary_path = self.workbook_coordinator.close_if_open(summary_path)
+        workbook = openpyxl.load_workbook(summary_path)
+        try:
+            sheet = workbook.active
+            headers = self._header_map(sheet)
+            target_row = self._find_experiment_row(sheet, headers, experiment_name, experiment_no)
+            written_count = 0
+            for anchor_title, values in blocks.items():
+                start_column = self._find_column(headers, anchor_title)
+                if start_column is None:
+                    continue
+                for offset, value in enumerate(values):
+                    sheet.cell(target_row, start_column + offset, value)
+                    written_count += 1
+
+            for title, value in (extra_values or {}).items():
+                column = self._find_column(headers, title)
+                if column is None:
+                    column = sheet.max_column + 1  # 新增参数放到表尾，不移动已有结果列
+                    sheet.cell(1, column, title)
+                    headers[title] = column
+                sheet.cell(target_row, column, value)
+                written_count += 1
+
+            self.workbook_coordinator.save_and_open(workbook, summary_path)
+            return written_count
+        finally:
+            workbook.close()
+
     def read_contiguous_block(
         self,
         summary_path: str | Path,
@@ -77,17 +115,26 @@ class SummaryWorkbookService:
         anchor_title: str,
         count: int,
         experiment_no: int | None = None,
+        *,
+        extra_titles: Sequence[str] = (),
     ) -> list[object]:
         workbook = openpyxl.load_workbook(Path(summary_path), data_only=True)
-        sheet = workbook.active
-        headers = self._header_map(sheet)
-        target_row = self._find_existing_experiment_row(sheet, headers, experiment_name, experiment_no)
-        if target_row is None:
-            return []
-        anchor_column = self._find_column(headers, anchor_title)
-        if anchor_column is None:
-            return []
-        return [sheet.cell(target_row, anchor_column + index).value for index in range(count)]
+        try:
+            sheet = workbook.active
+            headers = self._header_map(sheet)
+            target_row = self._find_existing_experiment_row(sheet, headers, experiment_name, experiment_no)
+            if target_row is None:
+                return []
+            anchor_column = self._find_column(headers, anchor_title)
+            if anchor_column is None:
+                return []
+            values = [sheet.cell(target_row, anchor_column + index).value for index in range(count)]
+            for title in extra_titles:
+                column = self._find_column(headers, title)
+                values.append(sheet.cell(target_row, column).value if column is not None else None)
+            return values
+        finally:
+            workbook.close()
 
     def _header_map(self, sheet) -> dict[str, int]:
         headers: dict[str, int] = {}
