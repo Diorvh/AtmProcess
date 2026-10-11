@@ -2,16 +2,18 @@
 
 # AtmProcess 使用说明
 
-AtmProcess 是用于科研实验的 Windows 图像处理程序，支持液膜尺寸与破碎长度测量、平均图、彩色转灰度、火焰锥角和雾化锥角处理。界面可切换中文和英文。
+AtmProcess 是用于互击式喷嘴雾化燃烧实验图像处理的 Windows 图像处理程序，支持液膜尺寸与破碎长度测量、平均图、彩色转灰度、火焰锥角和雾化锥角处理。界面可切换中文和英文。
 
 程序附带编号29的20张雾化图像、提取参数和演示汇总表。第一次使用可以直接调参、计算和导出，不必先准备自己的实验数据。样例仅演示操作流程，不代表完整实验或论文全部结果的复现。
 
 ## 0. 对应论文
 
-1. 费立涵，张玉园，尤冠文，汤成龙，黄佐华，张锋. 高环境压力下撞击射流雾化实验研究[C]//2023年中国工程热物理学会燃烧学学术年会. 2023-05.（墙报交流）
-2. FEI L H, ZHANG F, TANG C L, XU T G, YANG A L, YANG B E, HUANG Z H. An experimental investigation on MMH/NTO impinging jets flame characteristics at high chamber pressure[J]. Proceedings of the Combustion Institute, 2024, 40(1-4): 105709. DOI: [10.1016/j.proci.2024.105709](https://doi.org/10.1016/j.proci.2024.105709).
-3. FEI L H, LI Y, TANG C L, HUANG Z H, YANG A L. New observation of unsteady jets impingement caused by nozzle cavitation at varying ambient gas pressures[J]. Experimental Thermal and Fluid Science, 2026, 178: 111811. DOI: [10.1016/j.expthermflusci.2026.111811](https://doi.org/10.1016/j.expthermflusci.2026.111811).
-4. 费立涵，李源，汤成龙，黄佐华. 高环境气体密度下撞击式喷嘴雾化特性实验研究[J]. 推进技术（在投）.
+1. （破碎长度）费立涵，张玉园，尤冠文，汤成龙，黄佐华，张锋. 高环境压力下撞击射流雾化实验研究[C]//2023年中国工程热物理学会燃烧学学术年会. 2023-05.（墙报交流）
+2. （火焰锥角）FEI L H, ZHANG F, TANG C L, XU T G, YANG A L, YANG B E, HUANG Z H. An experimental investigation on MMH/NTO impinging jets flame characteristics at high chamber pressure[J]. Proceedings of the Combustion Institute, 2024, 40(1-4): 105709. DOI: [10.1016/j.proci.2024.105709](https://doi.org/10.1016/j.proci.2024.105709).
+3. （雾化锥角）FEI L H, LI Y, TANG C L, HUANG Z H, YANG A L. New observation of unsteady jets impingement caused by nozzle cavitation at varying ambient gas pressures[J]. Experimental Thermal and Fluid Science, 2026, 178: 111811. DOI: [10.1016/j.expthermflusci.2026.111811](https://doi.org/10.1016/j.expthermflusci.2026.111811).
+4. （破碎长度、雾化锥角）费立涵，李源，汤成龙，黄佐华. 高环境气体密度下撞击式喷嘴雾化特性实验研究[J]. 推进技术（在投）.
+
+安装脚本不会安装 Python 本身，也不会安装 Excel。不同 Python 版本和依赖组合未全部进行兼容性测试；依赖清单见 [requirements.txt](requirements.txt)。
 
 ## 1. 下载与准备
 
@@ -62,17 +64,6 @@ python main.py
 
 四张灰度曲线也可分别导出 Excel 数据，使用雾化页面中的结果目录。预览图使用右侧设置的保存目录和文件名。
 
-### 如何理解演示汇总表
-
-汇总表沿用2023年4月15日原始实验表的布局：左侧保留喷注盘、压力、流量、图像范围等工况字段与相关公式，右侧为雾化提取参数和结果。已删除破碎长度区域、其他实验记录和无关工作表。
-
-- 第1行是字段名称，第2行保留原表单位及校准、修正信息，第3行是唯一的编号29工况记录。
-- 程序按“编号”查找工况，按标题查找参数位置；不是按 Excel 第29行或固定列字母写入。
-- 左侧原始范围为21000–21520帧，内置演示实际处理8000–8019帧。两者用途不同，备注中已注明；本次处理结果对应的帧号以批量结果表为准。
-- 历史锥角结果已清空，避免把旧统计值误认为这20张图的结果。保留的 `*RevStd` 原表字段目前不由汇总写入流程填充；相对标准差可在单独批量结果表中查看。
-- `RStartL`、`RStartR` 分别位于对应 `NumAvgL`、`NumAvgR` 之后。
-
-首次启动会把随程序发布的模板复制到结果目录。之后只写结果副本，不改原模板，也不覆盖已经存在的结果副本。单张预览用于调参，不会每刷新一次就改写汇总表。
 
 ## 4. 处理自己的数据
 
@@ -96,17 +87,6 @@ python main.py
 | 雾化锥角 | 单帧调参、灰度曲线检查、批量提取和汇总表读写。 |
 
 液膜测量切换实验编号或图像来源时会清空当前记录表，请先导出需要保留的数据。平均图、灰度转换等操作可能生成或覆盖输出图像，首次处理自己的数据前应保留原图备份。
-
-## 6. 设置、文件与常见问题
-
-- **下次打开还会回到样例吗？** 不会强制回到样例。关闭时保存 `settings.json`，下次恢复上次的页面、路径、参数和预览选项。
-- **如何重新体验首次启动？** 使用新的解压文件夹最直接。也可在关闭程序后先备份并移走 `settings.json`。已有结果副本不会因此被清空。
-- **安装失败怎么办？** 保留窗口中的错误信息，确认网络、Python版本以及目录可写，再运行配置脚本。不要把项目放在需要管理员权限才能写入的位置。
-- **启动提示先配置环境？** 先双击 `setup_env.bat`。仅在系统 Python 中安装依赖，不代表本目录 `.venv` 已配置。
-- **移动文件夹后启动失败？** 程序和设置可以迁移，但 `.venv` 不应直接跨路径或跨电脑复用。关闭程序，移走旧 `.venv`，在新位置重新运行配置脚本；保留 `settings.json` 和结果文件。
-- **Excel 被占用怎么办？** 程序只尝试保存、关闭与目标路径一致的 Excel 工作簿，不退出 Excel、不处理其他工作簿。若被 WPS 或其他应用占用，请手动保存并关闭目标文件后重试。
-- **文件写入成功但无法自动打开？** 为 `.xlsx` 设置默认打开应用。自动打开失败可能中断后续汇总步骤，应检查汇总表是否更新，解决关联问题后重试。
-- **样例是否提供完整论文数据？** 不提供。样例来源、位深和文件校验信息见 [样例说明](sample_data/README.md)。
 
 ## 详细文档
 
