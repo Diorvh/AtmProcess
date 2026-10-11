@@ -2,6 +2,8 @@
 
 `AtmProcess` 是独立的科研图像处理程序，提供液膜尺寸与破碎长度测量、平均图、灰度转换、火焰锥角和雾化锥角处理。
 
+当前定位为 Windows 科研桌面程序。论文配套发布前的已确认问题、复现要求与实施顺序见 [科研发布准备方案](docs/RESEARCH_RELEASE_PLAN_CN.md)。现有迁移检查不等同于算法的科学有效性验证。
+
 ## 运行
 
 在本目录安装依赖并启动：
@@ -39,6 +41,8 @@ python -m AtmProcess.main
 - `sample_data/`：用于测试的少量雾化图像。
 - `tests/`：独立导入、启动入口和多进程迁移检查。
 - `docs/ARCHITECTURE_CN.md`：详细中文架构说明。
+
+样例的文件清单和 SHA-256 校验值见 [样例说明](sample_data/README.md)。
 
 ## 配置与版本管理
 
