@@ -3,8 +3,9 @@ from __future__ import annotations
 import tkinter as tk
 from dataclasses import dataclass
 from pathlib import Path
-from tkinter import messagebox, ttk
 from typing import Callable
+
+from AtmProcess.ui import localized_dialogs as messagebox, localized_widgets as ttk
 
 
 def labeled_entry(parent, row: int, column: int, label: str, variable: tk.Variable, width: int = 10) -> ttk.Entry:

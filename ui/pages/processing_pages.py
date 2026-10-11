@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import tkinter as tk
-from tkinter import filedialog, ttk
 
 import cv2 as cv
 import matplotlib as mpl
@@ -15,6 +14,8 @@ from AtmProcess.application.app_state import AppState
 from AtmProcess.core.image_io import read_image
 from AtmProcess.lib.lib_AtmAngle import build_sampling_geometry, calculate_grayavg_byangle, find_last_greater_equal
 from AtmProcess.services.atomization_preview_export_service import AtomizationPreviewExportService
+from AtmProcess.ui import localized_dialogs as filedialog, localized_widgets as ttk
+from AtmProcess.ui.localization import language_for
 from AtmProcess.ui.preview.image_preview_pane import ImagePreviewPane, draw_angle_line
 from AtmProcess.ui.widgets import ActionFrame, BoundForm, FormField, labeled_entry
 
@@ -485,7 +486,7 @@ class MeasurementPage(PreviewActionFrame):
 class AveragePage(PreviewActionFrame):
     def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
-        ttk.Label(self, text="帧范围、实验目录和进程数使用上方实验参数面板。右侧显示当前帧或刚生成的平均图。").grid(row=0, column=0, columnspan=4, sticky="w")
+        ttk.Label(self, text="帧范围、实验目录和进程数使用上方实验参数面板。右侧显示当前帧或刚生成的平均图。", wraplength=620, justify="left").grid(row=0, column=0, columnspan=4, sticky="w")
         ttk.Button(self, text="彩色转灰度", command=self._convert_gray).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Button(self, text="计算并保存平均图", command=self._save_average).grid(row=1, column=1, sticky="w", padx=(8, 0), pady=(8, 0))
         self.add_status(2)
@@ -521,11 +522,13 @@ class AtomizationProfilePanel(ttk.Frame):
         self.artists = {}
         self._backgrounds = []
         self._initialized = False
+        self._language = language_for(self)
+        self._language.register(self)
 
         for title, axis in zip(self.titles, self.axes):
-            axis.set_title(title, fontsize=9)
-            axis.set_xlabel("角度/°", fontsize=8)
-            axis.set_ylabel("灰度", fontsize=8)
+            axis.set_title(self._language.text(title), fontsize=9)
+            axis.set_xlabel(self._language.text("角度/°"), fontsize=8)
+            axis.set_ylabel(self._language.text("灰度"), fontsize=8)
             axis.tick_params(labelsize=7)
             line, = axis.plot([], [], linewidth=1, animated=True)
             angle_line = axis.axvline(0, color="red", linestyle="--", linewidth=1, animated=True)
@@ -542,6 +545,15 @@ class AtomizationProfilePanel(ttk.Frame):
             ttk.Button(bottom, text=f"导出{title}", command=lambda title=title: self._export(title)).pack(side="left", padx=(0, 4))
         ttk.Label(self, textvariable=self.status).grid(row=2, column=0, sticky="w")
         self.columnconfigure(0, weight=1)
+
+    def refresh_language(self) -> None:
+        for title, axis in zip(self.titles, self.axes):
+            axis.set_title(self._language.text(title))
+            axis.set_xlabel(self._language.text("角度/°"))
+            axis.set_ylabel(self._language.text("灰度"))
+        self._backgrounds.clear()  # 曲线数据、坐标范围和采样缓存不变，只重建含新文字的绘图背景。
+        self.figure.tight_layout(pad=0.6)
+        self.canvas.draw_idle()
 
     def update_data(self, profile: dict) -> None:
         needs_rescale = not self._initialized

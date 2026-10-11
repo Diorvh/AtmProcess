@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from time import perf_counter
 import tkinter as tk
-from tkinter import filedialog, ttk
 
 from AtmProcess.application.app_state import AppState
+from AtmProcess.ui import localized_dialogs as filedialog, localized_widgets as ttk
+from AtmProcess.ui.localization import language_for
 from AtmProcess.ui.widgets import short_path
 
 
@@ -44,9 +45,10 @@ class ExperimentPanel(ttk.LabelFrame):
 
     def _create_widgets(self) -> None:
         process_row = ttk.Frame(self)
-        process_row.pack(anchor="w")
+        process_row.pack(fill="x")
         ttk.Label(process_row, text="进程数").pack(side="left")
         self._pack_entry(process_row, self.core_num, width=8)
+        ttk.Button(process_row, text="English / 中文", command=self._toggle_language).pack(side="right")
 
         path_group = ttk.Frame(self)
         path_group.pack(anchor="w", pady=(4, 0))
@@ -145,6 +147,12 @@ class ExperimentPanel(ttk.LabelFrame):
         context.frames.decimate = self.decimate.get()
         self.state.settings.preview.playback_fps = max(1, self.playback_fps.get())
         self._normalize_frame_context(update_vars=False)
+
+    def _toggle_language(self) -> None:
+        language = language_for(self)
+        selected = "en" if language.language == "zh" else "zh"
+        language.set_language(selected)  # 只更新显示文字，不提交输入框、不重算、不刷新图像。
+        self.state.settings.language = selected
 
     def refresh_from_state(self) -> None:
         context = self.context  # 取点等操作先改 AppState，再回填到输入框

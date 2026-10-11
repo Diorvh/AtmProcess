@@ -6,6 +6,7 @@ from tkinter import ttk
 from AtmProcess.application.actions import ProcessingActions
 from AtmProcess.application.app_state import AppState
 from AtmProcess.ui.experiment_panel import ExperimentPanel
+from AtmProcess.ui.localization import language_for
 from AtmProcess.ui.pages.processing_pages import ProcessingPages
 from AtmProcess.ui.preview import ImagePreviewPane
 
@@ -14,6 +15,7 @@ class AppWindow(ttk.Frame):
     def __init__(self, master: tk.Tk, state: AppState) -> None:
         super().__init__(master, padding=8)
         self.state = state
+        language_for(self).set_language(state.settings.language)
         self.actions = ProcessingActions(state)
         self.grid(sticky="nsew")  # AppWindow 自己填满 Tk 根窗口
         master.columnconfigure(0, weight=1)

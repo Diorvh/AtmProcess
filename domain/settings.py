@@ -87,6 +87,7 @@ class AppSettings:
     flame: FlameSettings = field(default_factory=FlameSettings)
     atomization: AtomizationSettings = field(default_factory=AtomizationSettings)
     active_page: str = "液膜测量"
+    language: str = "zh"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -96,6 +97,7 @@ class AppSettings:
             "flame": asdict(self.flame),
             "atomization": asdict(self.atomization),
             "active_page": self.active_page,
+            "language": self.language,
         }
 
     @classmethod
@@ -107,6 +109,7 @@ class AppSettings:
             flame=cls._dataclass_from_dict(FlameSettings, data.get("flame", {})),
             atomization=cls._dataclass_from_dict(AtomizationSettings, data.get("atomization", {})),
             active_page=data.get("active_page", "液膜测量"),
+            language=data.get("language", "zh"),
         )
 
     @staticmethod

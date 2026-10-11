@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 import tkinter as tk
-from tkinter import filedialog, ttk
 
 import cv2 as cv
 import numpy as np
@@ -11,6 +10,7 @@ from PIL import Image, ImageTk
 
 from AtmProcess.application.app_state import AppState
 from AtmProcess.core.image_io import read_image, write_tiff
+from AtmProcess.ui import localized_dialogs as filedialog, localized_widgets as ttk
 from AtmProcess.ui.widgets import short_path
 
 
@@ -69,7 +69,7 @@ class ImagePreviewPane(ttk.LabelFrame):
         ttk.Button(self.filename_bar, text="生成文件名", command=self.generate_filename).pack(side="left")
         ttk.Button(self.filename_bar, text="保存预览图", command=self.save_preview_image).pack(side="left", padx=(6, 0))
 
-        ttk.Label(self, textvariable=self.path_text).grid(row=4, column=0, sticky="w", pady=(6, 0))
+        ttk.Label(self, textvariable=self.path_text, translate=False).grid(row=4, column=0, sticky="w", pady=(6, 0))
         self.canvas = tk.Canvas(self, width=760, height=620, background="#222222", highlightthickness=0)
         self.canvas.grid(row=5, column=0, sticky="nsew", pady=(6, 0))
         self.canvas.bind("<Button-1>", self._handle_click)
