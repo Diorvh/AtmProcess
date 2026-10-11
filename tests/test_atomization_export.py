@@ -115,17 +115,20 @@ class AtomizationExportTests(unittest.TestCase):
             sheet = workbook.active
             headers = {cell.value: cell.column for cell in sheet[1]}
             self.assertEqual(workbook.sheetnames, ["测量数据"])
-            self.assertEqual(sheet.max_row, 3)
-            self.assertEqual(sheet.cell(3, headers["编号"]).value, 29)
-            self.assertEqual(sheet.cell(3, headers["U"]).value, 26.19499)
-            self.assertEqual(sheet.cell(3, headers["Pc"]).value, 4.99628)
-            self.assertEqual(sheet["F3"].value, "=E3*40")
-            self.assertEqual(sheet["Z3"].value, "=Y3+$Y$2")
+            self.assertEqual(sheet.max_row, 30)
+            self.assertEqual(sheet.cell(30, headers["编号"]).value, 29)
+            self.assertTrue(all(sheet.cell(row, headers["编号"]).value is None for row in range(2, 30)))
+            self.assertIsNone(sheet["B2"].value)
+            self.assertNotIn("图像备注", headers)
+            self.assertEqual(sheet.cell(30, headers["U"]).value, 26.19499)
+            self.assertEqual(sheet.cell(30, headers["Pc"]).value, 4.99628)
+            self.assertEqual(sheet["F30"].value, "=E30*40")
+            self.assertEqual(sheet["Y30"].value, "=X30+$X$2")
             self.assertNotIn("平均破碎长度/mm", headers)
             for index, title in enumerate(("AngleL", "AngleR", "AtmAngle", "AngleM")):
                 values = self.result.rows[:, index + 1] if index < 3 else np.mean(self.result.rows[:, 1:3], axis=1)
-                self.assertAlmostEqual(sheet.cell(3, headers[title]).value, np.mean(values))
-                self.assertAlmostEqual(sheet.cell(3, headers[title] + 1).value, np.std(values, ddof=1))
+                self.assertAlmostEqual(sheet.cell(30, headers[title]).value, np.mean(values))
+                self.assertAlmostEqual(sheet.cell(30, headers[title] + 1).value, np.std(values, ddof=1))
         finally:
             workbook.close()
         actions = ProcessingActions(SimpleNamespace(experiment=ExperimentContext(experiment_no=29, result_summary=path)))

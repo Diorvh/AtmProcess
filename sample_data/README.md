@@ -12,7 +12,7 @@ On first launch without a local `settings.json`, [settings.example.json](../sett
 
 ## Demonstration Summary Workbook
 
-`atomization_summary_template.xlsx` is based on `20230415喷注盘6-1-2高压雾化实验-5-数据总结.xlsx`, worksheet `测量数据`, experiment 29 (original Excel row 31). It retains the source header and units/correction rows, the condition fields and their formulas, and the atomization parameter/result layout. The breakup-length section, other experimental records and unrelated sheets are omitted. Formula references are adjusted to the single retained record in row 3; original scientific constants are unchanged.
+`atomization_summary_template.xlsx` is based on `20230415喷注盘6-1-2高压雾化实验-5-数据总结.xlsx`, worksheet `测量数据`, experiment 29 (original Excel row 31). It retains the source header and units/flow-correction information, the condition fields and their formulas, and the atomization parameter/result layout. The `1pix` calibration item, image-note column, breakup-length section, other experimental records and unrelated sheets are omitted. Formula references are adjusted to the single retained record in row 30 and to the removed column; intervening experiment records are blank and scientific constants in the retained formulas are unchanged.
 
 Historical angle results, process count and timing are blank. `RStartL` and `RStartR` are added beside their corresponding `NumAvg` fields with the sample's value of zero. The original image-range fields describe frames 21000–21520; the included demo actually processes 8000–8019, as noted separately in the workbook. The originally blank ambient-gas field is left blank rather than inferred.
 
