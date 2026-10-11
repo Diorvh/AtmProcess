@@ -43,10 +43,12 @@ class AtomizationExportTests(unittest.TestCase):
         self.exporter._write_angle_mid(sheet, np.mean(self.result.rows[:, 1:3], axis=1))
         return sheet
 
-    def summary_workbook(self, source):
+    def summary_workbook(self, source, paired_columns=False):
         workbook = openpyxl.Workbook()
         sheet = workbook.active
-        headers = [source.cell(1, column).value for column in range(1, 15)]
+        headers = [source.cell(1, column).value for column in range(1, source.max_column + 1)]
+        if not paired_columns:
+            headers = [title for title in headers if title not in ("RStartL", "RStartR")]
         sheet.append(["编号", "Y", "备注", *headers, "AngleL", "AngleLStd"])
         sheet.append(["1pix", 800, "calibration"])
         sheet.append([7, 700, "other experiment"])
@@ -77,8 +79,29 @@ class AtomizationExportTests(unittest.TestCase):
     def test_result_adds_only_radius_start_columns(self):
         sheet = self.source_sheet()
         self.assertEqual(sheet.max_column, 16)
-        self.assertEqual([sheet.cell(1, col).value for col in (15, 16)], ["RStartL", "RStartR"])
-        self.assertEqual([sheet.cell(2, col).value for col in (15, 16)], [12, 34])
+        self.assertEqual([sheet.cell(1, col).value for col in range(9, 13)], ["NumAvgL", "RStartL", "NumAvgR", "RStartR"])
+        self.assertEqual([sheet.cell(2, col).value for col in (10, 12)], [12, 34])
+
+    def test_summary_supports_radius_columns_next_to_each_num_avg(self):
+        source = self.source_sheet()
+        path = self.summary_workbook(source, paired_columns=True)
+        config = AtomizationExportConfig(self.root, path, 100, "实验编号24", experiment_no=24)
+        self.exporter._update_summary(config, source)
+        workbook = openpyxl.load_workbook(path)
+        try:
+            sheet = workbook.active
+            self.assertEqual(sheet.max_column, 21)
+            self.assertEqual(sheet.cell(4, 2).value, 600)
+            for column in range(1, 17):
+                self.assertAlmostEqual(sheet.cell(4, column + 3).value, source.cell(2, column).value)
+        finally:
+            workbook.close()
+        actions = ProcessingActions(SimpleNamespace(experiment=ExperimentContext(experiment_no=24, result_summary=path)))
+        parameters = actions.read_atomization_parameters_from_summary()
+        self.assertEqual(parameters["r_start_left"], 12)
+        self.assertEqual(parameters["r_start_right"], 34)
+        self.assertEqual(parameters["num_avg_right"], self.settings.num_avg_right)
+        self.assertEqual(parameters["thres_ratio_left"], self.settings.thres_ratio_left)
 
     def test_summary_uses_experiment_id_and_keeps_other_parameter_blocks(self):
         source = self.source_sheet()

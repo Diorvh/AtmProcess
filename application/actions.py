@@ -6,7 +6,7 @@ from AtmProcess.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
 from AtmProcess.core.image_io import write_tiff
 from AtmProcess.core.progress import ProgressCallback
 from AtmProcess.services.atomization_angle_service import AtomizationAngleService
-from AtmProcess.services.atomization_result_export_service import AtomizationExportConfig, AtomizationResultExportService
+from AtmProcess.services.atomization_result_export_service import ATOMIZATION_PARAMETER_FIELDS, AtomizationExportConfig, AtomizationResultExportService
 from AtmProcess.services.average_image_service import AverageImageService
 from AtmProcess.services.breakup_length_service import BreakupLengthService
 from AtmProcess.services.flame_angle_export_service import FlameAngleExportService
@@ -142,29 +142,13 @@ class ProcessingActions:
         experiment = self.state.experiment
         if not experiment.result_summary:
             raise ValueError("请先选择汇总表")
-        titles = [
-            "x_left",
-            "x_right",
-            "y",
-            "r_max",
-            "theta_left",
-            "theta_right",
-            "window_length",
-            "polyorder",
-            "num_avg_left",
-            "num_avg_right",
-            "thres_ratio_left",
-            "thres_ratio_right",
-        ]
-        values = self.summary_service.read_contiguous_block(
+        values = self.summary_service.read_parameters(
             experiment.result_summary,
             experiment.image_name,
             "XLeft",
-            len(titles),
+            [title for title, _field in ATOMIZATION_PARAMETER_FIELDS],
             experiment.experiment_no,
-            extra_titles=("RStartL", "RStartR"),
         )
         if not values:
             raise ValueError("汇总表中没有找到 XLeft 参数块")
-        titles.extend(("r_start_left", "r_start_right"))
-        return {title: value for title, value in zip(titles, values) if value is not None}
+        return {field: values[title] for title, field in ATOMIZATION_PARAMETER_FIELDS if values.get(title) is not None}

@@ -15,6 +15,16 @@ from AtmProcess.services.atomization_angle_service import AtomizationBatchResult
 from AtmProcess.services.summary_workbook_service import SummaryWorkbookService
 
 
+ATOMIZATION_PARAMETER_FIELDS = (
+    ("XLeft", "x_left"), ("XRight", "x_right"), ("Y", "y"), ("Rmax", "r_max"),
+    ("ThetaLeft", "theta_left"), ("ThetaRight", "theta_right"),
+    ("window_length", "window_length"), ("polyorder", "polyorder"),
+    ("NumAvgL", "num_avg_left"), ("RStartL", "r_start_left"),
+    ("NumAvgR", "num_avg_right"), ("RStartR", "r_start_right"),
+    ("ThresRatioL", "thres_ratio_left"), ("ThresRatioR", "thres_ratio_right"),
+)
+
+
 @dataclass(frozen=True)
 class AtomizationExportConfig:
     data_root: Path
@@ -63,17 +73,9 @@ class AtomizationResultExportService:
         return result_workbook
 
     def _write_batch_data(self, sheet, settings: AtomizationSettings, result: AtomizationBatchResult) -> None:
-        headers = [
-            "XLeft", "XRight", "Y", "Rmax", "ThetaLeft", "ThetaRight", "window_length", "polyorder",
-            "NumAvgL", "NumAvgR", "ThresRatioL", "ThresRatioR", "num_processes", "compute_time",
-            "RStartL", "RStartR",
-        ]
-        values = [
-            settings.x_left, settings.x_right, settings.y, settings.r_max, settings.theta_left, settings.theta_right,
-            settings.window_length, settings.polyorder, settings.num_avg_left, settings.num_avg_right,
-            settings.thres_ratio_left, settings.thres_ratio_right, result.process_count, result.compute_time,
-            settings.r_start_left, settings.r_start_right,
-        ]
+        headers = [title for title, _field in ATOMIZATION_PARAMETER_FIELDS] + ["num_processes", "compute_time"]
+        values = [getattr(settings, field) for _title, field in ATOMIZATION_PARAMETER_FIELDS]
+        values.extend((result.process_count, result.compute_time))
         angle_data = result.rows[:, 1:4]
         means = np.mean(angle_data, axis=0)
         standard_deviations = np.std(angle_data, axis=0, ddof=1) if len(angle_data) > 1 else np.zeros(3)
@@ -158,20 +160,19 @@ class AtomizationResultExportService:
         sheet.add_chart(chart3, "K42")
 
     def _update_summary(self, config: AtomizationExportConfig, source_sheet) -> None:
-        blocks = {
-            "XLeft": [source_sheet.cell(2, column).value for column in range(1, 15)],
-        }  # 旧参数块保持原顺序，避免把雾化参数 Y 写到液膜测量区的同名列
+        parameters = {
+            source_sheet.cell(1, column).value: source_sheet.cell(2, column).value
+            for column in range(1, source_sheet.max_column + 1)
+        }
+        blocks = {}
         for column in range(2, 6):
             title = source_sheet.cell(3, column).value
             blocks[title] = [source_sheet.cell(row, column).value for row in (4, 5)]
-        extra_values = {
-            source_sheet.cell(1, column).value: source_sheet.cell(2, column).value
-            for column in (15, 16)
-        }
-        self.summary_service.update_blocks(
+        self.summary_service.update_parameters(
             config.summary_path,
             config.experiment_name,
-            blocks,
+            "XLeft",
+            parameters,
             config.experiment_no,
-            extra_values=extra_values,
+            result_blocks=blocks,
         )

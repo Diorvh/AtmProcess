@@ -70,75 +70,77 @@ class SummaryWorkbookService:
         self.workbook_coordinator.save_and_open(workbook, summary_path)
         return len(values)
 
-    def update_blocks(
+    def update_parameters(
         self,
         summary_path: str | Path,
         experiment_name: str,
-        blocks: Mapping[str, Sequence[object]],
+        anchor_title: str,
+        parameters: Mapping[str, object],
         experiment_no: int | None = None,
         *,
-        extra_values: Mapping[str, object] | None = None,
+        result_blocks: Mapping[str, Sequence[object]] | None = None,
     ) -> int:
         summary_path = self.workbook_coordinator.close_if_open(summary_path)
         workbook = openpyxl.load_workbook(summary_path)
         try:
             sheet = workbook.active
             headers = self._header_map(sheet)
+            anchor_column = self._find_column(headers, anchor_title)
+            if anchor_column is None:
+                raise ValueError(f"汇总表中没有找到 {anchor_title} 参数块")
+            parameter_headers = self._header_map(sheet, anchor_column)  # 同名 Y 只匹配雾化参数区，不修改液膜测量区
             target_row = self._find_experiment_row(sheet, headers, experiment_name, experiment_no)
             written_count = 0
-            for anchor_title, values in blocks.items():
-                start_column = self._find_column(headers, anchor_title)
+            for title, value in parameters.items():
+                column = self._find_column(parameter_headers, title)
+                if column is None:
+                    column = sheet.max_column + 1  # 旧汇总表不自动插列，避免移动已有公式和图表引用
+                    sheet.cell(1, column, title)
+                sheet.cell(target_row, column, value)
+                written_count += 1
+
+            for title, values in (result_blocks or {}).items():
+                start_column = self._find_column(headers, title)
                 if start_column is None:
                     continue
                 for offset, value in enumerate(values):
                     sheet.cell(target_row, start_column + offset, value)
                     written_count += 1
 
-            for title, value in (extra_values or {}).items():
-                column = self._find_column(headers, title)
-                if column is None:
-                    column = sheet.max_column + 1  # 新增参数放到表尾，不移动已有结果列
-                    sheet.cell(1, column, title)
-                    headers[title] = column
-                sheet.cell(target_row, column, value)
-                written_count += 1
-
             self.workbook_coordinator.save_and_open(workbook, summary_path)
             return written_count
         finally:
             workbook.close()
 
-    def read_contiguous_block(
+    def read_parameters(
         self,
         summary_path: str | Path,
         experiment_name: str,
         anchor_title: str,
-        count: int,
+        titles: Sequence[str],
         experiment_no: int | None = None,
-        *,
-        extra_titles: Sequence[str] = (),
-    ) -> list[object]:
+    ) -> dict[str, object]:
         workbook = openpyxl.load_workbook(Path(summary_path), data_only=True)
         try:
             sheet = workbook.active
             headers = self._header_map(sheet)
             target_row = self._find_existing_experiment_row(sheet, headers, experiment_name, experiment_no)
             if target_row is None:
-                return []
+                return {}
             anchor_column = self._find_column(headers, anchor_title)
             if anchor_column is None:
-                return []
-            values = [sheet.cell(target_row, anchor_column + index).value for index in range(count)]
-            for title in extra_titles:
-                column = self._find_column(headers, title)
-                values.append(sheet.cell(target_row, column).value if column is not None else None)
-            return values
+                return {}
+            parameter_headers = self._header_map(sheet, anchor_column)
+            return {
+                title: sheet.cell(target_row, parameter_headers[title]).value
+                for title in titles if title in parameter_headers
+            }
         finally:
             workbook.close()
 
-    def _header_map(self, sheet) -> dict[str, int]:
+    def _header_map(self, sheet, start_column: int = 1) -> dict[str, int]:
         headers: dict[str, int] = {}
-        for column in range(1, sheet.max_column + 1):
+        for column in range(start_column, sheet.max_column + 1):
             value = sheet.cell(1, column).value
             if value is not None and str(value).strip():
                 headers.setdefault(str(value).strip(), column)  # 同名标题保留第一次出现的位置，例如破碎长度区和雾化区都有 Y
