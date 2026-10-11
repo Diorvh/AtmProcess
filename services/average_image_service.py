@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
 import numpy as np
 
-from ImageProcessv3.algorithms.average import calculate_average_image, process_color_to_gray
-from ImageProcessv3.core.progress import ProgressCallback
+from AtmProcess.algorithms.average import calculate_average_image, process_color_to_gray
+from AtmProcess.core.progress import ProgressCallback
 
 
 class AverageImageService:

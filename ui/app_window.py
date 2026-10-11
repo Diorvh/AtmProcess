@@ -1,20 +1,20 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
 
-from ImageProcessv3.application.actions import ImageProcessActions
-from ImageProcessv3.application.app_state import AppState
-from ImageProcessv3.ui.experiment_panel import ExperimentPanel
-from ImageProcessv3.ui.pages.processing_pages import ProcessingPages
-from ImageProcessv3.ui.preview import ImagePreviewPane
+from AtmProcess.application.actions import ProcessingActions
+from AtmProcess.application.app_state import AppState
+from AtmProcess.ui.experiment_panel import ExperimentPanel
+from AtmProcess.ui.pages.processing_pages import ProcessingPages
+from AtmProcess.ui.preview import ImagePreviewPane
 
 
 class AppWindow(ttk.Frame):
     def __init__(self, master: tk.Tk, state: AppState) -> None:
         super().__init__(master, padding=8)
         self.state = state
-        self.actions = ImageProcessActions(state)
+        self.actions = ProcessingActions(state)
         self.grid(sticky="nsew")  # AppWindow 自己填满 Tk 根窗口
         master.columnconfigure(0, weight=1)
         master.rowconfigure(0, weight=1)

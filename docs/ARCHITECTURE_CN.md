@@ -1,8 +1,8 @@
-# ImageProcess v3 架构说明
+# AtmProcess 架构说明
 
 ## 1. 程序定位
 
-`ImageProcessv3` 是面向科研图像数据处理的桌面程序，主要功能包括：
+`AtmProcess` 是面向科研图像数据处理的桌面程序，主要功能包括：
 
 - 液膜宽度、长度和破碎长度测量；
 - 平均图生成与彩色图转灰度图；
@@ -13,20 +13,20 @@
 
 程序以简洁、可读和可维护为优先目标。参数由科研人员负责设置，只保留能够防止程序进入明显错误状态的基础检查。
 
-v3 是独立程序包，不引用 v2 或旧 GUI 文件。雾化锥角计算全部由 Python 完成，不需要额外的可执行程序和通信文件。
+AtmProcess 的界面、算法和基础工具全部位于本目录。雾化锥角计算由 Python 完成，不需要额外的可执行程序和通信文件。
 
 ## 2. 运行方式
 
-在 `ImageProcessv3` 的上一级目录运行：
+在 `AtmProcess` 目录内运行：
 
 ```powershell
-python -m ImageProcessv3.main
+python main.py
 ```
 
-或者直接运行：
+或者在上一级目录运行：
 
 ```powershell
-python ImageProcessv3\main.py
+python -m AtmProcess.main
 ```
 
 入口文件是 `main.py`。它只负责创建 Tk 根窗口、加载状态、构建主界面以及在关闭时保存配置。
@@ -34,9 +34,12 @@ python ImageProcessv3\main.py
 ## 3. 分层结构
 
 ```text
-ImageProcessv3/
+AtmProcess/
 ├─ main.py
-├─ settings_v3.json
+├─ settings.json
+├─ settings.example.json
+├─ requirements.txt
+├─ tests/
 ├─ application/
 │  ├─ app_state.py
 │  ├─ actions.py
@@ -84,7 +87,7 @@ Domain 中只保存数据，不访问 Tkinter，不读取图像，也不写 Exce
 
 ### 4.2 Application
 
-`application/app_state.py` 持有当前 `AppSettings`，负责加载和保存 `settings_v3.json`，以及重新扫描帧范围。
+`application/app_state.py` 持有当前 `AppSettings`，负责加载和保存 `settings.json`，以及重新扫描帧范围。
 
 `application/actions.py` 是 GUI 的统一操作入口。页面只调用诸如：
 
@@ -167,7 +170,7 @@ Algorithms 只处理数组和数值参数，不了解 GUI 控件和 Excel 格式
 
 ### 5.2 向量化计算
 
-旧式算法逐角度、逐半径调用 Python 插值函数。v3 将一组角度和半径组成二维坐标矩阵，批量完成：
+算法将一组角度和半径组成二维坐标矩阵，批量完成：
 
 1. 采样坐标生成；
 2. 有效区域掩码；
@@ -182,7 +185,7 @@ Algorithms 只处理数组和数值参数，不了解 GUI 控件和 Excel 格式
 
 ```text
 用户点击“批量处理雾化锥角”
-  -> ImageProcessActions.run_atomization_batch()
+  -> ProcessingActions.run_atomization_batch()
   -> AtomizationAngleService.run_batch()
   -> FrameSelection 统一生成 start/end/decimate 对应的实际帧列表
   -> 按进程数均匀拆分帧列表
@@ -193,11 +196,11 @@ Algorithms 只处理数组和数值参数，不了解 GUI 控件和 Excel 格式
   -> 保存结果工作簿并更新汇总表
 ```
 
-单帧预览和批量处理共用 `AtomizationSamplingGeometry`、面积加权和阈值提取函数。多进程之间不共享 NumPy 缓存对象，每个进程只在开始处理自己的帧分块时建立一次缓存。
+播放预览和批量处理共用 `AtomizationSamplingGeometry`，普通单帧调参使用分块向量化实现。多进程之间不共享 NumPy 缓存对象，每个进程在开始处理自己的帧分块时建立缓存，图像尺寸变化时重建。
 
 平均图、彩色转灰度、火焰锥角和雾化锥角均接收同一份实际帧列表；当前帧加减按钮以及液膜测量快捷键也在该列表中移动。因此抽帧间隔统一限定四个页面能够处理的图像集合。
 
-Windows 启动多个 Python 进程存在数秒固定开销。1000 张左右时固定开销占比较高，10000 张时主要由实际计算决定。
+Windows 启动多个 Python 进程存在固定开销。服务层根据任务规模选择建议进程数：不超过 250、750、2000、5000 张时分别使用 1、2、4、6 个进程，更大任务使用 8 个进程，并受界面中设置的进程数上限限制。这是当前的经验规则，不保证所有机器、图像尺寸和计算参数下都最优。结果中的 `compute_time` 包含进程启动、图像读取和计算，不含后续 Excel 导出。
 
 ### 5.4 批处理进度
 
@@ -212,7 +215,7 @@ Windows 启动多个 Python 进程存在数秒固定开销。1000 张左右时�
 
 ## 6. 雾化结果工作簿
 
-为了兼容已有科研数据，v3 保留原工作簿布局：
+结果工作簿使用以下布局：
 
 - 第 1 行：参数标题；
 - 第 2 行：参数值和计算时间；
@@ -231,7 +234,7 @@ Windows 启动多个 Python 进程存在数秒固定开销。1000 张左右时�
 
 ## 7. 配置持久化
 
-`settings_v3.json` 位于 `ImageProcessv3` 目录内。关闭窗口时保存：
+`settings.json` 位于 `AtmProcess` 目录内。关闭窗口时保存：
 
 - 实验路径和编号；
 - 帧范围、当前帧和抽帧间隔；
@@ -241,7 +244,9 @@ Windows 启动多个 Python 进程存在数秒固定开销。1000 张左右时�
 - 预览图层勾选状态；
 - 导出目录与预览文件名。
 
-因此复制整个 `ImageProcessv3` 文件夹后，配置和程序代码仍保持在一起。
+因此复制整个 `AtmProcess` 文件夹后，配置和程序代码仍保持在一起。
+
+`settings.json` 属于本机运行状态，由 `.gitignore` 排除；代码仓库保留不含实验路径的 `settings.example.json`。缓存和虚拟环境同样不进入 Git，样例图像和迁移检查保留在仓库中。
 
 ## 8. 修改功能时的位置
 

@@ -6,9 +6,9 @@ from time import perf_counter
 
 import numpy as np
 
-from ImageProcessv3.algorithms.atomization import AtomizationParameters, calculate_atomization_batch
-from ImageProcessv3.core.progress import ProgressCallback
-from ImageProcessv3.domain.settings import AtomizationSettings
+from AtmProcess.algorithms.atomization import AtomizationParameters, calculate_atomization_batch
+from AtmProcess.core.progress import ProgressCallback
+from AtmProcess.domain.settings import AtomizationSettings
 
 
 _PROCESS_COUNT_BY_BATCH_SIZE = (

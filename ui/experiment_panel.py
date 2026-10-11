@@ -1,12 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 from time import perf_counter
 import tkinter as tk
 from tkinter import filedialog, ttk
 
-from ImageProcessv3.application.app_state import AppState
-from ImageProcessv3.ui.widgets import short_path
+from AtmProcess.application.app_state import AppState
+from AtmProcess.ui.widgets import short_path
 
 
 class ExperimentPanel(ttk.LabelFrame):

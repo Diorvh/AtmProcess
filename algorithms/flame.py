@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 from functools import partial
@@ -7,10 +7,10 @@ from pathlib import Path
 import cv2 as cv
 import numpy as np
 
-from ImageProcessv3.core.image_io import read_image, write_tiff
-from ImageProcessv3.core.parallel import split_sequence
-from ImageProcessv3.core.progress import ProgressCallback, map_with_progress, report_worker_progress
-from ImageProcessv3.lib.lib_Angle import (
+from AtmProcess.core.image_io import read_image, write_tiff
+from AtmProcess.core.parallel import split_sequence
+from AtmProcess.core.progress import ProgressCallback, map_with_progress, report_worker_progress
+from AtmProcess.lib.lib_Angle import (
     calc_Rparameter_flamedirection,
     calc_angle,
     calc_intensty,

@@ -1,5 +1,5 @@
-﻿import numpy as np
-from ImageProcessv3.lib.Interpolate2D import interpolate2D
+import numpy as np
+from AtmProcess.lib.Interpolate2D import interpolate2D
 def calc_angle(img,originx,originy,threshold):#给定图片，原点，阈值，计算一张图片的角度
     img=np.array(img[originy:,:],dtype='uint64')
     total_intensity=np.sum(img)
@@ -84,7 +84,7 @@ def calc_graydis_flamedirection(img,x,y,theta):#计算火焰方向上的灰度�
 def calc_Rparameter_flamedirection(img,X,Y,Threshold,theta):#只计算火焰方向上的强度
     gray=calc_graydis_flamedirection(img,X,Y,theta)
     return find_threshold_positions(gray,Threshold,1-Threshold)
-    
+
 def binary_search(l,x):#输入升序序列l，返回第一个>=最大值*x的位置
     a,b,tar=0,len(l)-1,l[-1]*x
     while a<b:
@@ -123,7 +123,7 @@ def calc_yavgdis(img,originx,originy,AngleL,AngleR):#返回0-originy之间每行
         upperbound=min(int(np.round(originx-i/np.tan(AngleR/180*np.pi))),img.shape[1]-1)
         y_avg.append(np.average(img[i,lowerbound:upperbound+1]))
     return np.array(y_avg)
-    
+
 def calc_thetaavgdis(img,originx,originy,AngleL,AngleR,YEnd=None):#返回L-R之间每隔0.1°的灰度值平均值（火焰核心区，yend限制以内）
     img=np.array(img[originy:,:],dtype='uint16')
     # cv2.imshow('Binary Image', img)

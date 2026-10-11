@@ -7,11 +7,11 @@ import numpy as np
 import openpyxl
 from openpyxl.chart import LineChart, Reference
 
-from ImageProcessv3.core.excel_io import write_matrix
-from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
-from ImageProcessv3.domain.settings import AtomizationSettings
-from ImageProcessv3.lib.dft import dft
-from ImageProcessv3.services.atomization_angle_service import AtomizationBatchResult
+from AtmProcess.core.excel_io import write_matrix
+from AtmProcess.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+from AtmProcess.domain.settings import AtomizationSettings
+from AtmProcess.lib.dft import dft
+from AtmProcess.services.atomization_angle_service import AtomizationBatchResult
 
 
 @dataclass(frozen=True)

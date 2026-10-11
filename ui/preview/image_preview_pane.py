@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
@@ -9,9 +9,9 @@ import cv2 as cv
 import numpy as np
 from PIL import Image, ImageTk
 
-from ImageProcessv3.application.app_state import AppState
-from ImageProcessv3.core.image_io import read_image, write_tiff
-from ImageProcessv3.ui.widgets import short_path
+from AtmProcess.application.app_state import AppState
+from AtmProcess.core.image_io import read_image, write_tiff
+from AtmProcess.ui.widgets import short_path
 
 
 PreviewRenderer = Callable[[np.ndarray, np.ndarray], np.ndarray]  # 页面接收显示图和原始图，避免算法再次读取文件。

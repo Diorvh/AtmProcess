@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import tkinter as tk
 from tkinter import filedialog, ttk
@@ -10,13 +10,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from scipy.signal import savgol_filter
 
-from ImageProcessv3.application.actions import ImageProcessActions
-from ImageProcessv3.application.app_state import AppState
-from ImageProcessv3.core.image_io import read_image
-from ImageProcessv3.lib.lib_AtmAngle import build_sampling_geometry, calculate_grayavg_byangle, find_last_greater_equal
-from ImageProcessv3.services.atomization_preview_export_service import AtomizationPreviewExportService
-from ImageProcessv3.ui.preview.image_preview_pane import ImagePreviewPane, draw_angle_line
-from ImageProcessv3.ui.widgets import ActionFrame, BoundForm, FormField, labeled_entry
+from AtmProcess.application.actions import ProcessingActions
+from AtmProcess.application.app_state import AppState
+from AtmProcess.core.image_io import read_image
+from AtmProcess.lib.lib_AtmAngle import build_sampling_geometry, calculate_grayavg_byangle, find_last_greater_equal
+from AtmProcess.services.atomization_preview_export_service import AtomizationPreviewExportService
+from AtmProcess.ui.preview.image_preview_pane import ImagePreviewPane, draw_angle_line
+from AtmProcess.ui.widgets import ActionFrame, BoundForm, FormField, labeled_entry
 
 
 mpl.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "SimSun", "Arial Unicode MS", "DejaVu Sans"]
@@ -28,7 +28,7 @@ class ProcessingPages(ttk.Notebook):
         self,
         master,
         state: AppState,
-        actions: ImageProcessActions,
+        actions: ProcessingActions,
         apply_context,
         sync_experiment_views,
         preview: ImagePreviewPane,
@@ -79,7 +79,7 @@ class ProcessingPages(ttk.Notebook):
 
 # 各功能页只定义自己的参数、按钮、预览图层和取点逻辑；右侧预览窗格由基类统一注册。
 class PreviewActionFrame(ActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, apply_context)
         self.state = state
         self.actions = actions
@@ -116,7 +116,7 @@ class PreviewActionFrame(ActionFrame):
 
 
 class MeasurementPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         measurement = state.settings.measurement
         self.mode = tk.StringVar(value=measurement.mode)
@@ -483,7 +483,7 @@ class MeasurementPage(PreviewActionFrame):
 
 
 class AveragePage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         ttk.Label(self, text="帧范围、实验目录和进程数使用上方实验参数面板。右侧显示当前帧或刚生成的平均图。").grid(row=0, column=0, columnspan=4, sticky="w")
         ttk.Button(self, text="彩色转灰度", command=self._convert_gray).grid(row=1, column=0, sticky="w", pady=(8, 0))
@@ -496,8 +496,8 @@ class AveragePage(PreviewActionFrame):
     def _save_average(self) -> None:
         result = self.run_progress_action("计算平均图", lambda: None, self.actions.save_average_image)
         if result is not None:
-            from ImageProcessv3.core.image_io import read_image
-            from ImageProcessv3.ui.preview.image_preview_pane import to_rgb8
+            from AtmProcess.core.image_io import read_image
+            from AtmProcess.ui.preview.image_preview_pane import to_rgb8
 
             image = read_image(result)
             self.preview.show_array(to_rgb8(image), result, source=image)  # 平均图生成后直接显示结果图
@@ -602,7 +602,7 @@ class AtomizationProfilePanel(ttk.Frame):
 
 
 class FlameBatchPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         flame = state.settings.flame
         self.form = BoundForm(
@@ -683,7 +683,7 @@ class FlameBatchPage(PreviewActionFrame):
 
 
 class AtomizationPage(PreviewActionFrame):
-    def __init__(self, master, state: AppState, actions: ImageProcessActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
+    def __init__(self, master, state: AppState, actions: ProcessingActions, apply_context, sync_experiment_views, preview: ImagePreviewPane) -> None:
         super().__init__(master, state, actions, apply_context, sync_experiment_views, preview)
         atom = state.settings.atomization
         self.form = BoundForm(

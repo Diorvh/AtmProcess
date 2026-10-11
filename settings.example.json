@@ -1,0 +1,15 @@
+{
+  "experiment": {
+    "core_num": 4,
+    "frames": {
+      "start": 0,
+      "end": 0,
+      "current": 0,
+      "decimate": 1
+    }
+  },
+  "atomization": {
+    "window_length": 101,
+    "polyorder": 1
+  }
+}

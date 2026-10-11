@@ -5,7 +5,7 @@ from typing import Mapping, Sequence
 
 import openpyxl
 
-from ImageProcessv3.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
+from AtmProcess.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
 
 
 class SummaryWorkbookService:

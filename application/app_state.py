@@ -1,16 +1,16 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
-from ImageProcessv3.core.config import SettingsStore
-from ImageProcessv3.application.frame_catalog import FrameCatalog
-from ImageProcessv3.domain.settings import AppSettings
+from AtmProcess.core.config import SettingsStore
+from AtmProcess.application.frame_catalog import FrameCatalog
+from AtmProcess.domain.settings import AppSettings
 
 
 class AppState:
     def __init__(self, settings_path: str | Path | None = None) -> None:
         if settings_path is None:
-            settings_path = Path(__file__).resolve().parents[1] / "settings_v3.json"
+            settings_path = Path(__file__).resolve().parents[1] / "settings.json"
         self.settings_store = SettingsStore(settings_path)
         self.settings = AppSettings.from_dict(self.settings_store.load())
         self.frame_catalog = FrameCatalog()

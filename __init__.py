@@ -1,1 +1,1 @@
-"""Standalone v3 GUI package for the ImageProcess application."""
+"""AtmProcess scientific image processing application."""

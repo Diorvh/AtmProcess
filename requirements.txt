@@ -1,6 +1,7 @@
 numpy
 opencv-python
 pillow
+matplotlib
 scipy
 openpyxl
 comtypes; platform_system == "Windows"

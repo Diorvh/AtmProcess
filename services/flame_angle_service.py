@@ -1,9 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
-from ImageProcessv3.algorithms.flame import calc_flame_angle_lightweight, calc_flame_angle_with_marked_images
-from ImageProcessv3.core.progress import ProgressCallback
+from AtmProcess.algorithms.flame import calc_flame_angle_lightweight, calc_flame_angle_with_marked_images
+from AtmProcess.core.progress import ProgressCallback
 
 
 class FlameAngleService:
