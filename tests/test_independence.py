@@ -70,6 +70,26 @@ with patch("tkinter.Tk") as create_root, patch("AtmProcess.ui.app_window.AppWind
     window.destroy.assert_called_once_with()
 '''.replace("MODULE_MODE", repr(module_mode)))
 
+    def test_direct_entry_uses_its_own_package_after_directory_rename(self):
+        self.run_isolated('''
+import runpy
+import shutil
+import sys
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+root = Path(sys.argv[1])
+with TemporaryDirectory() as directory:
+    copied = Path(directory) / "AtmProcess-main"
+    shutil.copytree(root, copied, ignore=shutil.ignore_patterns(".git", "__pycache__", "settings.json", "results", "*.tif"))
+    namespace = runpy.run_path(str(copied / "main.py"), run_name="bootstrap_test")
+    state = namespace["AppState"]()
+    assert state.settings_store.path == copied / "settings.json"
+    assert state.experiment.result_summary == copied / "sample_data/results/atomization_summary.xlsx"
+    assert state.experiment.result_summary.is_file()
+    assert Path(sys.modules["AtmProcess"].__file__).resolve() == copied / "__init__.py"
+''')
+
 
 if __name__ == "__main__":
     unittest.main()

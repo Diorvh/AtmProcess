@@ -15,10 +15,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 class SettingsStoreTests(unittest.TestCase):
+    def prepare_example(self, root):
+        shutil.copy2(PROJECT_ROOT / "settings.example.json", root / "settings.example.json")
+        (root / "sample_data").mkdir()
+        template = Path("sample_data/atomization_summary_template.xlsx")
+        shutil.copy2(PROJECT_ROOT / template, root / template)
+
     def test_fresh_install_loads_atomization_sample(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
-            shutil.copy2(PROJECT_ROOT / "settings.example.json", root / "settings.example.json")
+            self.prepare_example(root)
             state = AppState(root / "settings.json")
             self.assertEqual(state.settings.active_page, "雾化锥角")
             self.assertEqual(state.experiment.image_folder, root / "sample_data/atomization/实验编号29")
@@ -28,8 +34,21 @@ class SettingsStoreTests(unittest.TestCase):
             self.assertEqual(state.settings.atomization.thres_ratio_right, 0.5)
             self.assertEqual(state.settings.atomization.x_left, 277)
             self.assertEqual(state.settings.atomization.x_right, 302)
-            self.assertIsNone(state.experiment.result_summary)
+            summary = root / "sample_data/results/atomization_summary.xlsx"
+            self.assertEqual(state.experiment.result_summary, summary)
+            self.assertEqual(summary.read_bytes(), (root / "sample_data/atomization_summary_template.xlsx").read_bytes())
             self.assertFalse((root / "settings.json").exists())
+
+    def test_first_run_does_not_overwrite_existing_sample_results(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.prepare_example(root)
+            summary = root / "sample_data/results/atomization_summary.xlsx"
+            summary.parent.mkdir()
+            summary.write_bytes(b"previous result")
+            (root / "settings.json").touch()
+            AppState(root / "settings.json")
+            self.assertEqual(summary.read_bytes(), b"previous result")
 
     def test_personal_settings_take_precedence_without_merging_sample(self):
         with TemporaryDirectory() as directory:
@@ -39,6 +58,9 @@ class SettingsStoreTests(unittest.TestCase):
             path = root / "settings.json"
             path.write_text(json.dumps(data), encoding="utf-8")
             self.assertEqual(SettingsStore(path).load(), data)
+            state = AppState(path)
+            self.assertIsNone(state.experiment.result_summary)
+            self.assertFalse((root / "sample_data/results").exists())
 
     def test_paths_remain_portable_after_save_and_relocation(self):
         with TemporaryDirectory() as directory:

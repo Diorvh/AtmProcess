@@ -17,9 +17,13 @@ class SettingsStore:
     def __init__(self, path: str | Path = "settings.json") -> None:
         self.path = Path(path).resolve()
 
+    @property
+    def has_local_settings(self) -> bool:
+        return self.path.exists() and self.path.stat().st_size > 0
+
     def load(self) -> dict:
         source = self.path
-        if not source.exists() or source.stat().st_size == 0:
+        if not self.has_local_settings:
             source = self.path.with_name("settings.example.json")  # 首次启动使用随程序附带的样例设置。
         if not source.exists() or source.stat().st_size == 0:
             return {}

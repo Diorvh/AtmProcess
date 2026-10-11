@@ -7,7 +7,7 @@
     "core_num": 4,
     "direct_folder": "",
     "direct_image": "",
-    "result_summary": "",
+    "result_summary": "sample_data/results/atomization_summary.xlsx",
     "frames": {
       "start": 8000,
       "end": 8019,

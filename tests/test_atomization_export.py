@@ -1,3 +1,4 @@
+import shutil
 import sys
 import unittest
 from pathlib import Path
@@ -102,6 +103,30 @@ class AtomizationExportTests(unittest.TestCase):
         self.assertEqual(parameters["r_start_right"], 34)
         self.assertEqual(parameters["num_avg_right"], self.settings.num_avg_right)
         self.assertEqual(parameters["thres_ratio_left"], self.settings.thres_ratio_left)
+
+    def test_sample_summary_accepts_batch_results_and_parameter_readback(self):
+        template = Path(__file__).resolve().parents[1] / "sample_data/atomization_summary_template.xlsx"
+        path = self.root / "summary.xlsx"
+        shutil.copy2(template, path)
+        config = AtomizationExportConfig(self.root, path, 100, "实验编号29", experiment_no=29)
+        self.exporter.export(config, self.settings, self.result)
+        workbook = openpyxl.load_workbook(path)
+        try:
+            sheet = workbook.active
+            headers = {cell.value: cell.column for cell in sheet[1]}
+            self.assertEqual(sheet.max_row, 2)
+            self.assertEqual(sheet.cell(2, headers["编号"]).value, 29)
+            for index, title in enumerate(("AngleL", "AngleR", "AtmAngle", "AngleM")):
+                values = self.result.rows[:, index + 1] if index < 3 else np.mean(self.result.rows[:, 1:3], axis=1)
+                self.assertAlmostEqual(sheet.cell(2, headers[title]).value, np.mean(values))
+                self.assertAlmostEqual(sheet.cell(2, headers[title] + 1).value, np.std(values, ddof=1))
+        finally:
+            workbook.close()
+        actions = ProcessingActions(SimpleNamespace(experiment=ExperimentContext(experiment_no=29, result_summary=path)))
+        parameters = actions.read_atomization_parameters_from_summary()
+        self.assertEqual(parameters["y"], self.settings.y)
+        self.assertEqual(parameters["r_start_left"], self.settings.r_start_left)
+        self.assertEqual(parameters["r_start_right"], self.settings.r_start_right)
 
     def test_summary_uses_experiment_id_and_keeps_other_parameter_blocks(self):
         source = self.source_sheet()

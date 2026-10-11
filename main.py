@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import importlib.util
 import sys
 import tkinter as tk
 from pathlib import Path
 
-if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+if __package__ in (None, "") and "AtmProcess" not in sys.modules:
+    package_root = Path(__file__).resolve().parent
+    spec = importlib.util.spec_from_file_location(
+        "AtmProcess", package_root / "__init__.py", submodule_search_locations=[str(package_root)],
+    )
+    package = importlib.util.module_from_spec(spec)
+    sys.modules["AtmProcess"] = package  # GitHub ZIP 的解压目录可带有 -main 等后缀。
+    spec.loader.exec_module(package)
 
 from AtmProcess.application.app_state import AppState
 from AtmProcess.ui.app_window import AppWindow

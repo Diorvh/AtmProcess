@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from AtmProcess.core.config import SettingsStore
@@ -12,8 +13,19 @@ class AppState:
         if settings_path is None:
             settings_path = Path(__file__).resolve().parents[1] / "settings.json"
         self.settings_store = SettingsStore(settings_path)
+        first_run = not self.settings_store.has_local_settings
         self.settings = AppSettings.from_dict(self.settings_store.load())
+        if first_run:
+            self._prepare_sample_summary()
         self.frame_catalog = FrameCatalog()
+
+    def _prepare_sample_summary(self) -> None:
+        summary_path = self.experiment.result_summary
+        if summary_path is None or summary_path.exists():
+            return  # 不覆盖已有的样例计算结果。
+        template = self.settings_store.path.parent / "sample_data" / "atomization_summary_template.xlsx"
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(template, summary_path)  # 只写结果副本，保留随程序发布的原始模板。
 
     @property
     def experiment(self):
