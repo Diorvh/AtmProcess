@@ -15,15 +15,3 @@ def interpolate2D(data, x, y):
     z1 = interpolate1D(x, x1, data[x1][y1], x2, data[x2][y1])
     z2 = interpolate1D(x, x1, data[x1][y2], x2, data[x2][y2])
     return interpolate1D(y, y1, z1, y2, z2)
-
-
-def interpolate2Ddirect(data, x, y):
-    x1 = int(np.floor(x))
-    x2 = int(x) + 1
-    y1 = int(np.floor(y))
-    y2 = int(y) + 1
-    return (y2 - y) / (y2 - y1) * (
-        (x2 - x) / (x2 - x1) * data[x1][y1] + (x - x1) / (x2 - x1) * data[x2][y1]
-    ) + (y - y1) / (y2 - y1) * (
-        (x2 - x) / (x2 - x1) * data[x1][y2] + (x - x1) / (x2 - x1) * data[x2][y2]
-    )
