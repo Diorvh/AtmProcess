@@ -120,7 +120,7 @@ class MeasurementExportService:
         numeric = np.array(rows, dtype=object)
         frames = np.array(numeric[:, 1], dtype=float)
         lengths = np.array(numeric[:, 4], dtype=float)
-        average_breakup_length = self._frame_weighted_average(frames, lengths)
+        average_breakup_length = float(np.mean(lengths))
         title = [
             "X",
             impact_x,
@@ -179,15 +179,6 @@ class MeasurementExportService:
         if not summary_path:
             return
         self.summary_service.update_contiguous_block(summary_path, experiment_name, "平均破碎长度/mm", 3, values, experiment_no)
-
-    def _frame_weighted_average(self, frames: np.ndarray, lengths: np.ndarray) -> float:
-        if len(frames) <= 1:
-            return float(lengths[0])
-        area = 0.0
-        for index in range(len(frames) - 1):
-            area += (frames[index + 1] - frames[index] + 1) * (lengths[index + 1] + lengths[index]) / 2
-        area = area - np.sum(lengths) + lengths[0] + lengths[-1]
-        return float(area / (frames[-1] - frames[0] + 1))
 
     def _sample_std(self, values: np.ndarray) -> float:
         if len(values) <= 1:
