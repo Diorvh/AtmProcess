@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import openpyxl
 from openpyxl.chart import LineChart, Reference
+from openpyxl.chart.series import SeriesLabel
 
 from AtmProcess.core.excel_io import write_matrix
 from AtmProcess.core.excel_workbook_coordinator import ExcelWorkbookCoordinator
@@ -61,8 +62,8 @@ class AtomizationResultExportService:
         angle_data = result.rows[:, 1:4]
         angle_mid = (angle_data[:, 0] + angle_data[:, 1]) / 2
         self._write_angle_mid(sheet, angle_mid)
-        self._write_frequency_data(sheet, np.column_stack((angle_data, angle_mid)), config.max_freq, settings.frame_rate_hz)
-        self._add_charts(sheet, config.max_freq)
+        frequency_count = self._write_frequency_data(sheet, np.column_stack((angle_data, angle_mid)), config.max_freq, settings.frame_rate_hz)
+        self._add_charts(sheet, len(result.rows), frequency_count)
 
         config.result_workbook.parent.mkdir(parents=True, exist_ok=True)
         result_workbook = self.workbook_coordinator.save_and_open(workbook, config.result_workbook)
@@ -99,7 +100,7 @@ class AtomizationResultExportService:
         for row_index, value in enumerate(angle_mid):
             sheet.cell(row=row_index + 7, column=5, value=value)
 
-    def _write_frequency_data(self, sheet, result_matrix: np.ndarray, max_freq: int, frame_rate_hz: float) -> None:
+    def _write_frequency_data(self, sheet, result_matrix: np.ndarray, max_freq: int, frame_rate_hz: float) -> int:
         dft_result = (
             dft(result_matrix[:, 0], frame_rate_hz),
             dft(result_matrix[:, 1], frame_rate_hz),
@@ -117,47 +118,39 @@ class AtomizationResultExportService:
         write_matrix(sheet, [["f/Hz", "左边界角幅值/°", "右边界角幅值/°", "雾化锥角幅值/°", "锥角中心线幅值/°"]], row_start=3, col_start=6)
         max_amplitudes = np.max(freq_matrix[1:, 1:], axis=0) if len(freq_matrix) > 1 else np.zeros(4)
         write_matrix(sheet, [["最大值", *max_amplitudes]], row_start=4, col_start=6)
-        write_matrix(sheet, freq_matrix[:max_freq], row_start=5, col_start=6)
+        exported_frequencies = freq_matrix[:max(0, max_freq)]
+        write_matrix(sheet, exported_frequencies, row_start=5, col_start=6)
+        return len(exported_frequencies)
 
-    def _add_charts(self, sheet, max_freq: int) -> None:
-        legend_names = ["左锥角", "右锥角", "雾化锥角"]
+    def _add_charts(self, sheet, frame_count: int, frequency_count: int) -> None:
+        self._add_line_chart(
+            sheet, "时域信号", x_title="帧数", y_title="角度/°",
+            x_column=1, first_row=7, count=frame_count, anchor="K3",
+        )
+        for anchor in ("K22", "K42"):
+            self._add_line_chart(
+                sheet, "频域信号：DFT分解", x_title="频率/Hz", y_title="幅值/°",
+                x_column=6, first_row=5, count=frequency_count, anchor=anchor,
+            )
 
-        chart1 = LineChart()
-        chart1.title = "时域信号"
-        chart1.y_axis.title = "角度/°"
-        chart1.x_axis.title = "帧数"
-        chart1.add_data(Reference(sheet, min_col=2, min_row=7, max_col=5, max_row=sheet.max_row), titles_from_data=True)
-        for index, name in enumerate(legend_names):
-            chart1.series[index].name = name
-        chart1.set_categories(Reference(sheet, min_col=1, min_row=7, max_row=sheet.max_row))
-        chart1.width = 28
-        chart1.height = 10
-        sheet.add_chart(chart1, "K3")
-
-        max_freq_row = max(5, min(max_freq, sheet.max_row))
-        chart2 = LineChart()
-        chart2.title = "频域信号：DFT分解"
-        chart2.y_axis.title = "幅值/°"
-        chart2.x_axis.title = "频率"
-        chart2.add_data(Reference(sheet, min_col=7, min_row=5, max_col=10, max_row=max_freq_row), titles_from_data=True)
-        for index, name in enumerate(legend_names):
-            chart2.series[index].name = name
-        chart2.set_categories(Reference(sheet, min_col=6, min_row=5, max_row=max_freq_row))
-        chart2.width = 28
-        chart2.height = 10
-        sheet.add_chart(chart2, "K22")
-
-        chart3 = LineChart()
-        chart3.title = "频域信号：DFT分解"
-        chart3.y_axis.title = "幅值/°"
-        chart3.x_axis.title = "频率"
-        chart3.add_data(Reference(sheet, min_col=7, min_row=5, max_col=10, max_row=max(5, sheet.max_row // 2)), titles_from_data=True)
-        for index, name in enumerate(legend_names):
-            chart3.series[index].name = name
-        chart3.set_categories(Reference(sheet, min_col=6, min_row=5, max_row=max(5, sheet.max_row // 2)))
-        chart3.width = 28
-        chart3.height = 10
-        sheet.add_chart(chart3, "K42")
+    def _add_line_chart(
+        self, sheet, title: str, *, x_title: str, y_title: str,
+        x_column: int, first_row: int, count: int, anchor: str,
+    ) -> None:
+        if count == 0:
+            return
+        last_row = first_row + count - 1  # 横轴和四组数值共用实际数据范围，不从工作表总行数推算
+        chart = LineChart()
+        chart.title = title
+        chart.x_axis.title = x_title
+        chart.y_axis.title = y_title
+        chart.add_data(Reference(sheet, min_col=x_column + 1, max_col=x_column + 4, min_row=first_row, max_row=last_row))
+        for series, name in zip(chart.series, ("左锥角", "右锥角", "雾化锥角", "锥角中心线")):
+            series.tx = SeriesLabel(v=name)  # 显式写入 Excel 系列标题，不消耗第一行数值
+        chart.set_categories(Reference(sheet, min_col=x_column, min_row=first_row, max_row=last_row))
+        chart.width = 28
+        chart.height = 10
+        sheet.add_chart(chart, anchor)
 
     def _update_summary(self, config: AtomizationExportConfig, source_sheet) -> None:
         parameters = {
