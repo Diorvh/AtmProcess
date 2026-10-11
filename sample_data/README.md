@@ -1,6 +1,18 @@
 # Sample Data
 
-The five TIFF images under `atomization/实验编号55/` are the sample frames supplied with this project. They are retained for import, image-reading and multiprocessing checks, not as a complete experimental dataset or an independently validated scientific reference.
+The project includes 25 TIFF images in two small sample sets. They support GUI demonstration and regression checks, not a complete experimental dataset or an independently validated scientific reference.
+
+## Experiment 29: GUI Demonstration
+
+`atomization/实验编号29/` contains 20 frames, `8000.tif` through `8019.tif`, from the experiment recorded on 2023-04-15. They are the first 20 frames of the historical 8000-8500 processing interval, not the first frames of the Cine recording.
+
+The Cine was exported as 12-bit color TIFF and converted to grayscale with this program. The bundled images are single-channel `uint16` TIFF files; no 8-bit intermediate was used. Export details, parameter provenance, file sizes and SHA-256 checksums are recorded in [source.json](atomization/实验编号29/source.json).
+
+On first launch without a local `settings.json`, [settings.example.json](../settings.example.json) selects these images and loads the atomization parameters. Existing personal settings take precedence. This short sequence demonstrates the processing workflow; it is not a representative sample for experimental statistics.
+
+## Experiment 55: Regression Checks
+
+The five TIFF images under `atomization/实验编号55/` are retained for import, image-reading and multiprocessing checks.
 
 | File | Bytes | SHA-256 |
 | --- | ---: | --- |
@@ -12,4 +24,6 @@ The five TIFF images under `atomization/实验编号55/` are the sample frames s
 
 The existing multiprocessing check uses frames 6800, 6802 and 6804 and compares parallel results with a serial calculation. That checks execution consistency; it does not establish agreement with independent measurements.
 
-Before public distribution, the data owner needs to document acquisition conditions, calibration, permitted reuse and the relationship of these frames to the paper. No data license or publication permission is implied by this file. No ground-truth angles are currently provided.
+## Scope and Reuse
+
+Before public distribution, the data owner needs to confirm acquisition conditions, calibration, permitted reuse and the relationship of each sample set to the paper. Experiment 29 has the provenance record linked above; equivalent acquisition details are not yet provided for experiment 55. No data license or publication permission is implied by this file. No ground-truth angles are currently provided.

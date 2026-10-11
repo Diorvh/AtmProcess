@@ -13,3 +13,11 @@ dist/
 /settings.json
 /sample_data/results/
 ~$*.xlsx
+
+# Local assistant state, editor scratch files and research collections.
+.codex/
+.agents/
+.claude/
+.stignore
+tempCodeRunnerFile.*
+/testdata/
