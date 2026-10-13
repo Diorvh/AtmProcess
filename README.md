@@ -15,15 +15,13 @@ AtmProcess 是用于互击式喷嘴雾化燃烧实验图像处理的 Windows 图
 3. （雾化锥角）FEI L H, LI Y, TANG C L, HUANG Z H, YANG A L. New observation of unsteady jets impingement caused by nozzle cavitation at varying ambient gas pressures[J]. Experimental Thermal and Fluid Science, 2026, 178: 111811. DOI: [10.1016/j.expthermflusci.2026.111811](https://doi.org/10.1016/j.expthermflusci.2026.111811).
 4. （破碎长度、雾化锥角）费立涵，李源，汤成龙，黄佐华. 高环境气体密度下撞击式喷嘴雾化特性实验研究[J]. 推进技术（在投）.
 
-安装脚本不会安装 Python 本身，也不会安装 Excel。不同 Python 版本和依赖组合未全部进行兼容性测试；依赖清单见 [requirements.txt](requirements.txt)。
-
 ## 1. 下载与准备
 
 1. 下载仓库 ZIP 并**完整解压**到可写的本地文件夹，不要在压缩包内直接运行。文件夹可以保留 `AtmProcess-main` 等名称。
 2. 安装64位 Python 3.10或更高正式版，包含 pip 和 Tcl/Tk。安装程序及说明见 [Python Windows 下载页](https://www.python.org/downloads/windows/)。确保 `py` 启动器或 `python` 命令可用。
 3. 配置依赖时需要网络连接。结果表自动打开需要系统已关联 `.xlsx` 文件的应用；若需自动保存、关闭已打开的目标工作簿，需使用桌面版 Microsoft Excel。
 
-安装脚本不会安装 Python 本身，也不会安装 Excel。不同 Python 版本和依赖组合未全部进行兼容性测试；依赖清单见 [requirements.txt](requirements.txt)。
+依赖清单见 [requirements.txt](requirements.txt)。
 
 ## 2. 一键配置与启动
 
@@ -31,7 +29,7 @@ AtmProcess 是用于互击式喷嘴雾化燃烧实验图像处理的 Windows 图
 
 **日常使用：双击 `start.bat`。** 启动脚本始终使用本目录的 `.venv`，不用手动激活环境或输入命令。正常退出程序后，启动窗口会关闭；出错时保留错误信息。
 
-项目环境与其他 Python 项目的依赖隔离，不修改全局依赖。配置失败时可根据提示处理后重新运行 `setup_env.bat`；它不会清空实验数据或本机设置。有关独立环境的机制见 [Python venv 说明](https://docs.python.org/3/library/venv.html)。
+项目环境与其他 Python 项目的依赖隔离，不修改全局依赖。配置失败时可根据提示处理后重新运行 `setup_env.bat`。有关独立环境的机制见 [Python venv 说明](https://docs.python.org/3/library/venv.html)。
 
 已经有可用 Python 环境的用户，也可以在程序目录手动运行：
 
@@ -75,7 +73,7 @@ python main.py
 4. 切换到需要的功能页，设置标定和处理参数，先检查单张图像效果，再执行批量操作。
 5. 为自己的实验选择独立的结果目录和汇总表，不要继续把演示表当作真实实验的汇总表。
 
-自己的汇总表可参考演示表布局：第一行保留程序识别的字段标题，工况行使用唯一实验编号。可在雾化页面点击读取参数按钮，从所选汇总表恢复当前实验的提取参数。汇总表留空时仍可计算和导出独立结果，但不进行汇总写入，也不能从汇总表读取参数。
+自己的汇总表可参考演示表布局：第一行保留程序识别的字段标题，工况行使用唯一实验编号。可在雾化页面点击读取参数按钮，从所选汇总表恢复当前实验的提取参数。
 
 频域计算使用页面输入的图像帧率。应填写**参与处理的图像序列的采样频率**；若先做了抽帧，需要自行填写对应的有效频率，程序不会再自动除以抽帧间隔。
 
@@ -92,9 +90,7 @@ python main.py
 
 ## 许可证与引用
 
-程序代码及使用文档采用 [MIT License](LICENSE)，版权署名为 Lihan Fei（费立涵）。随仓库提供的样例图像、来源元数据和演示汇总表模板单独采用 [CC BY 4.0](sample_data/LICENSE)，不适用根目录的 MIT 许可；具体范围和署名方式见 [样例说明](sample_data/README.md#scope-and-reuse)。第三方依赖保留各自的许可证，用户自行输入的数据不因使用本程序而被授予上述许可。
-
-使用本软件开展研究并发表成果时，请引用上方与所用功能对应的论文。这是学术引用请求，不是 MIT 许可的额外条件。
+程序代码及使用文档采用 [MIT License](LICENSE)，版权署名为 Lihan Fei（费立涵）。随仓库提供的样例图像、来源元数据和演示汇总表模板单独采用 [CC BY 4.0](sample_data/LICENSE)；具体范围和署名方式见 [样例说明](sample_data/README.md#scope-and-reuse)。
 
 ## 详细文档
 
